@@ -3,3 +3,6 @@ __pycache__/
 
 # Ignorer le dossier Banque_de_solutions et son contenu
 Banque_de_solutions/
+
+# Ignorer le dossier APK et son contenu
+APK/

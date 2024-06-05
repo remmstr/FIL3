@@ -7,3 +7,4 @@ class Solution:
         self.sound = ""
         self.srt = ""
         self.video = ""
+

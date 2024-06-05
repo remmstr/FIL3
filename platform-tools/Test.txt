@@ -1,0 +1,4 @@
+
+.\adb devices
+
+.\adb install-multiple -s /path/to/apk.apk $(adb devices -l | awk '{print $1}' | tail -n +2)
