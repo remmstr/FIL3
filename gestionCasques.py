@@ -19,14 +19,3 @@ class GestionCasques:
      
 
 
-
-
-    #def list_devices():
-    #    devices = self.client.devices()
-     #   if devices:
-    #        for device in devices:
-     #           print(device.get_serial_no())
-     #           return
-     #   else:
-    #        print("--- Aucun appareil connecté.")
-     #   input("Appuyez sur Entrée pour fermer la fenêtre...")
