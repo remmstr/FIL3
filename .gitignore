@@ -1,0 +1,5 @@
+# Ignorer tous les dossiers __pycache__ et leur contenu
+__pycache__/
+
+# Ignorer le dossier Banque_de_solutions et son contenu
+Banque_de_solutions/
