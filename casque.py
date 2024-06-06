@@ -127,13 +127,28 @@ class Casque:
         print("-----------Fin de la désinstallation-----------")
 
 
+
+
     def add_solution(self):
         print("----->>>>Téléversement de la solution")
         self.print()
         print("Ajout d'une solution... cela peut prendre quelques minutes")
+
+        # Définir les chemins vers adb et le chemin du fichier sur l'appareil
+        adb_exe = "./platform-tools/adb.exe"
+        remote_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/Downloaded/upload"
+
         try:
+            # Supprimer le fichier upload existant sur l'appareil
+            subprocess.run([adb_exe, "-s", self.numero, "shell", "rm", "-r", remote_path], check=True)
+            print("Fichier upload supprimé avec succès, téléversement du nouveau fichier en cours...")
+        except subprocess.CalledProcessError as e:
+            print(f"Une erreur est survenue lors de la suppression du fichier upload : {e}")
+
+        try:
+            # Téléverser le nouveau fichier upload
             result = subprocess.run(
-                ["adb", "-s", self.numero, "push", "./Banque_de_solutions/upload", "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/Downloaded/upload"],
+                [adb_exe, "-s", self.numero, "push", "./Banque_de_solutions/upload", remote_path],
                 check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
             print("Téléversement réussi.")
@@ -142,3 +157,4 @@ class Casque:
             print(f"Une erreur est survenue lors du téléversement de la solution : {e}")
             print(e.stderr.decode("utf-8"))
         print("-----------Fin du téléversement-----------")
+
