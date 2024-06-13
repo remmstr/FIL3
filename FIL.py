@@ -5,62 +5,75 @@ from marque import Marque
 from ressources import Ressources
 import os
 
+import subprocess
+import threading
+import time
+
+
+# Fonction pour démarrer le suivi des périphériques MAIS JE SOUHAITERAIS FAIRE DES INTERRUPTIONS JE TROUVE PAS OU CETTE PARTIE
+def track_devices(casques):
+    while True :
+        casques.refresh_casques()
+        time.sleep(0.5)
+
+            
 def display_menu():
-    
-    print("\n" + "="*30)
+    subprocess.run(["powershell", "-Command", "Clear-Host"])
+    print("\n" + "="*40)
     print("          Menu Principal          ")
-    print("="*30)
+    print("="*40)
     print("1. Afficher les casques")
     print("2. Installer les APKs")
-    print("3. Installer la solution 'Humour et Drague'")
+    print("3. Installer les solutions ")
     print("4. Quitter")
-    print("="*30)
+    print("="*40)
+    print()
+    
 
 
+# Fonction principale
 def main():
     try:
-        print("------ Hello Nathalie ! Bienvenue dans l'application de gestion des solutions VR ------")
         casques = GestionCasques()
+
+        # Démarrer le suivi des périphériques dans un thread séparé
+        tracking_thread = threading.Thread(target=track_devices, args=(casques,))
+        tracking_thread.daemon = True
+        tracking_thread.start()
 
         while True:
             
             display_menu()
-            print()
-            print("REMARQUES:  " )
-            print(" - Relancer le logiciel en cas de rebranchement des casques" )
-            print(" - Un dock multi usb peut engendrer des erreurs")
-            print(" - Si aucune solution n'a jamais été installé sur le casque, cela peut malfonctionné, je conseille de le débranché puis rebranché après installation de l'apk")
-            print(" - Il faut que la licence et l'ajout de la solution soit bien associé au casque avant l'utilisation du logiciel sinon ça ne marche pas  ")
-            print(" - Il est probable qu'une mise à jour partiel de la solution reste à faire dans le casque malgré le téléversement réalisé ")
-            print(" - Sur certain casque le téléversement de la solution ne fonctionnait pas :/, il faut donc le faire dans le casque" )
-            print()
-            choix = input("Choisissez une option (1-4) : (Prévu pour faire dans l'ordre) ")
+            choix = input("Choisissez une option (1-4) : ")
 
+            subprocess.run(["powershell", "-Command", "Clear-Host"])
 
             if choix == '1':
-                print("\n" + "-"*30)
+                print("\n" + "-"*40)
                 print("       Affichage des casques       ")
-                print("-"*30)
+                print("-"*40)
                 casques.print()
             elif choix == '2':
-                print("\n" + "-"*30)
+                print("\n" + "-"*40)
                 print("       Installation des APKs       ")
-                print("-"*30)
+                print("-"*40)
                 casques.install_All_APK()
             elif choix == '3':
-                print("\n" + "-"*30)
-                print("Installation de la solution 'Humour et Drague'")
-                print("-"*30)
+                print("\n" + "-"*40)
+                print("Installation des solutions")
+                print("-"*40)
                 casques.install_All_Solution()
             elif choix == '4':
-                print("\n" + "-"*30)
+                print("\n" + "-"*40)
                 print("           Quitter le menu         ")
-                os.exit()  # Fermer le programme
-                print("-"*30)   
+                os.close()  # Fermer le programme
+                print("-"*40)   
             else:
-                print("\n" + "-"*30)
+                print("\n" + "-"*40)
                 print("    Option invalide, veuillez réessayer")
-                print("-"*30)
+                print("-"*40)
+
+            input("[ Appuyez sur Entrée pour revenir au menu ]")
 
     except Exception as e:
         print(f"Une erreur est survenue: {e}")

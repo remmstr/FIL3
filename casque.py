@@ -3,6 +3,21 @@ from marque import Marque
 from ressources import Ressources
 import subprocess
 import os
+import re
+
+
+
+
+# Fonction pour obtenir le chemin absolu du fichier/dossier
+def resource_path(relative_path):
+    """Obtenir le chemin absolu du fichier, fonctionne pour dev et pour PyInstaller"""
+    try:
+        # PyInstaller crée un dossier temporaire et stocke le chemin dans _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+    
 
 class Casque:
 
@@ -15,15 +30,31 @@ class Casque:
         self.JSON_path = "NULL"
         self.solutions_install = []
         self.solutions_pour_install = []
-    
+        
+    def refresh_casque(self, device):
+        self.device = device
+        self.numero = self.device.get_serial_no().strip()
+        self.marque.setNom(self.device.shell("getprop ro.product.manufacturer").strip())
+        self.modele = self.device.shell("getprop ro.product.model").strip()
+        self.version_apk = self.get_installed_apk_version()
+        self.check_json_file()
+        self.solutions_install = []
+        self.solutions_pour_install = []
+       
+
     def print(self):
-        print(f"| Numéro de série : {self.numero}")
-        print(f"| Modèle : {self.modele}")
-        print(f"| Marque : {self.marque.nom}")
-        print(f"|     APK de la marque : {self.marque.version_apk}")
-        print(f"|     Chemin de l'APK de la marque : {self.marque.APK_path}")
-        print(f"| APK du casque : {self.version_apk}")
-        print(f"| JSON : {self.JSON_path}")
+        # Définir le code de couleur ANSI pour le bleu
+        BLUE = '\033[94m'
+        RESET = '\033[0m'
+
+        # Utiliser les codes de couleur pour chaque ligne
+        print(BLUE + f"| Numéro de série : {self.numero}" + RESET)
+        print(BLUE + f"| Modèle : {self.modele}" + RESET)
+        print(BLUE + f"| Marque : {self.marque.nom}" + RESET)
+        print(BLUE + f"|     APK de la marque : {self.marque.version_apk}" + RESET)
+        print(BLUE + f"|     Chemin de l'APK disponible de la marque : {self.marque.APK_path}" + RESET)
+        print(BLUE + f"| APK installé sur le casque : {self.version_apk}" + RESET)
+        print(BLUE + f"| JSON : {self.JSON_path}" + RESET)
         # affiche toutes les solutions à faire plus tard
 
     #le truc cool serait de faire venir ici l'instanciation des données pour + de logique 
@@ -56,7 +87,7 @@ class Casque:
         self.print()
 
         # Définir les chemins vers adb et le nom de package
-        adb_exe = "./platform-tools/adb.exe"
+        adb_exe = resource_path("platform-tools/adb.exe")
         # Package name de l'application
         package_name = "com.VRAI_Studio.Reverto"
 
@@ -71,14 +102,19 @@ class Casque:
         for command in commands:
             try:
                 subprocess.run(command, check=True)
+
                 print(f"Permission accordée avec succès")
             except subprocess.CalledProcessError as e:
                 print(f"Erreur lors de l'accord de la permission : {e}")
  
         try:
             # Exécuter la commande adb pour installer l'APK
+
             subprocess.run([adb_exe, "-s", self.numero, "install", self.marque.APK_path], check=True)
-            print("Installation de l'APK réussie.")
+            
+            RESET = '\033[0m'
+            GREEN = '\033[92m'
+            print(GREEN +f"Installation de l'APK réussie."+ RESET)
         except subprocess.CalledProcessError as e:
             print(f"Une erreur est survenue lors de l'installation de l'APK : {e}")
 
@@ -110,7 +146,8 @@ class Casque:
         self.print()
 
         # Définir les chemins vers adb et le nom de package
-        adb_exe = "./platform-tools/adb.exe"
+        adb_exe = resource_path("platform-tools/adb.exe")
+
         # Package name de l'application
         package_name = "com.VRAI_Studio.Reverto"
 
@@ -126,7 +163,31 @@ class Casque:
 
         print("-----------Fin de la désinstallation-----------")
 
+    
 
+    def get_installed_apk_version(self):
+
+        adb_exe = resource_path("platform-tools/adb.exe")
+        package_name = "com.VRAI_Studio.Reverto"
+
+        try:
+            result = subprocess.run([adb_exe, "-s", self.numero, "shell", "dumpsys", "package", package_name], 
+                                    check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            output = result.stdout.decode('utf-8')
+            
+            # Rechercher la version de l'APK
+            version_match = re.search(r'versionName=(\S+)', output)
+            if version_match:
+                version = version_match.group(1)
+                return version
+            else:
+                print("Impossible de déterminer la version de l'APK installée.")
+                return None
+
+        except subprocess.CalledProcessError as e:
+            print(f"Une erreur est survenue lors de l'obtention de la version de l'APK : {e}")
+            print(e.stderr.decode('utf-8'))
+            return None
 
 
     def add_solution(self):
@@ -135,9 +196,9 @@ class Casque:
         print("Ajout d'une solution... cela peut prendre quelques minutes")
 
         # Définir les chemins vers adb et le chemin du fichier sur l'appareil
-        adb_exe = "./platform-tools/adb.exe"
+        adb_exe = resource_path("platform-tools/adb.exe")
         remote_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/Downloaded/upload"
-
+        
         try:
             # Supprimer le fichier upload existant sur l'appareil
             subprocess.run([adb_exe, "-s", self.numero, "shell", "rm", "-r", remote_path], check=True)
@@ -151,10 +212,16 @@ class Casque:
                 [adb_exe, "-s", self.numero, "push", "./Banque_de_solutions/upload", remote_path],
                 check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
-            print("Téléversement réussi.")
+            RESET = '\033[0m'
+            GREEN = '\033[92m'
+            print(GREEN +f"Téléversement réussi.."+ RESET)
             print(result.stdout.decode("utf-8"))
         except subprocess.CalledProcessError as e:
             print(f"Une erreur est survenue lors du téléversement de la solution : {e}")
             print(e.stderr.decode("utf-8"))
         print("-----------Fin du téléversement-----------")
 
+    def find_All_Solutions(self):
+        print("e")
+        #lecture du fichier json
+        #récuper pour chaque partie les dossier associé et les mettres dedans

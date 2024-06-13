@@ -6,3 +6,9 @@ Banque_de_solutions/
 
 # Ignorer le dossier APK et son contenu
 APK/
+
+dist/
+build/
+
+# Ignorer le dossier APK et son contenu
+Fil_all.spec
