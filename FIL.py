@@ -25,7 +25,8 @@ def display_menu():
     print("1. Afficher les casques")
     print("2. Installer les APKs")
     print("3. Installer les solutions ")
-    print("4. Quitter")
+    print("4. Archiver un casque (brancher un seul casque)")
+    print("5. Quitter")
     print("="*40)
     print()
     
@@ -35,16 +36,19 @@ def display_menu():
 def main():
     try:
         casques = GestionCasques()
+        casques.refresh_casques()
 
         # Démarrer le suivi des périphériques dans un thread séparé
-        tracking_thread = threading.Thread(target=track_devices, args=(casques,))
-        tracking_thread.daemon = True
-        tracking_thread.start()
+        #tracking_thread = threading.Thread(target=track_devices, args=(casques,))
+        #tracking_thread.daemon = True
+        #tracking_thread.start()
 
         while True:
             
             display_menu()
-            choix = input("Choisissez une option (1-4) : ")
+            print("COMMENTAIRE: Veuillez relancer l'application en cas de rebranchements ")
+            print()
+            choix = input("Choisissez une option (1-5) : ")
 
             subprocess.run(["powershell", "-Command", "Clear-Host"])
 
@@ -60,10 +64,15 @@ def main():
                 casques.install_All_APK()
             elif choix == '3':
                 print("\n" + "-"*40)
-                print("Installation des solutions")
+                print("       Installation des solutions       ")
                 print("-"*40)
                 casques.install_All_Solution()
             elif choix == '4':
+                print("\n" + "-"*40)
+                print("           Archivage du casque         ")
+                casques.archivage()
+                print("-"*40)   
+            elif choix == '5':
                 print("\n" + "-"*40)
                 print("           Quitter le menu         ")
                 os.close()  # Fermer le programme

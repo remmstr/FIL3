@@ -2,6 +2,7 @@ from ppadb.client import Client as AdbClient
 from casque import Casque
 import subprocess
 import os
+import sys
 
 # Fonction pour obtenir le chemin absolu du fichier/dossier
 def resource_path(relative_path):
@@ -72,6 +73,13 @@ class GestionCasques:
             print()
             print(f"Casque #{i}:")
             casque.add_solution()
+            print("-" * 20)
+
+    def archivage(self):
+        for i, casque in enumerate(self.liste_casques, 1):
+            print()
+            print(f"Casque #{1}:")
+            casque.archivage_casque()
             print("-" * 20)
 
     pass

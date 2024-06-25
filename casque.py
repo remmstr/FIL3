@@ -4,6 +4,7 @@ from ressources import Ressources
 import subprocess
 import os
 import re
+import sys
 
 
 
@@ -68,8 +69,9 @@ class Casque:
         json_file_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/hardware.json"
 
         try:
-            # Exécuter la commande adb shell ls pour lister les fichiers dans le répertoire spécifié
-            output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", json_file_path]).decode("utf-8")
+            # Exécuter la commande adb shell ls pour lister les fichiers dans le répertoire spécifié et evite 'afficher que JSON n'exite pas car sortie rediriger vers fichier NULL
+            output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", json_file_path],
+                                             stderr=subprocess.DEVNULL).decode("utf-8")
             # Vérifier si le nom du fichier existe dans la sortie
             if json_file_path in output:
                 self.JSON_path = os.path.dirname(json_file_path)
@@ -82,6 +84,7 @@ class Casque:
             return False
 
     def install_APK(self):
+ 
         print("----->>>> Installation de l'APK")
         #self.uninstall_APK()  # Désinstaller l'APK avant l'installation
         self.print()
@@ -117,6 +120,10 @@ class Casque:
             print(GREEN +f"Installation de l'APK réussie."+ RESET)
         except subprocess.CalledProcessError as e:
             print(f"Une erreur est survenue lors de l'installation de l'APK : {e}")
+            print(f"forcer l'installaion en supprimant l'ancienne app")
+            #ATTTENTION BOUCLE INFINI POSSIBLE ON EN VEUT PAAAAAAAAAAAAAAAAS
+            self.uninstall_APK()  # Désinstaller l'APK avant l'installation
+            self.install_APK()  # Désinstaller l'APK avant l'installation
 
         
         
@@ -134,7 +141,7 @@ class Casque:
                 print(f"Permission accordée avec succès")
             except subprocess.CalledProcessError as e:
                 print(f"Erreur lors de l'accord de la permission : {e}")
- 
+
 
 
         #self.device.install(self.marque.APK_path)
@@ -191,7 +198,7 @@ class Casque:
 
 
     def add_solution(self):
-        print("----->>>>Téléversement de la solution")
+        print("----->>>> Téléversement de la solution")
         self.print()
         print("Ajout d'une solution... cela peut prendre quelques minutes")
 
@@ -214,14 +221,40 @@ class Casque:
             )
             RESET = '\033[0m'
             GREEN = '\033[92m'
-            print(GREEN +f"Téléversement réussi.."+ RESET)
+            print(GREEN +f"Téléversement réussi."+ RESET)
             print(result.stdout.decode("utf-8"))
         except subprocess.CalledProcessError as e:
             print(f"Une erreur est survenue lors du téléversement de la solution : {e}")
             print(e.stderr.decode("utf-8"))
         print("-----------Fin du téléversement-----------")
+    
+    def archivage_casque(self) :
+        print("----->>>> Archivage du casque")
+        self.print()
+        print("Copie des dossiers... cela peut prendre quelques minutes")
 
-    def find_All_Solutions(self):
-        print("e")
-        #lecture du fichier json
-        #récuper pour chaque partie les dossier associé et les mettres dedans
+        # Définir les chemins vers adb et le chemin du fichier sur l'appareil
+        adb_exe = resource_path("platform-tools/adb.exe")
+        remote_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto"
+        
+        local_archivage_path = "./Archivage"
+
+        # Créer le dossier Archivage s'il n'existe pas
+        if not os.path.exists(local_archivage_path):
+            os.makedirs(local_archivage_path)
+
+        try:
+            # Téléverser le nouveau fichier upload
+            result = subprocess.run(
+                [adb_exe, "-s", self.numero, "pull", remote_path,"./Archivage"],
+                check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+            RESET = '\033[0m'
+            GREEN = '\033[92m'
+            print(GREEN +f"Copie réussi."+ RESET)
+            print(result.stdout.decode("utf-8"))
+        except subprocess.CalledProcessError as e:
+            print(f"Une erreur est survenue lors de la copie : {e}")
+            print(e.stderr.decode("utf-8"))
+        print("-----------Fin de l'archivage-----------")
+        
