@@ -54,5 +54,11 @@ class GestionCasques:
             casque.archivage_casque()
             print("-" * 20)
 
+    def share_wifi_to_ALL_casque(self):
+        for i, casque in enumerate(self.liste_casques, 1):
+            print(f"\nCasque #{1}:")
+            casque.share_wifi_to_casque()
+            print("-" * 20)
+
 # Utilisation du Singleton
 gestion_casques = GestionCasques.getInstance()

@@ -178,4 +178,89 @@ class Casque:
             print(e.stderr.decode("utf-8"))
 
         print("-----------Fin de l'archivage-----------")
+
+    def get_wifi_credentials(self):
+        try:
+            # Get the SSID of the current WiFi
+            ssid_output = subprocess.check_output(["netsh", "wlan", "show", "interfaces"], shell=False).decode('cp850')
+            print(ssid_output)
+
+            ssid = ""
+            for line in ssid_output.split("\n"):
+                if "SSID" in line and "BSSID" not in line:  # Assurez-vous de ne pas capturer le BSSID par erreur
+                    ssid = line.split(":")[1].strip()
+                    break
+            
+            if ssid:
+                # Get the WiFi password
+                password_output = subprocess.check_output(f'netsh wlan show profile name="{ssid}" key=clear', shell=True).decode('cp850')
+                password = ""
+                for line in password_output.split("\n"):
+                    if "Contenu de la clé" in line or "Key Content" in line:  # Utiliser le texte exact qui apparaît dans la commande netsh
+                        password = line.split(":")[1].strip()
+                        break
+                return ssid, password
+            else:
+                print("SSID not found.")
+                return None, None
+
+        except subprocess.CalledProcessError as e:
+            print(f"Command failed: {e}")
+            return None, None
+        except UnicodeDecodeError as e:
+            print(f"Decode error: {e}")
+            return None, None
+
+    def share_wifi_to_casque(self):
         
+        try:
+            ssid, password = self.get_wifi_credentials()
+            if ssid and password:
+                print(ssid)
+                print(password)
+                self.adbtools.configure_wifi_on_casque(ssid, password)
+                self.reconnect_wifi()
+                self.check_wifi_connection(ssid)
+            else:
+                print("Failed to retrieve WiFi credentials.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+    def check_wifi_connection(self, ssid):
+        try:
+            # Exécution de la commande pour obtenir le statut du WiFi
+            check_command = ["shell", "dumpsys", "wifi"]
+            result = subprocess.run([self.config.adb_exe_path] + check_command, text=True, capture_output=True, check=True)
+            
+            # Analyser la sortie pour vérifier si le casque est connecté à un réseau spécifique
+            if "mNetworkInfo" in result.stdout:
+                network_info = next((line for line in result.stdout.split('\n') if "mNetworkInfo" in line), None)
+                if network_info and "CONNECTED" in network_info:
+                    ssid_info = next((line for line in result.stdout.split('\n') if "SSID:" in line), None)
+                    if ssid_info and ssid in ssid_info:  # Remplacer "your_target_ssid" par le SSID attendu
+                        print("Device is connected to the targeted WiFi network.")
+                    else:
+                        print("Device is connected to a different network.")
+                else:
+                    print("Device is not connected to any WiFi network.")
+            else:
+                print("Unable to determine the WiFi status.")
+                print(result.stdout)  # Pour diagnostic
+
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to check WiFi status: {e}")
+            if e.stdout:
+                print(e.stdout.decode('utf-8'))
+            if e.stderr:
+                print(e.stderr.decode('utf-8'))
+
+
+    def reconnect_wifi(self):
+        try:
+            reconnect_command = ["shell", "svc", "wifi", "disable"]
+            subprocess.run([self.config.adb_exe_path] + reconnect_command, check=True)
+            reconnect_command = ["shell", "svc", "wifi", "enable"]
+            subprocess.run([self.config.adb_exe_path] + reconnect_command, check=True)
+            print("WiFi has been reset and reconnected.")
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to reconnect WiFi: {e}")

@@ -26,7 +26,8 @@ def display_menu():
     print("2. Installer les APKs")
     print("3. Installer les solutions ")
     print("4. Archiver un casque (brancher un seul casque)")
-    print("5. Quitter")
+    print("5. Configurer le wifi sur tous les casques")
+    print("6. Quitter")
     print("="*40)
     print()
     
@@ -48,7 +49,7 @@ def main():
             display_menu()
             print("COMMENTAIRE: Veuillez relancer l'application en cas de rebranchements ")
             print()
-            choix = input("Choisissez une option (1-5) : ")
+            choix = input("Choisissez une option (1-6) : ")
 
             subprocess.run(["powershell", "-Command", "Clear-Host"])
 
@@ -73,6 +74,11 @@ def main():
                 casques.archivage()
                 print("-"*40)   
             elif choix == '5':
+                print("\n" + "-"*40)
+                print("           Configuration du wifi         ")
+                casques.share_wifi_to_ALL_casque()
+                print("-"*40)   
+            elif choix == '6':
                 print("\n" + "-"*40)
                 print("           Quitter le menu         ")
                 sys.exit()  # Fermer le programme
