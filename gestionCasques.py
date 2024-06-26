@@ -78,7 +78,7 @@ class GestionCasques:
     def archivage(self):
         for i, casque in enumerate(self.liste_casques, 1):
             print()
-            print(f"Casque #{1}:")
+            print(f"Casque #{i}:")
             casque.archivage_casque()
             print("-" * 20)
 

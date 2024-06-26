@@ -2,8 +2,8 @@ from casque import Casque
 from gestionCasques import GestionCasques
 from solution import Solution
 from marque import Marque
-from ressources import Ressources
-import os
+from config import Config
+import sys
 
 import subprocess
 import threading
@@ -75,7 +75,7 @@ def main():
             elif choix == '5':
                 print("\n" + "-"*40)
                 print("           Quitter le menu         ")
-                os.close()  # Fermer le programme
+                sys.exit()  # Fermer le programme
                 print("-"*40)   
             else:
                 print("\n" + "-"*40)

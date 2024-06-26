@@ -1,23 +1,10 @@
 from solution import Solution
 from marque import Marque
-from ressources import Ressources
+from config import Config
 import subprocess
 import os
 import re
 import sys
-
-
-
-
-# Fonction pour obtenir le chemin absolu du fichier/dossier
-def resource_path(relative_path):
-    """Obtenir le chemin absolu du fichier, fonctionne pour dev et pour PyInstaller"""
-    try:
-        # PyInstaller crée un dossier temporaire et stocke le chemin dans _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
     
 
 class Casque:
@@ -31,6 +18,7 @@ class Casque:
         self.JSON_path = "NULL"
         self.solutions_install = []
         self.solutions_pour_install = []
+        self.config = Config()
         
     def refresh_casque(self, device):
         self.device = device
@@ -44,11 +32,9 @@ class Casque:
        
 
     def print(self):
-        # Définir le code de couleur ANSI pour le bleu
-        BLUE = '\033[94m'
-        RESET = '\033[0m'
+        BLUE = self.config.BLUE
+        RESET = self.config.RESET
 
-        # Utiliser les codes de couleur pour chaque ligne
         print(BLUE + f"| Numéro de série : {self.numero}" + RESET)
         print(BLUE + f"| Modèle : {self.modele}" + RESET)
         print(BLUE + f"| Marque : {self.marque.nom}" + RESET)
@@ -56,25 +42,16 @@ class Casque:
         print(BLUE + f"|     Chemin de l'APK disponible de la marque : {self.marque.APK_path}" + RESET)
         print(BLUE + f"| APK installé sur le casque : {self.version_apk}" + RESET)
         print(BLUE + f"| JSON : {self.JSON_path}" + RESET)
-        # affiche toutes les solutions à faire plus tard
-
-    #le truc cool serait de faire venir ici l'instanciation des données pour + de logique 
-    def init_info_casque(self):
-        print("Initialisation des informations du casque")
-        # Implémentation de l'initialisation des informations du casque
-        pass
 
 
     def check_json_file(self):
-        json_file_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/hardware.json"
 
         try:
             # Exécuter la commande adb shell ls pour lister les fichiers dans le répertoire spécifié et evite 'afficher que JSON n'exite pas car sortie rediriger vers fichier NULL
-            output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", json_file_path],
-                                             stderr=subprocess.DEVNULL).decode("utf-8")
+            output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", self.config.json_file_path], stderr=subprocess.DEVNULL).decode("utf-8")
             # Vérifier si le nom du fichier existe dans la sortie
-            if json_file_path in output:
-                self.JSON_path = os.path.dirname(json_file_path)
+            if self.config.json_file_path in output:
+                self.JSON_path = os.path.dirname(self.config.json_file_path)
                 return True
             else:
                 self.JSON_path = "Fichier JSON inexistant"
@@ -86,19 +63,13 @@ class Casque:
     def install_APK(self):
  
         print("----->>>> Installation de l'APK")
-        #self.uninstall_APK()  # Désinstaller l'APK avant l'installation
         self.print()
-
-        # Définir les chemins vers adb et le nom de package
-        adb_exe = resource_path("platform-tools/adb.exe")
-        # Package name de l'application
-        package_name = "com.VRAI_Studio.Reverto"
 
         # Commandes pour accorder les permissions
         commands = [
-            [adb_exe, "-s", self.numero, "shell", "pm", "grant", package_name, "android.permission.ACCESS_FINE_LOCATION"],
-            [adb_exe, "-s", self.numero, "shell", "pm", "grant", package_name, "android.permission.READ_EXTERNAL_STORAGE"],
-            [adb_exe, "-s", self.numero, "shell", "pm", "grant", package_name, "android.permission.WRITE_EXTERNAL_STORAGE"]
+            [self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "grant", self.config.package_name, "android.permission.ACCESS_FINE_LOCATION"],
+            [self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "grant", self.config.package_name, "android.permission.READ_EXTERNAL_STORAGE"],
+            [self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "grant", self.config.package_name, "android.permission.WRITE_EXTERNAL_STORAGE"]
         ]
 
         # Exécution des commandes
@@ -112,26 +83,22 @@ class Casque:
  
         try:
             # Exécuter la commande adb pour installer l'APK
+            subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True)
+            print(self.config.GREEN +f"Installation de l'APK réussie."+ self.config.RESET)
 
-            subprocess.run([adb_exe, "-s", self.numero, "install", self.marque.APK_path], check=True)
-            
-            RESET = '\033[0m'
-            GREEN = '\033[92m'
-            print(GREEN +f"Installation de l'APK réussie."+ RESET)
         except subprocess.CalledProcessError as e:
             print(f"Une erreur est survenue lors de l'installation de l'APK : {e}")
+            
             print(f"forcer l'installaion en supprimant l'ancienne app")
             #ATTTENTION BOUCLE INFINI POSSIBLE ON EN VEUT PAAAAAAAAAAAAAAAAS
             self.uninstall_APK()  # Désinstaller l'APK avant l'installation
             self.install_APK()  # Désinstaller l'APK avant l'installation
-
-        
         
         # Commandes pour accorder les permissions
         commands = [
-            [adb_exe, "-s", self.numero, "shell", "pm", "grant", package_name, "android.permission.ACCESS_FINE_LOCATION"],
-            [adb_exe, "-s", self.numero, "shell", "pm", "grant", package_name, "android.permission.READ_EXTERNAL_STORAGE"],
-            [adb_exe, "-s", self.numero, "shell", "pm", "grant", package_name, "android.permission.WRITE_EXTERNAL_STORAGE"]
+            [self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "grant", self.config.package_name, "android.permission.ACCESS_FINE_LOCATION"],
+            [self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "grant", self.config.package_name, "android.permission.READ_EXTERNAL_STORAGE"],
+            [self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "grant", self.config.package_name, "android.permission.WRITE_EXTERNAL_STORAGE"]
         ]
 
         # Exécution des commandes
@@ -142,8 +109,6 @@ class Casque:
             except subprocess.CalledProcessError as e:
                 print(f"Erreur lors de l'accord de la permission : {e}")
 
-
-
         #self.device.install(self.marque.APK_path)
         print("-----------Fin de l'installation-----------")
         
@@ -152,16 +117,10 @@ class Casque:
         print("----->>>> Désinstallation de l'APK")
         self.print()
 
-        # Définir les chemins vers adb et le nom de package
-        adb_exe = resource_path("platform-tools/adb.exe")
-
-        # Package name de l'application
-        package_name = "com.VRAI_Studio.Reverto"
-
         try:
             # Exécuter la commande adb pour désinstaller l'APK
-            subprocess.run([adb_exe, "-s", self.numero, "uninstall", package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print("Désinstallation de l'APK réussie.")
+            subprocess.run([self.config.adb_exe_path, "-s", self.numero, "uninstall", self.config.package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print(self.config.GREEN + "Désinstallation de l'APK réussie." + self.config.RESET )
         except subprocess.CalledProcessError as e:
             if "Unknown package" in str(e):
                 print("L'application n'était pas installée.")
@@ -174,11 +133,8 @@ class Casque:
 
     def get_installed_apk_version(self):
 
-        adb_exe = resource_path("platform-tools/adb.exe")
-        package_name = "com.VRAI_Studio.Reverto"
-
         try:
-            result = subprocess.run([adb_exe, "-s", self.numero, "shell", "dumpsys", "package", package_name], 
+            result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "dumpsys", "package", self.config.package_name], 
                                     check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output = result.stdout.decode('utf-8')
             
@@ -193,7 +149,7 @@ class Casque:
 
         except subprocess.CalledProcessError as e:
             print(f"Une erreur est survenue lors de l'obtention de la version de l'APK : {e}")
-            print(e.stderr.decode('utf-8'))
+            print(e.stderr.decode("utf-8"))
             return None
 
 
@@ -201,60 +157,45 @@ class Casque:
         print("----->>>> Téléversement de la solution")
         self.print()
         print("Ajout d'une solution... cela peut prendre quelques minutes")
-
-        # Définir les chemins vers adb et le chemin du fichier sur l'appareil
-        adb_exe = resource_path("platform-tools/adb.exe")
-        remote_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/Downloaded/upload"
         
         try:
             # Supprimer le fichier upload existant sur l'appareil
-            subprocess.run([adb_exe, "-s", self.numero, "shell", "rm", "-r", remote_path], check=True)
+            subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "rm", "-r", self.config.upload_casque_path], check=True)
             print("Fichier upload supprimé avec succès, téléversement du nouveau fichier en cours...")
+
         except subprocess.CalledProcessError as e:
             print(f"Une erreur est survenue lors de la suppression du fichier upload : {e}")
 
         try:
             # Téléverser le nouveau fichier upload
-            result = subprocess.run(
-                [adb_exe, "-s", self.numero, "push", "./Banque_de_solutions/upload", remote_path],
-                check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-            )
-            RESET = '\033[0m'
-            GREEN = '\033[92m'
-            print(GREEN +f"Téléversement réussi."+ RESET)
-            print(result.stdout.decode("utf-8"))
+            result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "push", self.config.upload_path, self.config.upload_casque_path], check=True)
+            print(self.config.GREEN +f"Téléversement réussi."+ self.config.RESET)
+
         except subprocess.CalledProcessError as e:
-            print(f"Une erreur est survenue lors du téléversement de la solution : {e}")
+            print(f"Une erreur est survenue lors de la copie : {e}")
             print(e.stderr.decode("utf-8"))
         print("-----------Fin du téléversement-----------")
     
     def archivage_casque(self) :
         print("----->>>> Archivage du casque")
-        self.print()
-        print("Copie des dossiers... cela peut prendre quelques minutes")
-
-        # Définir les chemins vers adb et le chemin du fichier sur l'appareil
-        adb_exe = resource_path("platform-tools/adb.exe")
-        remote_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto"
-        
-        local_archivage_path = "./Archivage"
+        print("\nCopie des dossiers... cela peut prendre quelques minutes")
 
         # Créer le dossier Archivage s'il n'existe pas
-        if not os.path.exists(local_archivage_path):
-            os.makedirs(local_archivage_path)
+        if not os.path.exists(self.config.local_archivage_path):
+            os.makedirs(self.config.local_archivage_path)
 
         try:
             # Téléverser le nouveau fichier upload
             result = subprocess.run(
-                [adb_exe, "-s", self.numero, "pull", remote_path,"./Archivage"],
+                [self.config.adb_exe_path, "-s", self.numero, "pull", self.config.package_path,self.config.local_archivage_path],
                 check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
-            RESET = '\033[0m'
-            GREEN = '\033[92m'
-            print(GREEN +f"Copie réussi."+ RESET)
+
+            print(self.config.GREEN +f"Copie réussi."+ self.config.RESET)
             print(result.stdout.decode("utf-8"))
         except subprocess.CalledProcessError as e:
-            print(f"Une erreur est survenue lors de la copie : {e}")
+            print(f"Une erreur est survenue lors de l'archivage : {e}")
             print(e.stderr.decode("utf-8"))
+
         print("-----------Fin de l'archivage-----------")
         
