@@ -35,7 +35,7 @@ def display_menu():
 # Fonction principale
 def main():
     try:
-        casques = GestionCasques()
+        casques = GestionCasques.getInstance()
         casques.refresh_casques()
 
         # Démarrer le suivi des périphériques dans un thread séparé

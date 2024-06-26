@@ -1,6 +1,7 @@
 from solution import Solution
 from marque import Marque
 from config import Config
+from adbtools import Adbtools
 import subprocess
 import os
 import re
@@ -18,7 +19,10 @@ class Casque:
         self.JSON_path = "NULL"
         self.solutions_install = []
         self.solutions_pour_install = []
-        self.config = Config()
+
+        # Permettant de créer un instance de classe, pour déleguer des méthodes
+        self.config = Config.getInstance()
+        self.adbtools = Adbtools()
         
     def refresh_casque(self, device):
         self.device = device
@@ -66,20 +70,7 @@ class Casque:
         self.print()
 
         # Commandes pour accorder les permissions
-        commands = [
-            [self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "grant", self.config.package_name, "android.permission.ACCESS_FINE_LOCATION"],
-            [self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "grant", self.config.package_name, "android.permission.READ_EXTERNAL_STORAGE"],
-            [self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "grant", self.config.package_name, "android.permission.WRITE_EXTERNAL_STORAGE"]
-        ]
-
-        # Exécution des commandes
-        for command in commands:
-            try:
-                subprocess.run(command, check=True)
-
-                print(f"Permission accordée avec succès")
-            except subprocess.CalledProcessError as e:
-                print(f"Erreur lors de l'accord de la permission : {e}")
+        self.adbtools.grant_permissions(self.numero)
  
         try:
             # Exécuter la commande adb pour installer l'APK
@@ -95,19 +86,7 @@ class Casque:
             self.install_APK()  # Désinstaller l'APK avant l'installation
         
         # Commandes pour accorder les permissions
-        commands = [
-            [self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "grant", self.config.package_name, "android.permission.ACCESS_FINE_LOCATION"],
-            [self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "grant", self.config.package_name, "android.permission.READ_EXTERNAL_STORAGE"],
-            [self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "grant", self.config.package_name, "android.permission.WRITE_EXTERNAL_STORAGE"]
-        ]
-
-        # Exécution des commandes
-        for command in commands:
-            try:
-                subprocess.run(command, check=True)
-                print(f"Permission accordée avec succès")
-            except subprocess.CalledProcessError as e:
-                print(f"Erreur lors de l'accord de la permission : {e}")
+        self.adbtools.grant_permissions(self.numero)
 
         #self.device.install(self.marque.APK_path)
         print("-----------Fin de l'installation-----------")
@@ -121,6 +100,7 @@ class Casque:
             # Exécuter la commande adb pour désinstaller l'APK
             subprocess.run([self.config.adb_exe_path, "-s", self.numero, "uninstall", self.config.package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print(self.config.GREEN + "Désinstallation de l'APK réussie." + self.config.RESET )
+
         except subprocess.CalledProcessError as e:
             if "Unknown package" in str(e):
                 print("L'application n'était pas installée.")
