@@ -1,5 +1,5 @@
 import os
-
+import traceback
 
 class Marque:
     def __init__(self):
@@ -12,15 +12,30 @@ class Marque:
         self.choixApp()
 
     def choixApp(self):
-        apk_names = []
-        for file_name in os.listdir("./APK"):
-            if file_name.endswith(".apk"):
-                apk_names.append(file_name)
+        try:
+            apk_names = []
+            apk_directory = "./APK"
+            
+            # Vérifier si le répertoire existe
+            if not os.path.exists(apk_directory):
+                print(f"Le répertoire {apk_directory} n'existe pas.")
+                return
+
+            for file_name in os.listdir(apk_directory):
+                if file_name.endswith(".apk"):
+                    apk_names.append(file_name)
+            
+            for apk_name in apk_names:
+                if self.nom.lower() in apk_name.lower():
+                    self.version_apk = apk_name
+                    self.APK_path = os.path.join(apk_directory, apk_name)
+                    #print(f"APK trouvé: {self.version_apk} dans {self.APK_path}")
+                    break
+            else:
+                print(" !!! AUCUNE APK trouvée ")
         
-        for apk_name in apk_names:
-            if self.nom.lower() in apk_name.lower():
-                self.version_apk = apk_name
-                self.APK_path = os.path.join("./APK", apk_name)
-                break
-        else:
-            print(" !!! AUCUNE APK trouvé ")
+        except FileNotFoundError as e:
+            print(f"Erreur: Répertoire ou fichier non trouvé. Détails: {e}")
+        except Exception as e:
+            print(f"Erreur inattendue lors de la sélection de l'APK : {e}")
+            traceback.print_exc()

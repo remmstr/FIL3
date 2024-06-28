@@ -23,6 +23,7 @@ class Config:
         self.local_archivage_path = "./Archivage"
         self.upload_casque_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/Downloaded/upload"
         self.upload_path = "./Banque_de_solutions/upload"
+        self.Banque_de_solution_path = "./Banque_de_solutions"
         self.platform_tools_path = self.config_path("platform-tools")
         self.BLUE = '\033[94m'
         self.RESET = '\033[0m'

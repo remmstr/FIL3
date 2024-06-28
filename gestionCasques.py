@@ -4,6 +4,8 @@ import subprocess
 import os
 import sys
 from adbtools import Adbtools
+import traceback
+from config import Config
 
 class GestionCasques:
     _instance = None  # Attribut privé pour stocker l'unique instance
@@ -17,18 +19,44 @@ class GestionCasques:
 
     def __init(self):  # Init privé pour éviter la création directe d'instances
         self.adbtools = Adbtools()
+        self.config = Config.getInstance()
         self.adbtools.check_adb_connection()
         self.liste_casques = []
         self.client = AdbClient(host="127.0.0.1", port=5037)
         self.refresh_casques()
 
     def refresh_casques(self):
+        try:
+            devices = self.client.devices()
+            #print(f"Appareils trouvés : {devices}")
+        except Exception as e:
+            print(f"Erreur lors de la récupération des appareils : {e}")
+            traceback.print_exc()
+            return
+
         self.liste_casques.clear()
-        devices = self.client.devices()
+        
         for device in devices:
-            nouveau_casque = Casque()
-            nouveau_casque.refresh_casque(device)
-            self.liste_casques.append(nouveau_casque)
+            #if not self.is_device_online(device):
+                #print(f"L'appareil {device} est hors ligne et ne sera pas ajouté.")
+            #    continue
+            try:
+                nouveau_casque = Casque()
+                nouveau_casque.refresh_casque(device)
+                self.liste_casques.append(nouveau_casque)
+                #print(f"Casque ajouté : {nouveau_casque}")
+            except Exception as e:
+                print(f"Erreur lors de l'ajout du casque {device} : {e}")
+                traceback.print_exc()
+
+        #print(f"Liste finale des casques : {self.liste_casques}")
+
+    def is_device_online(self, device):
+        try:
+            device.get_serial_no()
+            return True
+        except RuntimeError:
+            return False
 
     def print(self):
         for i, casque in enumerate(self.liste_casques, 1):
@@ -60,5 +88,4 @@ class GestionCasques:
             casque.share_wifi_to_casque()
             print("-" * 20)
 
-# Utilisation du Singleton
-gestion_casques = GestionCasques.getInstance()
+
