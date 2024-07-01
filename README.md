@@ -64,6 +64,14 @@ classDiagram
     }
 
     class Casque {
+        +str device
+        +str numero
+        +Marque marque
+        +str modele
+        +str version_apk
+        +str JSON_path
+        +list~Solution~ solutions_install
+
         +__init__()
         +refresh_casque(device: Device)
         +print()
@@ -95,6 +103,7 @@ classDiagram
     }
 
     class Solution {
+        +sol_install_on_casque: bool
         +nom: str
         +version: str
         +image: str

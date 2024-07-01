@@ -29,10 +29,8 @@ class Marque:
                 if self.nom.lower() in apk_name.lower():
                     self.version_apk = apk_name
                     self.APK_path = os.path.join(apk_directory, apk_name)
-                    #print(f"APK trouvé: {self.version_apk} dans {self.APK_path}")
                     break
-            else:
-                print(" !!! AUCUNE APK trouvée ")
+
         
         except FileNotFoundError as e:
             print(f"Erreur: Répertoire ou fichier non trouvé. Détails: {e}")

@@ -40,7 +40,11 @@ class Config:
         self.BLUE = '\033[94m'
         self.RESET = '\033[0m'
         self.GREEN = '\033[92m'
-        self.apk_directory = "./APK"
+        self.APK_path = "./APK"
+
+        # Ensure required directories exist
+        self.ensure_directory_exists(self.Banque_de_solution_path)
+        self.ensure_directory_exists(self.APK_path)
 
     def config_path(self, relative_path):
         try:
@@ -49,14 +53,16 @@ class Config:
             base_path = os.path.abspath(".")
         return os.path.join(base_path, relative_path)
 
+    def ensure_directory_exists(self, path):
+        if not os.path.exists(path):
+            os.makedirs(path)
+            print(f"Le répertoire {path} a été créé.")
+
     def get_apk_version(self, brand_name):
         try:
-            apk_names = []
-            if not os.path.exists(self.apk_directory):
-                print(f"Le répertoire {self.apk_directory} n'existe pas.")
-                return "✗"
 
-            for file_name in os.listdir(self.apk_directory):
+            apk_names = []
+            for file_name in os.listdir(self.APK_path):
                 if file_name.endswith(".apk"):
                     apk_names.append(file_name)
 
@@ -76,3 +82,5 @@ class Config:
             print(f"Erreur inattendue lors de la sélection de l'APK : {e}")
             traceback.print_exc()
             return "✗"
+
+

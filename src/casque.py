@@ -19,7 +19,6 @@ class Casque:
         self.version_apk = ""
         self.JSON_path = "NULL"
         self.solutions_install = []
-        self.solutions_pour_install = []
 
         # Permettant de créer une instance de classe, pour déléguer des méthodes
         self.config = Config.getInstance()

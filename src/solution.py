@@ -1,5 +1,6 @@
 class Solution:
     def __init__(self):
+        self.sol_install_on_casque = bool
         self.nom = ""
         self.version = ""
         self.image = ""
