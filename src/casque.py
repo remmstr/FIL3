@@ -8,6 +8,7 @@ import re
 import threading
 import traceback
 
+
 class Casque:
 
     def __init__(self):
@@ -136,7 +137,6 @@ class Casque:
                     version = version_match.group(1)
                     return version
                 else:
-                    print("Impossible de déterminer la version de l'APK installée.")
                     return None
 
             except subprocess.CalledProcessError as e:

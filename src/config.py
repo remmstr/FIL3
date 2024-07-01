@@ -1,6 +1,8 @@
 import os
 import sys
 import platform
+import traceback
+import re
 
 class Config:
     _instance = None
@@ -13,19 +15,16 @@ class Config:
         return cls._instance
 
     def __init__(self):
-        # L'initialisation réelle se fait dans init_paths pour éviter la réinitialisation si __init__ est appelé à nouveau.
         pass
 
     def init_paths(self):
-        # Détecter le système d'exploitation
         system = platform.system()
         self.system_name = system
 
-        # Configurer les chemins en fonction du système d'exploitation
-        if system == "Darwin":  # macOS
+        if system == "Darwin":
             self.adb_exe_path = self.config_path("platform-tools/mac/adb")
             self.platform_tools_path = self.config_path("platform-tools/mac")
-        elif system == "Windows":  # Windows
+        elif system == "Windows":
             self.adb_exe_path = self.config_path("platform-tools/windows/adb.exe")
             self.platform_tools_path = self.config_path("platform-tools/windows")
         else:
@@ -41,6 +40,7 @@ class Config:
         self.BLUE = '\033[94m'
         self.RESET = '\033[0m'
         self.GREEN = '\033[92m'
+        self.apk_directory = "./APK"
 
     def config_path(self, relative_path):
         try:
@@ -49,3 +49,30 @@ class Config:
             base_path = os.path.abspath(".")
         return os.path.join(base_path, relative_path)
 
+    def get_apk_version(self, brand_name):
+        try:
+            apk_names = []
+            if not os.path.exists(self.apk_directory):
+                print(f"Le répertoire {self.apk_directory} n'existe pas.")
+                return "✗"
+
+            for file_name in os.listdir(self.apk_directory):
+                if file_name.endswith(".apk"):
+                    apk_names.append(file_name)
+
+            for apk_name in apk_names:
+                if brand_name.lower() in apk_name.lower():
+                    version_match = re.search(r'(\d+\.\d+\.\d+)', apk_name)
+                    if version_match:
+                        return version_match.group(1)
+                    return apk_name  # Retourne la version de l'APK
+
+            return "✗"  # Aucun APK trouvé
+
+        except FileNotFoundError as e:
+            print(f"Erreur: Répertoire ou fichier non trouvé. Détails: {e}")
+            return "✗"
+        except Exception as e:
+            print(f"Erreur inattendue lors de la sélection de l'APK : {e}")
+            traceback.print_exc()
+            return "✗"

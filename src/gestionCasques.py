@@ -5,10 +5,6 @@ import os
 import sys
 import sys
 import os
-print(f"Python executable: {sys.executable}")
-print(f"Python version: {sys.version}")
-print(f"Python path: {sys.path}")
-print(f"Current working directory: {os.getcwd()}")
 from adbtools import Adbtools
 import traceback
 from config import Config

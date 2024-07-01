@@ -5,18 +5,11 @@ import subprocess
 import time
 import traceback
 import sys
-from gestionCasques import GestionCasques
 import os
 import re
 import shutil
-
-# Assurez-vous d'avoir installé Pillow
-try:
-    from PIL import Image, ImageTk
-except ImportError:
-    import pip
-    pip.main(['install', 'Pillow'])
-    from PIL import Image, ImageTk
+from gestionCasques import GestionCasques
+from PIL import Image, ImageTk
 
 class App:
     def __init__(self, root):
@@ -40,15 +33,28 @@ class App:
         # Charger et afficher l'image redimensionnée
         self.load_image("resources/images/image.png", menu_frame)
 
+        # Cadre pour l'APK disponible
+        apk_frame = tk.Frame(menu_frame, bg="white", bd=1, relief=tk.SOLID)
+        apk_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=10, pady=10)
+
+        apk_title = tk.Label(apk_frame, text="APK disponible", font=("Helvetica", 10, "bold"), bg="white")
+        apk_title.pack(side=tk.TOP, pady=5)
+
+        self.apk_labels = {
+            "oculus": tk.Label(apk_frame, text="Oculus : ", font=("Helvetica", 9), bg="white"),
+            "pico": tk.Label(apk_frame, text="Pico : ", font=("Helvetica", 9), bg="white"),
+            "vive": tk.Label(apk_frame, text="Vive : ", font=("Helvetica", 9), bg="white"),
+        }
+
+        for label in self.apk_labels.values():
+            label.pack(side=tk.TOP, anchor="w", padx=10, pady=2)
+
+        # Cadre pour le bouton d'installation
         button_frame = tk.Frame(menu_frame, bg="white")
-        button_frame.pack(side=tk.TOP, fill=tk.X)
+        button_frame.pack(side=tk.TOP, pady=10)
 
-        install_button_frame = tk.Frame(button_frame, bg="white")
-        install_button_frame.pack(side=tk.TOP, expand=True)
-
-        self.install_button = tk.Button(install_button_frame, text="INSTALLER", font=("Helvetica", 10, "bold"), command=self.installer_apks_et_solutions, bg="white")
-        self.install_button.pack(pady=10)
-        
+        self.install_button = tk.Button(button_frame, text="INSTALLER", font=("Helvetica", 10, "bold"), command=self.installer_apks_et_solutions, bg="white")
+        self.install_button.pack()
 
         # Tableau des casques
         table_frame = tk.Frame(self.root, bg="white")
@@ -58,7 +64,7 @@ class App:
         style.configure("Custom.Treeview.Heading", font=("Helvetica", 10, "bold"))
         style.configure("Custom.Treeview", background="white", fieldbackground="white", borderwidth=0)
 
-        columns = ("#", "Nom", "Modèle", "Version APK", "Dernière APK", "APK", "JSON", "Téléversement")
+        columns = ("#", "Nom", "Modèle", "Version APK", "JSON", "Solutions")
         self.treeview = ttk.Treeview(table_frame, columns=columns, show="headings", style="Custom.Treeview")
         self.treeview.pack(fill=tk.BOTH, expand=True)
 
@@ -70,16 +76,20 @@ class App:
         self.treeview.column("Nom", width=150, anchor=tk.CENTER)
         self.treeview.column("Modèle", width=100, anchor=tk.CENTER)
         self.treeview.column("Version APK", width=100, anchor=tk.CENTER)
-        self.treeview.column("Dernière APK", width=150, anchor=tk.CENTER)
-        self.treeview.column("APK", width=50, anchor=tk.CENTER)
         self.treeview.column("JSON", width=50, anchor=tk.CENTER)
-        self.treeview.column("Téléversement", width=150, anchor=tk.CENTER)
+        self.treeview.column("Solutions", width=150, anchor=tk.CENTER)
+
+        # Bouton Banque de solutions
+        banque_button_frame = tk.Frame(self.root, bg="white")
+        banque_button_frame.pack(side=tk.TOP, pady=10)
+        self.banque_solutions_button = tk.Button(banque_button_frame, text="Banque de solutions", command=self.download_banque_solutions, bg="white")
+        self.banque_solutions_button.pack(pady=10)
 
         # Debug area
         debug_frame = tk.Frame(self.root, bg="white")
         debug_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        debug_label = tk.Label(debug_frame, text="Fenêtre de débogage", bg="white")
+        debug_label = tk.Label(debug_frame, text="Fenêtre de débogage", bg="white", font=("Helvetica", 10, "bold"))  # Texte en gras
         debug_label.pack(side=tk.TOP, anchor='w')
 
         # Ajouter une barre de défilement
@@ -88,12 +98,6 @@ class App:
         self.debug_text.configure(yscrollcommand=debug_scrollbar.set)
         self.debug_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         debug_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        # Bouton Banque de solutions
-        banque_button_frame = tk.Frame(self.root, bg="white")
-        banque_button_frame.pack(side=tk.BOTTOM, anchor='e', padx=10, pady=10)
-        self.banque_solutions_button = tk.Button(banque_button_frame, text="Banque de solutions", command=self.download_banque_solutions, bg="white")
-        self.banque_solutions_button.pack(pady=10)
 
         # Redirect stdout to the debug text
         sys.stdout = self
@@ -113,10 +117,18 @@ class App:
         try:
             self.treeview.delete(*self.treeview.get_children())
             self.progress_bars.clear()
+
+            # Mettre à jour les informations APK pour chaque marque
+            marques = ["Oculus", "Pico", "Vive"]
+            for marque in marques:
+                version = self.config.get_apk_version(marque)
+                self.apk_labels[marque.lower()].config(text=f"{marque} : {version}")
+
             for i, casque in enumerate(self.casques.liste_casques, 1):
-                apk_status = "✓" if casque.version_apk else "✗"
                 json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "✗"
-                item_id = self.treeview.insert("", "end", values=(i, casque.numero, casque.modele, casque.version_apk, casque.marque.APK_path, apk_status, json_status, ""))
+                # Placeholder for solutions; update this with actual solution listing logic when available
+                solutions_status = "N/A"
+                item_id = self.treeview.insert("", "end", values=(i, casque.numero, casque.modele, casque.version_apk, json_status, solutions_status))
                 self.progress_bars[casque.numero] = self.create_progress_bar(item_id)
         except Exception as e:
             self.handle_exception("Erreur lors de l'affichage des casques", e)
@@ -124,7 +136,7 @@ class App:
     def create_progress_bar(self, item_id):
         progress_var = tk.DoubleVar()
         progress_bar = ttk.Progressbar(self.treeview, orient="horizontal", length=100, mode="determinate", variable=progress_var)
-        self.treeview.set(item_id, "Téléversement", "")
+        self.treeview.set(item_id, "Solutions", "")
         self.treeview.update_idletasks()
         return progress_var
 
@@ -203,7 +215,7 @@ class App:
         for item in items:
             values = self.treeview.item(item, "values")
             if values[1] == casque_numero:
-                self.treeview.set(item, column="Téléversement", value=status)
+                self.treeview.set(item, column="Solutions", value=status)
 
     def archiver_casque(self):
         try:
@@ -235,7 +247,7 @@ class App:
         try:
             destination = filedialog.askdirectory()
             if destination:
-                shutil.copytree(self.config.banque_de_solution_path, os.path.join(destination, "Banque_de_solutions"))
+                shutil.copytree(self.config.Banque_de_solution_path, os.path.join(destination, "Banque_de_solutions"))
                 self.log_debug("Téléchargement du dossier Banque de solutions terminé.")
         except Exception as e:
             self.handle_exception("Erreur lors du téléchargement de la banque de solutions", e)
