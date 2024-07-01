@@ -104,11 +104,6 @@ classDiagram
         +video: str
     }
 
-    class Device {
-        +get_serial_no() str
-        +shell(command: str) str
-    }
-
     Config <-- Adbtools : instancie
     Config <-- Casque : instancie
     Config <-- GestionCasques : instancie
