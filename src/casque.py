@@ -7,10 +7,10 @@ import os
 import re
 import threading
 import traceback
-
+import json
+import base64
 
 class Casque:
-
     def __init__(self):
         self.device = str
         self.numero = ""
@@ -18,13 +18,12 @@ class Casque:
         self.modele = ""
         self.version_apk = ""
         self.JSON_path = "NULL"
-        self.solutions_install = []
+        self.solutions = []
 
         # Permettant de créer une instance de classe, pour déléguer des méthodes
         self.config = Config.getInstance()
         self.adbtools = Adbtools()
         self.lock = threading.Lock()
-        
         
     def refresh_casque(self, device):
         with self.lock:
@@ -32,7 +31,7 @@ class Casque:
 
             try:
                 self.numero = self.device.get_serial_no().strip()
-            except Exception as e:
+            except Exception as   e:
                 print(f"Erreur lors de l'obtention du numéro de série : {e}")
                 traceback.print_exc()
                 self.numero = "Inconnu"
@@ -53,11 +52,31 @@ class Casque:
 
         self.version_apk = self.get_installed_apk_version()
         self.JSON_path = self.check_json_file()
-        self.solutions_install = []
-        self.solutions_pour_install = []
+        self.solutions = self.load_solutions_from_json()
+        print(f"Solutions installées : {len(self.solutions)}")
+
+        
+
+    def load_solutions_from_json(self):
+        solutions = []
+        if self.JSON_path != "Fichier JSON inexistant":
+            try:
+                # Exécuter la commande adb pour récupérer le contenu du fichier JSON
+                output = subprocess.check_output(["adb", "-s", self.numero, "shell", "cat", self.JSON_path], stderr=subprocess.DEVNULL)
+                decoded_data = base64.b64decode(output).decode('utf-8')
+                json_data = json.loads(decoded_data)
+
+                for solution_data in json_data.get('versions', []):
+                    solution = Solution.from_json(solution_data)
+                    solutions.append(solution)
+            except Exception as e:
+                print(f"Erreur lors du chargement du fichier JSON : {e}")
+        else:
+            print("Chemin du fichier JSON inexistant")
+        return solutions
+
 
     def print(self):
-
         BLUE = self.config.BLUE
         RESET = self.config.RESET
 
@@ -68,7 +87,9 @@ class Casque:
         print(BLUE + f"|     Chemin de l'APK disponible de la marque : {self.marque.APK_path}" + RESET)
         print(BLUE + f"| APK installé sur le casque : {self.version_apk}" + RESET)
         print(BLUE + f"| JSON : {self.JSON_path}" + RESET)
-
+        print(BLUE + f"| Solutions installées : {len(self.solutions)}" + RESET)
+        for solution in self.solutions:
+            print(BLUE + f"|   - Solution : {solution.nom} (Version : {solution.version})" + RESET)
 
     def check_json_file(self):
         with self.lock:
@@ -78,51 +99,41 @@ class Casque:
                 # Vérifier si le nom du fichier existe dans la sortie
                 if self.config.json_file_path in output:
                     self.JSON_path = os.path.dirname(self.config.json_file_path)
-                    return True
+                    return self.config.json_file_path
                 else:
                     self.JSON_path = "Fichier JSON inexistant"
-                    return False
+                    return self.JSON_path
             except subprocess.CalledProcessError as e:
                 self.JSON_path = "Fichier JSON inexistant" # bizarre car pas une erreur
-                return False
+                return self.JSON_path
 
     def install_APK(self):
-
         print("----->>>> Installation de l'APK")
         self.print()
-
         self.adbtools.grant_permissions(self.numero)
-
         try:
             subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True)
             print(self.config.GREEN + f"Installation de l'APK réussie." + self.config.RESET)
-
         except subprocess.CalledProcessError as e:
             print(f"Une erreur est survenue lors de l'installation de l'APK : {e}")
             print(f"forcer l'installation en supprimant l'ancienne app")
             self.uninstall_APK()
             self.install_APK()
-        
         self.adbtools.grant_permissions(self.numero)
         print("-----------Fin de l'installation-----------")
-
 
     def uninstall_APK(self):
         print("----->>>> Désinstallation de l'APK")
         self.print()
-
         try:
             subprocess.run([self.config.adb_exe_path, "-s", self.numero, "uninstall", self.config.package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             print(self.config.GREEN + "Désinstallation de l'APK réussie." + self.config.RESET)
-
         except subprocess.CalledProcessError as e:
             if "Unknown package" in str(e):
                 print("L'application n'était pas installée.")
             else:
                 print(f"Une erreur est survenue lors de la désinstallation de l'APK : {e}")
-
         print("-----------Fin de la désinstallation-----------")
-
 
     def get_installed_apk_version(self):
         with self.lock:
@@ -137,55 +148,44 @@ class Casque:
                     return version
                 else:
                     return None
-
             except subprocess.CalledProcessError as e:
                 print(f"Une erreur est survenue lors de l'obtention de la version de l'APK : {e}")
                 print(e.stderr.decode("utf-8"))
                 return None
-            
 
     def add_solution(self):
         with self.lock:
             print("----->>>> Téléversement de la solution")
             self.print()
             print("Ajout d'une solution... cela peut prendre quelques minutes")
-            
             try:
                 subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "rm", "-r", self.config.upload_casque_path], check=True)
                 print("Fichier upload supprimé avec succès, téléversement du nouveau fichier en cours...")
-
             except subprocess.CalledProcessError as e:
                 print(f"Une erreur est survenue lors de la suppression du fichier upload : {e}")
-
             try:
                 result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "push", self.config.upload_path, self.config.upload_casque_path], check=True)
                 print(self.config.GREEN + f"Téléversement réussi." + self.config.RESET)
-
             except subprocess.CalledProcessError as e:
                 print(f"Une erreur est survenue lors de la copie : {e}")
                 print(e.stderr.decode("utf-8"))
             print("-----------Fin du téléversement-----------")
     
     def archivage_casque(self):
-
         print("----->>>> Archivage du casque")
         print("\nCopie des dossiers... cela peut prendre quelques minutes")
-
         if not os.path.exists(self.config.local_archivage_path):
             os.makedirs(self.config.local_archivage_path)
-
         try:
             result = subprocess.run(
                 [self.config.adb_exe_path, "-s", self.numero, "pull", self.config.package_path, self.config.local_archivage_path],
                 check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
-
             print(self.config.GREEN + f"Copie réussi." + self.config.RESET)
             print(result.stdout.decode("utf-8"))
         except subprocess.CalledProcessError as e:
             print(f"Une erreur est survenue lors de l'archivage : {e}")
             print(e.stderr.decode("utf-8"))
-
         print("-----------Fin de l'archivage-----------")
 
     def get_wifi_credentials(self):
@@ -193,13 +193,11 @@ class Casque:
             try:
                 ssid_output = subprocess.check_output(["netsh", "wlan", "show", "interfaces"], shell=False).decode('cp850')
                 print(ssid_output)
-
                 ssid = ""
                 for line in ssid_output.split("\n"):
                     if "SSID" in line and "BSSID" not in line:
                         ssid = line.split(":")[1].strip()
                         break
-                
                 if ssid:
                     password_output = subprocess.check_output(f'netsh wlan show profile name="{ssid}" key=clear', shell=True).decode('cp850')
                     password = ""
@@ -211,7 +209,6 @@ class Casque:
                 else:
                     print("SSID not found.")
                     return None, None
-
             except subprocess.CalledProcessError as e:
                 print(f"Command failed: {e}")
                 return None, None
@@ -254,14 +251,12 @@ class Casque:
             else:
                 print("Unable to determine the WiFi status.")
                 print(result.stdout)  # Pour diagnostic
-
         except subprocess.CalledProcessError as e:
             print(f"Failed to check WiFi status: {e}")
             if e.stdout:
                 print(e.stdout.decode('utf-8'))
             if e.stderr:
                 print(e.stderr.decode('utf-8'))
-
 
     def reconnect_wifi(self):
         try:

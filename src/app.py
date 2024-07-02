@@ -56,28 +56,19 @@ class App:
         self.install_button = tk.Button(button_frame, text="INSTALLER", font=("Helvetica", 10, "bold"), command=self.installer_apks_et_solutions, bg="white")
         self.install_button.pack()
 
-        # Tableau des casques
-        table_frame = tk.Frame(self.root, bg="white")
-        table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # Tableau des casques avec Canvas et Scrollbar
+        self.table_frame = tk.Frame(self.root, bg="white")
+        self.table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        style = ttk.Style()
-        style.configure("Custom.Treeview.Heading", font=("Helvetica", 10, "bold"))
-        style.configure("Custom.Treeview", background="white", fieldbackground="white", borderwidth=0)
+        canvas = tk.Canvas(self.table_frame, bg="white")
+        self.scrollbar = tk.Scrollbar(self.table_frame, orient="vertical", command=canvas.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        columns = ("#", "Nom", "Modèle", "Version APK", "JSON", "Solutions")
-        self.treeview = ttk.Treeview(table_frame, columns=columns, show="headings", style="Custom.Treeview")
-        self.treeview.pack(fill=tk.BOTH, expand=True)
-
-        for col in columns:
-            self.treeview.heading(col, text=col, anchor=tk.CENTER)
-            self.treeview.heading(col, text=col, command=lambda c=col: self.sort_column(self.treeview, c, False))
-
-        self.treeview.column("#", width=30, anchor=tk.CENTER)
-        self.treeview.column("Nom", width=150, anchor=tk.CENTER)
-        self.treeview.column("Modèle", width=100, anchor=tk.CENTER)
-        self.treeview.column("Version APK", width=100, anchor=tk.CENTER)
-        self.treeview.column("JSON", width=50, anchor=tk.CENTER)
-        self.treeview.column("Solutions", width=150, anchor=tk.CENTER)
+        self.scrollable_frame = tk.Frame(canvas, bg="white")
+        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
         # Bouton Banque de solutions
         banque_button_frame = tk.Frame(self.root, bg="white")
@@ -102,6 +93,12 @@ class App:
         # Redirect stdout to the debug text
         sys.stdout = self
 
+
+
+
+
+
+
     def load_image(self, path, parent):
         try:
             image = Image.open(path)
@@ -113,9 +110,56 @@ class App:
         except Exception as e:
             print(f"Erreur lors du chargement de l'image : {e}")
 
+    def create_scrollable_table(self):
+        container = tk.Frame(self.root)
+        container.pack(fill="both", expand=True)
+
+        canvas = tk.Canvas(container, bg="white")
+        scrollbar = tk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg="white")
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        self.scrollable_frame = scrollable_frame
+
+        # Ajouter les en-têtes de colonnes
+        header = tk.Frame(self.scrollable_frame, bg="white")
+        header.pack(fill="x")
+
+        tk.Label(header, text="#", width=5, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Nom", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Modèle", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Version APK", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="JSON", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Gestion", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+
     def afficher_casques(self):
         try:
-            self.treeview.delete(*self.treeview.get_children())
+            for widget in self.scrollable_frame.winfo_children():
+                widget.destroy()
+
+            # Ajouter les en-têtes de colonnes
+            header = tk.Frame(self.scrollable_frame, bg="white")
+            header.pack(fill="x")
+
+            tk.Label(header, text="#", width=5, anchor="center", bg="red", font=("Helvetica", 10, "bold")).pack(side="left")
+            tk.Label(header, text="Nom", width=20, anchor="center", bg="red", font=("Helvetica", 10, "bold")).pack(side="left")
+            tk.Label(header, text="Modèle", width=20, anchor="center", bg="red", font=("Helvetica", 10, "bold")).pack(side="left")
+            tk.Label(header, text="Version APK", width=20, anchor="center", bg="red", font=("Helvetica", 10, "bold")).pack(side="left")
+            tk.Label(header, text="JSON", width=10, anchor="center", bg="red", font=("Helvetica", 10, "bold")).pack(side="left")
+            tk.Label(header, text="Gestion", width=20, anchor="center", bg="red", font=("Helvetica", 10, "bold")).pack(side="left")
+
             self.progress_bars.clear()
 
             # Mettre à jour les informations APK pour chaque marque
@@ -126,19 +170,47 @@ class App:
 
             for i, casque in enumerate(self.casques.liste_casques, 1):
                 json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "✗"
-                # Placeholder for solutions; update this with actual solution listing logic when available
-                solutions_status = "N/A"
-                item_id = self.treeview.insert("", "end", values=(i, casque.numero, casque.modele, casque.version_apk, json_status, solutions_status))
-                self.progress_bars[casque.numero] = self.create_progress_bar(item_id)
+                item_frame = tk.Frame(self.scrollable_frame, bg="white")
+                item_frame.pack(fill="x")
+
+                tk.Label(item_frame, text=i, width=5, anchor="center", bg="green",font=("Helvetica", 10)).pack(side="left")
+                tk.Label(item_frame, text=casque.numero, width=20, anchor="center", bg="green",font=("Helvetica", 10)).pack(side="left")
+                tk.Label(item_frame, text=casque.modele, width=20, anchor="center", bg="green",font=("Helvetica", 10)).pack(side="left")
+                tk.Label(item_frame, text=casque.version_apk, width=20, anchor="center", bg="green",font=("Helvetica", 10)).pack(side="left")
+                tk.Label(item_frame, text=json_status, width=10, anchor="center", bg="green",font=("Helvetica", 10)).pack(side="left")
+                
+                gestion_button = tk.Button(item_frame, text="Gérer",width=20, anchor="center", command=lambda c=casque: self.open_solution_manager(c))
+                gestion_button.pack(side="left", padx=10)
+                self.progress_bars[casque.numero] = self.create_progress_bar(item_frame)
         except Exception as e:
             self.handle_exception("Erreur lors de l'affichage des casques", e)
 
-    def create_progress_bar(self, item_id):
+
+
+
+
+
+    def create_progress_bar(self, item_frame, row):
         progress_var = tk.DoubleVar()
-        progress_bar = ttk.Progressbar(self.treeview, orient="horizontal", length=100, mode="determinate", variable=progress_var)
-        self.treeview.set(item_id, "Solutions", "")
-        self.treeview.update_idletasks()
+        progress_bar = ttk.Progressbar(item_frame, orient="horizontal", length=100, mode="determinate", variable=progress_var)
+        progress_bar.grid(row=row, column=6, padx=5)
         return progress_var
+
+
+    def open_solution_manager(self, casque):
+        solution_window = tk.Toplevel(self.root)
+        solution_window.title(f"Solutions du casque {casque.numero}")
+
+        solution_list = tk.Text(solution_window, wrap="word", width=50, height=20)
+        solution_list.pack(padx=10, pady=10, fill="both", expand=True)
+
+        for solution in casque.solutions:
+            solution_list.insert(tk.END, f"{solution.nom} (Version : {solution.version})\n")
+
+        solution_list.config(state=tk.DISABLED)
+
+        close_button = tk.Button(solution_window, text="Fermer", command=solution_window.destroy)
+        close_button.pack(pady=10)
 
     def installer_apks_et_solutions(self):
         Thread(target=self._installer_apks_et_solutions).start()
@@ -241,7 +313,7 @@ class App:
                 self.afficher_casques()
             except Exception as e:
                 self.handle_exception("Erreur lors de l'actualisation des casques", e)
-            time.sleep(10)  # Ajout d'un délai pour éviter une boucle trop rapide
+            time.sleep(5)  # Ajout d'un délai pour éviter une boucle trop rapide
 
     def download_banque_solutions(self):
         try:
