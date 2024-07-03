@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['FIL.py'],
+    ['../src/FIL_interface.py'],
     pathex=[],
     binaries=[],
-    datas=[('platform-tools', 'platform-tools')],
+    datas=[('../platform-tools/windows/platform-tools', 'platform-tools/windows/platform-tools')],
     hiddenimports=['ppadb'],
     hookspath=[],
     hooksconfig={},

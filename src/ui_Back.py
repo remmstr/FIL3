@@ -94,3 +94,9 @@ class UI_Back:
                 self.app.log_debug("Téléchargement du dossier Banque de solutions terminé.")
         except Exception as e:
             self.app.handle_exception("Erreur lors du téléchargement de la banque de solutions", e)
+
+    def install_apk(self, casque):
+        Thread(target=casque.install_APK).start()
+
+    def uninstall_apk(self, casque):
+        Thread(target=casque.uninstall_APK).start()

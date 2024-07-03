@@ -10,6 +10,7 @@ class Solution:
         self.sound = ""
         self.srt = ""
         self.video = ""
+        self.data_path = ""
 
     @staticmethod
     def from_json(json_data):
@@ -17,6 +18,7 @@ class Solution:
         solution.sol_install_on_casque = json_data.get('auto_install', False)
         solution.nom = json_data.get('name_module', {}).get('fr', "")
         solution.version = json_data.get('name_version', {}).get('fr', "")
+        solution.data_path = json_data.get('data_path', "")
 
         medias = json_data.get('medias', [])
         for media in medias:
