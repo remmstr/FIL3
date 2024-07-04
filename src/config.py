@@ -34,7 +34,7 @@ class Config:
         self.package_name = "com.VRAI_Studio.Reverto"
         self.package_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto"
         self.local_archivage_path = "./Archivage"
-        self.upload_casque_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/Downloaded/upload"
+        self.upload_casque_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/Downloaded"
         self.upload_path = "./Banque_de_solutions/upload"
         self.Banque_de_solution_path = "./Banque_de_solutions"
         self.BLUE = '\033[94m'
