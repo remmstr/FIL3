@@ -84,7 +84,7 @@ class UI_Back:
                 self.app.ui_front.afficher_casques()
             except Exception as e:
                 self.app.handle_exception("Erreur lors de l'actualisation des casques", e)
-            time.sleep(200)
+            time.sleep(300)
 
     def download_banque_solutions(self):
         try:

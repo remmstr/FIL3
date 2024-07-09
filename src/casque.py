@@ -54,7 +54,8 @@ class Casque:
             self.version_apk = self.get_installed_apk_version()
             self.JSON_path = self.check_json_file()
             start_time = time.time()
-            self.solutions = self.load_solutions_from_json()
+            if  self.JSON_path != "NULL" :
+                self.solutions = self.load_solutions_from_json()
             end_time = time.time()
             
             elapsed_time = end_time - start_time
@@ -93,11 +94,12 @@ class Casque:
         """
         print("pull_solutions")
         for solution in self.solutions:
-            print("pull_solutions1")
+            print("solution :" + solution.nom)
             if solution.sol_install_on_casque:
-                print("pull_solutions2")
+                print(" -> Solution on casques")
                 # Vérifier si la solution qui est sur le casque est dans la bibliothèque
                 if not self.is_solution_in_library(solution):
+                    print(" -> Pull solution !")
                     self.pull_solution(solution)
 
     def is_solution_in_library(self, solution):
@@ -111,7 +113,7 @@ class Casque:
             bool: True si la solution est déjà dans la bibliothèque, False sinon.
         """
 
-        print("is_solution_in_library")
+        print("is_solution_in_bibli")
 
         safe_solution_name = re.sub(r'[^\w\-_\. ]', '_', solution.nom)
         solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
@@ -131,7 +133,9 @@ class Casque:
                                 return True
                                 
                         except subprocess.CalledProcessError as e:
-                            print(f"Erreur lors de la vérification du fichier {media_files[0]} pour {solution.nom} : {e}\n{e.stderr.decode('utf-8')}")
+                            #print(f"Erreur lors de la vérification du fichier {media_files[0]} pour {solution.nom} : {e}\n{e.stderr.decode('utf-8')}")
+                            print()
+
         print("la sol est pas déjà dans la bibli")
         return False
 
@@ -152,12 +156,13 @@ class Casque:
                 target_dir = os.path.join(solution_dir, subdir)
                 os.makedirs(target_dir, exist_ok=True)
                 media_files = getattr(solution, subdir, [])
-                #for media_file in media_files:
-                    #self.copy_media_file(media_file, target_dir, solution.nom)
-
-            json_path = os.path.join(solution_dir, f"{safe_solution_name}.json")
-            with open(json_path, 'w') as json_file:
-                json.dump(solution.to_dict(), json_file, indent=4)
+                print(f"PULLLL DES SOLUTIONS ")
+                for media_file in media_files:
+                    self.copy_media_file( self.config.upload_casque_path + media_file, target_dir, solution.nom)
+ 
+            #json_path = os.path.join(solution_dir, f"{safe_solution_name}.json")
+            #with open(json_path, 'w') as json_file:
+                #json.dump(solution.to_dict(), json_file, indent=4)
 
             print(f"Solution {solution.nom} reconstruite avec succès dans {solution_dir}.")
         else:
@@ -174,13 +179,14 @@ class Casque:
         """
         check_file_command = f"adb -s {self.numero} shell 'ls -l {media_file}'"
         try:
-            result = subprocess.run(check_file_command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if result.returncode == 0:
-                adb_pull_command = f"adb -s {self.numero} pull {media_file} {target_dir}"
-                try:
-                    subprocess.run(adb_pull_command, shell=True, check=True)
-                except subprocess.CalledProcessError as e:
-                    print(f"Erreur lors du téléversement du fichier {media_file} pour {solution_name} : {e}")
+            #result = subprocess.run(check_file_command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            #if result.returncode == 0:
+
+            try:
+                result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "pull", media_file, target_dir], check=True)
+
+            except subprocess.CalledProcessError as e:
+                print(f"Erreur lors du téléversement du fichier {media_file} pour {solution_name} : {e}")
             else:
                 print(f"Le fichier distant {media_file} n'existe pas pour {solution_name}")
         except subprocess.CalledProcessError as e:
@@ -258,7 +264,7 @@ class Casque:
                     version = version_match.group(1)
                     return version
                 else:
-                    return None
+                    return "X"
             except subprocess.CalledProcessError as e:
                 print(f"Une erreur est survenue lors de l'obtention de la version de l'APK : {e}")
                 print(e.stderr.decode("utf-8"))

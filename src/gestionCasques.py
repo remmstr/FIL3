@@ -28,6 +28,7 @@ class GestionCasques:
         self.client = AdbClient(host="127.0.0.1", port=5037)
         self.refresh_casques()
 
+
     def refresh_casques(self):
         try:
             devices = self.client.devices()
