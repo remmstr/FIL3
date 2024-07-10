@@ -10,6 +10,7 @@ class UI_Front:
         self.progress_bars = {}
         self.widget_cache = {}
 
+
     def create_widgets(self):
         self.root.configure(bg="white")  # Assurer que le fond de l'application est blanc
         self.root.geometry("1000x600")  # Augmenter la largeur de la fenêtre initiale

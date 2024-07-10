@@ -4,14 +4,16 @@ import re
 import threading
 import traceback
 import json
-from solution import Solution
-from marque import Marque
-from config import Config
-from adbtools import Adbtools
 import base64
 import time
 
+from marque import Marque
+from solution import Solution
+from config import Config
+import adbtools
+
 class Casque:
+
     def __init__(self):
         self.device = str
         self.numero = ""
@@ -21,8 +23,7 @@ class Casque:
         self.JSON_path = "NULL"
         self.solutions = []
 
-        self.config = Config.getInstance()
-        self.adbtools = Adbtools()
+        self.config = Config()
         self.lock = threading.Lock()
         self.refresh_lock = threading.Lock()
 
@@ -80,7 +81,7 @@ class Casque:
 
                 # Créer des objets Solution à partir des données JSON
                 for solution_data in json_data.get('versions', []):
-                    solution = Solution().from_json(solution_data, self.numero)
+                    solution = Solution().from_json(solution_data, self.numero, self.config.upload_casque_path)
                     solutions.append(solution)
             except Exception as e:
                 print(f"Erreur lors du chargement du fichier JSON : {e}")
@@ -224,10 +225,11 @@ class Casque:
                 self.JSON_path = "Fichier JSON inexistant"
                 return self.JSON_path
 
+
     def install_APK(self):
         print("----->>>> Installation de l'APK")
         self.print()
-        self.adbtools.grant_permissions(self.numero)
+        adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
         try:
             subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True)
             print(self.config.GREEN + f"Installation de l'APK réussie." + self.config.RESET)
@@ -236,8 +238,76 @@ class Casque:
             print(f"forcer l'installation en supprimant l'ancienne app")
             self.uninstall_APK()
             self.install_APK()
-        self.adbtools.grant_permissions(self.numero)
+            return  # Ajouté pour éviter de tenter de donner des permissions si l'installation a échoué
+
+        # Octroyer les permissions nécessaires
+        adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
+        
+        # Extraire les permissions et les octroyer
+        permissions = self.extract_permissions(self.config.package_name)
+        print(permissions)
+        adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
+
+        # Obtenir le nom complet de l'activité principale
+        try:
+            activity_output = subprocess.check_output(
+                [self.config.adb_exe_path, "-s", self.numero, "shell", "cmd", "package", "resolve-activity", "--brief", self.config.package_name],
+                stderr=subprocess.DEVNULL
+            ).decode("utf-8").strip()
+
+            # Extraire uniquement la ligne contenant le nom de l'activité (dernière ligne normalement)
+            activity_name = activity_output.split('\n')[-1].strip()
+            print(f"Activity Name: {activity_name}")
+
+            # Démarrer l'application avec le nom complet de l'activité
+            start_command = [
+                self.config.adb_exe_path, "-s", self.numero, "shell", "am", "start",
+                "-n", activity_name
+            ]
+            subprocess.run(start_command, check=True)
+            print(f"Application {self.config.package_name} démarrée avec succès.")
+        except subprocess.CalledProcessError as e:
+            print(f"Erreur lors de l'obtention ou du démarrage de l'activité principale : {e}")
+            #self.force_stop_and_clear_cache(self.config.package_name)
+        adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
+
         print("-----------Fin de l'installation-----------")
+
+    def extract_permissions(self, package_name):
+        """
+        Extrait les permissions requises par l'application.
+
+        Args:
+            package_name (str): Le nom du package de l'application.
+
+        Returns:
+            List[str]: La liste des permissions requises.
+        """
+        try:
+            check_permissions_command = f"adb -s {self.numero} shell dumpsys package {package_name} | grep permission"
+            output = subprocess.check_output(check_permissions_command, shell=True, stderr=subprocess.DEVNULL).decode("utf-8")
+            permissions = re.findall(r'android\.permission\.[A-Z_]+', output)
+            permissions = list(set(permissions))  # Retirer les doublons
+            print(f"Permissions extraites : {permissions}")
+            return permissions
+        except subprocess.CalledProcessError as e:
+            print(f"Erreur lors de l'extraction des permissions : {e}")
+            return []
+
+
+    def force_stop_and_clear_cache(self, package_name):
+        """
+        Force l'arrêt de l'application et efface son cache.
+
+        Args:
+            package_name (str): Le nom du package de l'application.
+        """
+        try:
+            subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "am", "force-stop", package_name], check=True)
+            subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "clear", package_name], check=True)
+            print(f"Forced stop and cleared cache for {package_name}.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error forcing stop and clearing cache for {package_name}: {e}")
 
     def uninstall_APK(self):
         print("----->>>> Désinstallation de l'APK")
@@ -251,6 +321,8 @@ class Casque:
             else:
                 print(f"Une erreur est survenue lors de la désinstallation de l'APK : {e}")
         print("-----------Fin de la désinstallation-----------")
+
+
 
     def get_installed_apk_version(self):
         with self.lock:
@@ -340,7 +412,7 @@ class Casque:
                 if ssid and password:
                     print(ssid)
                     print(password)
-                    self.adbtools.configure_wifi_on_casque(ssid, password)
+                    adbtools.self.configure_wifi_on_casque(adbtools.adb_exe_path, ssid, password)
                     self.reconnect_wifi()
                     self.check_wifi_connection(ssid)
                 else:

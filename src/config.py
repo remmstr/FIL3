@@ -3,28 +3,20 @@ import sys
 import platform
 import traceback
 import re
+from singletonMeta import SingletonMeta
 
-class Config:
-    _instance = None
-
-    @classmethod
-    def getInstance(cls):
-        if cls._instance is None:
-            cls._instance = cls()
-            cls._instance.init_paths()
-        return cls._instance
-
+class Config(metaclass=SingletonMeta):
     def __init__(self):
-        pass
+        self.init_paths()
 
     def init_paths(self):
-        system = platform.system()
-        self.system_name = system
 
-        if system == "Darwin":
+        self.system_name = platform.system()
+
+        if self.system_name == "Darwin":
             self.adb_exe_path = self.config_path("platform-tools/mac/adb")
             self.platform_tools_path = self.config_path("platform-tools/mac")
-        elif system == "Windows":
+        elif self.system_name == "Windows":
             self.adb_exe_path = self.config_path("platform-tools/windows/adb.exe")
             self.platform_tools_path = self.config_path("platform-tools/windows")
         else:
@@ -42,7 +34,6 @@ class Config:
         self.GREEN = '\033[92m'
         self.APK_path = "./APK"
 
-        # Ensure required directories exist
         self.ensure_directory_exists(self.Banque_de_solution_path)
         self.ensure_directory_exists(self.APK_path)
 
@@ -60,7 +51,6 @@ class Config:
 
     def get_apk_version(self, brand_name):
         try:
-
             apk_names = []
             for file_name in os.listdir(self.APK_path):
                 if file_name.endswith(".apk"):
@@ -71,7 +61,7 @@ class Config:
                     version_match = re.search(r'(\d+\.\d+\.\d+)', apk_name)
                     if version_match:
                         return version_match.group(1)
-                    return apk_name  # Retourne la version de l'APK
+                    return apk_name
 
             return "✗"  # Aucun APK trouvé
 
@@ -82,5 +72,4 @@ class Config:
             print(f"Erreur inattendue lors de la sélection de l'APK : {e}")
             traceback.print_exc()
             return "✗"
-
 

@@ -1,6 +1,4 @@
 import subprocess
-from config import Config
-import os
 
 class Solution:
     def __init__(self):
@@ -12,9 +10,9 @@ class Solution:
         self.sound = []
         self.srt = []
         self.video = []
-        self.config = Config.getInstance()  # Instance de Config
 
-    def from_json(self, json_data, device_serial):
+
+    def from_json(self, json_data, device_serial,upload_casque_path):
         """
         Initialise l'objet Solution à partir des données JSON.
 
@@ -44,14 +42,14 @@ class Solution:
                 self.video.append(media)
 
         # Vérification de l'installation de la solution sur le casque
-        if self.verif_sol_install(device_serial):
+        if self.verif_sol_install(device_serial,upload_casque_path):
             self.sol_install_on_casque = True
 
         self.print_light()
         
         return self
 
-    def verif_sol_install(self,device_serial):
+    def verif_sol_install(self,device_serial,upload_casque_path):
         """
         Vérifie si la solution est installée sur le casque en vérifiant l'existence
         du premier fichier de chaque répertoire (image, image360, sound, srt, video).
@@ -62,7 +60,7 @@ class Solution:
         directories = [self.image, self.image360, self.sound, self.srt, self.video]
         for dir in directories:
             if dir:
-                first_file = self.config.upload_casque_path + dir[0]
+                first_file = upload_casque_path + dir[0]
                 check_file_command = ["adb", "-s", device_serial, "shell", "ls", first_file]
                 try:
                     output = subprocess.check_output(check_file_command, stderr=subprocess.DEVNULL).decode("utf-8")

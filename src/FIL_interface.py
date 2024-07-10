@@ -1,20 +1,22 @@
 import tkinter as tk
 from ui_Front import UI_Front
 from ui_Back import UI_Back
-from gestionCasques import GestionCasques
 import traceback
 import threading
 import re
 import sys
+from gestionCasques import GestionCasques 
 
 class FIL_interface:
     def __init__(self, root):
-        self.casques = GestionCasques.getInstance()
+
+        self.casques = GestionCasques()
         self.config = self.casques.config  # Accès à la configuration
+
         self.ui_front = UI_Front(root, self)
         self.ui_back = UI_Back(self)
         self.ui_front.create_widgets()
-
+        
         self.tracking_thread = threading.Thread(target=self.ui_back.track_devices)
         self.tracking_thread.start()
 

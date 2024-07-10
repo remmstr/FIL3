@@ -7,6 +7,7 @@ from tkinter import filedialog
 import tkinter as tk
 import os
 
+
 class UI_Back:
     def __init__(self, app):
         self.app = app
@@ -84,7 +85,7 @@ class UI_Back:
                 self.app.ui_front.afficher_casques()
             except Exception as e:
                 self.app.handle_exception("Erreur lors de l'actualisation des casques", e)
-            time.sleep(300)
+            time.sleep(10)
 
     def download_banque_solutions(self):
         try:
