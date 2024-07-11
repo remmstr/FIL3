@@ -44,8 +44,6 @@ class Solution:
         # Vérification de l'installation de la solution sur le casque
         if self.verif_sol_install(device_serial,upload_casque_path):
             self.sol_install_on_casque = True
-
-        self.print()
         
         return self
 

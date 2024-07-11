@@ -22,6 +22,9 @@ class Casque:
         self.version_apk = ""
         self.JSON_path = "NULL"
         self.solutions = []
+        self.code = ""
+        self.name = ""
+        self.enterprise_association = ""
 
         self.config = Config()
         self.lock = threading.Lock()
@@ -80,6 +83,16 @@ class Casque:
 
                 # Charger les données JSON
                 json_data = json.loads(decoded_output)
+
+                # Récupérer et enregistrer le nom
+                self.name = json_data.get('name', "")
+
+                # Récupérer et enregistrer le code à quatre chiffres
+                self.code = json_data.get('code', "")
+
+                # Récupérer et enregistrer l'entreprise associée
+                enterprises = json_data.get('enterprises_associate', [])
+                self.enterprise = enterprises[0] if enterprises else ""
 
                 # Créer des objets Solution à partir des données JSON
                 for solution_data in json_data.get('versions', []):
