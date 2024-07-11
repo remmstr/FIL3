@@ -7,6 +7,7 @@ from singletonMeta import SingletonMeta
 
 class Config(metaclass=SingletonMeta):
     def __init__(self):
+        print("config")
         self.init_paths()
 
     def init_paths(self):

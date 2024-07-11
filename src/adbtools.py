@@ -11,7 +11,7 @@ def check_adb_connection(platform_tools_path):
             return False
         return True
 
-def grant_permissions(self, adb_exe_path, numero, package_name):
+def grant_permissions(adb_exe_path, numero, package_name):
     commands = [
         ["pm", "grant", package_name, "android.permission.ACCESS_FINE_LOCATION"],
         ["pm", "grant", package_name, "android.permission.READ_EXTERNAL_STORAGE"],

@@ -10,8 +10,14 @@ class UI_Front:
         self.progress_bars = {}
         self.widget_cache = {}
 
+    # ---------------------------------------------------------------------------
+    # Initial Setup Functions
+    # ---------------------------------------------------------------------------
 
     def create_widgets(self):
+        """
+        Create the main widgets for the UI.
+        """
         self.root.configure(bg="white")  # Assurer que le fond de l'application est blanc
         self.root.geometry("1000x600")  # Augmenter la largeur de la fenêtre initiale
 
@@ -22,8 +28,47 @@ class UI_Front:
         # Charger et afficher l'image redimensionnée
         self.load_image("resources/images/image.png", menu_frame)
 
-        # Cadre pour l'APK disponible
-        apk_frame = tk.Frame(menu_frame, bg="white", bd=1, relief=tk.SOLID)
+        # APK Frame
+        self.create_apk_frame(menu_frame)
+
+        # Installation Button
+        self.create_install_button(menu_frame)
+
+        # Table Frame
+        self.create_table_frame()
+
+        # Banque de Solutions Button
+        self.create_banque_button()
+
+        # Debug Area
+        self.create_debug_area()
+
+        # Redirect stdout to the debug text
+        sys.stdout = self
+
+    # ---------------------------------------------------------------------------
+    # Helper Functions
+    # ---------------------------------------------------------------------------
+
+    def load_image(self, path, parent):
+        """
+        Load and display an image in the specified parent frame.
+        """
+        try:
+            image = Image.open(path)
+            image = image.resize((250, 100), Image.LANCZOS)  # Redimensionnement de l'image
+            photo = ImageTk.PhotoImage(image)
+            label = tk.Label(parent, image=photo, bg="white")
+            label.image = photo  # keep a reference!
+            label.pack(side=tk.LEFT, pady=0)
+        except Exception as e:
+            self.log_debug(f"Erreur lors du chargement de l'image : {e}")
+
+    def create_apk_frame(self, parent):
+        """
+        Create the frame for displaying APK information.
+        """
+        apk_frame = tk.Frame(parent, bg="white", bd=1, relief=tk.SOLID)
         apk_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=10, pady=10)
 
         apk_title = tk.Label(apk_frame, text="APK disponible", font=("Helvetica", 10, "bold"), bg="white")
@@ -38,14 +83,20 @@ class UI_Front:
         for label in self.apk_labels.values():
             label.pack(side=tk.TOP, anchor="w", padx=10, pady=2)
 
-        # Cadre pour le bouton d'installation
-        button_frame = tk.Frame(menu_frame, bg="white")
+    def create_install_button(self, parent):
+        """
+        Create the button for installing APKs and solutions.
+        """
+        button_frame = tk.Frame(parent, bg="white")
         button_frame.pack(side=tk.TOP, pady=10)
 
         self.install_button = tk.Button(button_frame, text="INSTALLER", font=("Helvetica", 10, "bold"), command=self.app.ui_back.installer_apks_et_solutions, bg="white")
         self.install_button.pack()
 
-        # Tableau des casques avec Canvas et Scrollbar
+    def create_table_frame(self):
+        """
+        Create the table frame for displaying casque information.
+        """
         self.table_frame = tk.Frame(self.root, bg="white")
         self.table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -59,7 +110,13 @@ class UI_Front:
         canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         self.scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
-        # Ajouter les en-têtes de colonnes
+        # Add column headers
+        self.create_table_headers()
+
+    def create_table_headers(self):
+        """
+        Create headers for the casque table.
+        """
         header = tk.Frame(self.scrollable_frame, bg="white")
         header.pack(fill="x")
 
@@ -68,15 +125,22 @@ class UI_Front:
         tk.Label(header, text="Modèle", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="APK", width=9, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="JSON", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Solution", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Solution associé", width=14, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Solution installé", width=14, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
 
-        # Bouton Banque de solutions
+    def create_banque_button(self):
+        """
+        Create the button for downloading solutions from the bank.
+        """
         banque_button_frame = tk.Frame(self.root, bg="white")
         banque_button_frame.pack(side=tk.TOP, pady=10)
         self.banque_solutions_button = tk.Button(banque_button_frame, text="Banque de solutions", command=self.app.ui_back.download_banque_solutions, bg="white")
         self.banque_solutions_button.pack(pady=10)
 
-        # Debug area
+    def create_debug_area(self):
+        """
+        Create the debug area for displaying log messages.
+        """
         debug_frame = tk.Frame(self.root, bg="white")
         debug_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -90,21 +154,10 @@ class UI_Front:
         self.debug_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.debug_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        # Redirect stdout to the debug text
-        sys.stdout = self
-
-    def load_image(self, path, parent):
-        try:
-            image = Image.open(path)
-            image = image.resize((250, 100), Image.LANCZOS)  # Redimensionnement de l'image
-            photo = ImageTk.PhotoImage(image)
-            label = tk.Label(parent, image=photo, bg="white")
-            label.image = photo  # keep a reference!
-            label.pack(side=tk.LEFT, pady=0)
-        except Exception as e:
-            self.log_debug(f"Erreur lors du chargement de l'image : {e}")
-
     def afficher_casques(self):
+        """
+        Display the list of casques.
+        """
         try:
             casques_to_remove = set(self.widget_cache.keys())
 
@@ -129,6 +182,9 @@ class UI_Front:
             self.app.handle_exception("Erreur lors de l'affichage des casques", e)
 
     def create_casque_row(self, index, casque):
+        """
+        Create a row for a casque in the table.
+        """
         item_frame = tk.Frame(self.scrollable_frame, bg="white")
         item_frame.pack(fill="x")
 
@@ -148,7 +204,14 @@ class UI_Front:
         tk.Label(item_frame, text=json_status, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         solutions_text = f"{len(casque.solutions)} solution(s)"
-        tk.Label(item_frame, text=solutions_text, width=9, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
+        tk.Label(item_frame, text=solutions_text, width=15, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
+
+        # Add Push Button
+        install_solutions_button = tk.Button(item_frame, text="--> Push", width=10, fg="green", command=lambda c=casque: self.app.ui_back.push_solutions(c), bg="white", relief="flat")
+        install_solutions_button.pack(side="left", padx=0)
+
+        solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
+        tk.Label(item_frame, text=solutions_install_text, width=15, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
 
         gestion_image = Image.open("resources/images/parametres.png")
         gestion_image = gestion_image.resize((15, 15), Image.LANCZOS)
@@ -160,6 +223,9 @@ class UI_Front:
         return item_frame
 
     def update_casque_row(self, index, casque):
+        """
+        Update the information for a casque in the table.
+        """
         item_frame = self.widget_cache[casque.numero]
         widgets = item_frame.winfo_children()
 
@@ -179,21 +245,40 @@ class UI_Front:
         solutions_text = f"{len(casque.solutions)} solution(s)"
         widgets[5].config(text=solutions_text)  # solutions count
 
+        solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
+        widgets[7].config(text=solutions_install_text)  # solutions install count
+
     def create_progress_bar(self, item_frame):
+        """
+        Create a progress bar for the specified item frame.
+        """
         progress_var = tk.DoubleVar()
         progress_bar = ttk.Progressbar(item_frame, orient="horizontal", length=100, mode="determinate", variable=progress_var)
         progress_bar.pack(side="left", padx=5)
         return progress_var
 
     def log_debug(self, message):
+        """
+        Log a debug message to the debug text area.
+        """
         self.root.after(0, self._log_debug, message)
 
     def _log_debug(self, message):
+        """
+        Insert a debug message into the debug text area.
+        """
         self.debug_text.insert(tk.END, message + "\n")
         self.debug_text.see(tk.END)
 
     def write(self, message):
+        """
+        Write a message to the debug text area (used for redirecting stdout).
+        """
         self.log_debug(message)
 
     def flush(self):
+        """
+        Flush method required for redirecting stdout.
+        """
         pass  # Nécessaire pour rediriger stdout
+

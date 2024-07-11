@@ -101,3 +101,6 @@ class UI_Back:
 
     def uninstall_apk(self, casque):
         Thread(target=casque.uninstall_APK).start()
+
+    def push_solutions(self, casque):
+        Thread(target=casque.push_solutions).start()

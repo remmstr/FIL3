@@ -27,6 +27,12 @@ class Casque:
         self.lock = threading.Lock()
         self.refresh_lock = threading.Lock()
 
+
+    
+    #-----------------------------------------------------
+    # INSTANCIATION INFO ET VERIFICATION
+    #-----------------------------------------------------
+
     def refresh_casque(self, device):
         with self.refresh_lock:
             self.device = device
@@ -54,15 +60,11 @@ class Casque:
 
             self.version_apk = self.get_installed_apk_version()
             self.JSON_path = self.check_json_file()
-            start_time = time.time()
+
             if  self.JSON_path != "NULL" :
                 self.solutions = self.load_solutions_from_json()
-            end_time = time.time()
-            
-            elapsed_time = end_time - start_time
-            print(f"Temps d'exécution de load_solutions_from_json: {elapsed_time} secondes")
 
-            self.pull_solutions()
+            #self.pull_solutions()
 
     def load_solutions_from_json(self):
         solutions = []
@@ -88,12 +90,166 @@ class Casque:
                 traceback.print_exc()
         return solutions
 
+    def get_installed_apk_version(self):
+        with self.lock:
+            try:
+                result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "dumpsys", "package", self.config.package_name],
+                                        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                output = result.stdout.decode('utf-8')
+
+                version_match = re.search(r'versionName=(\S+)', output)
+                if version_match:
+                    version = version_match.group(1)
+                    return version
+                else:
+                    return "X"
+            except subprocess.CalledProcessError as e:
+                print(f"Une erreur est survenue lors de l'obtention de la version de l'APK : {e}")
+                print(e.stderr.decode("utf-8"))
+                return None
+
+
+    def is_solution_in_library(self, solution):
+        """
+        Vérifie si une solution est déjà dans la bibliothèque.
+        
+        Parameters:
+            solution (Solution): La solution à vérifier.
+                
+        Returns:
+            bool: True si la solution est déjà dans la bibliothèque, False sinon.
+        """
+
+        # Crée un nom de dossier sûr pour la solution
+        safe_solution_name = re.sub(r'[^\w\-_\. ]', '_', solution.nom)
+        solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
+
+        print(f"Checking solution directory: {solution_dir}")
+
+        # Vérifie si le dossier de la solution existe
+        if os.path.exists(solution_dir):
+            print("1: Solution directory exists.")
+            subdirs = ["image", "image360", "sound", "srt", "video"]
+            
+            for subdir in subdirs:
+                target_dir = os.path.join(solution_dir, subdir)
+                print(f"2: Checking subdir: {subdir} at {target_dir}")
+                
+                # Vérifie si le sous-dossier existe
+                if os.path.exists(target_dir):
+                    print("3: Subdirectory exists.")
+                    media_files = getattr(solution, subdir, [])
+                    
+                    if media_files:
+                        print(f"4: Media files found in {subdir}: {media_files}")
+                        #for media_file in media_files:
+                            # Extrait le nom du fichier du chemin complet
+                            #local_media_file_path = os.path.join(target_dir, os.path.basename(media_file))
+                            
+                            # Vérifie si le fichier de média existe localement
+                            #print(f"Checking local media file: {local_media_file_path}")
+                            #if os.path.exists(local_media_file_path):
+                            #    print("5: Media file found in library.")
+                            #else:
+                            #    print(f"Media file {local_media_file_path} not found in library.")
+                            #    return False
+                            
+            print("All media files are present in the library.")
+            return True
+
+        print("Solution directory does not exist.")
+        return False
+    
+    def check_json_file(self):
+        with self.lock:
+            try:
+                print("self.config.json_file_path")
+                print(self.config.json_file_path)
+                output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", self.config.json_file_path], stderr=subprocess.DEVNULL).decode("utf-8")
+                if self.config.json_file_path in output:
+                    self.JSON_path = os.path.dirname(self.config.json_file_path)
+                    return self.config.json_file_path
+                else:
+                    self.JSON_path = "Fichier JSON inexistant"
+                    return self.JSON_path
+            except subprocess.CalledProcessError as e:
+                self.JSON_path = "Fichier JSON inexistant"
+                return self.JSON_path
+
+    def getListSolInstall(self) : 
+        """
+        Retourne une liste des solutions installées sur le casque.
+
+        Returns:
+            list: Liste des solutions installées.
+        """
+        installed_solutions = []
+        for solution in self.solutions:
+            if solution.sol_install_on_casque:
+                installed_solutions.append(solution)
+        return installed_solutions
+
+    
+    #-----------------------------------------------------
+    # PUSH ET PULL SOLUTION
+    #-----------------------------------------------------
+
+    def push_solutions(self) : 
+        """
+        Retourne une liste des solutions installées sur le casque.
+
+        Returns:
+            list: Liste des solutions installées.
+        """
+        print("push_solutions")
+        for solution in self.solutions:
+            print("solution :" + solution.nom)
+            if not solution.sol_install_on_casque:
+                print(" -> Solution not on casque")
+                # Vérifier si la solution qui est sur le casque est dans la bibliothèque
+                #if self.is_solution_in_library(solution):
+                print(" -> Push solution !")
+                self.push_solution(solution)
+
+    def push_solution(self, solution):
+        """
+        Copie les fichiers média de la solution dans le casque.
+
+        Args:
+            solution (Solution): L'objet Solution pour lequel créer le répertoire.
+        """
+
+        # Crée un nom de dossier sûr pour la solution
+        safe_solution_name = re.sub(r'[^\w\-_\. ]', '_', solution.nom)
+        solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
+
+        if os.path.exists(solution_dir):
+            subdirs = ["image", "image360", "sound", "srt", "video"]
+            for subdir in subdirs:
+                source_dir = os.path.join(solution_dir, subdir)
+                
+                if os.path.exists(source_dir):
+                    media_files = getattr(solution, subdir, [])
+                    
+                    for media_file in media_files:
+                        local_file_path = os.path.join(source_dir, os.path.basename(media_file)).replace("'\'", "/")
+                        print(local_file_path)
+                        try:
+                            self.copy_media_file(local_file_path, self.config.upload_casque_path + media_file , solution.nom, "push")
+                        except Exception as e:
+                            print(f"Erreur lors du téléversement du fichier {local_file_path} pour {solution.nom} : {e}")
+                            return
+
+            solution.sol_install_on_casque = True
+            print(f"Solution {solution.nom} copiée avec succès dans le casque.")
+        else:
+            self._log_message(f"Solution directory does not exist for '{solution.nom}' in the library")
+
 
     def pull_solutions(self):
         """
         Reconstitue les répertoires des solutions installées sur le casque.
         """
-        print("pull_solutions")
         for solution in self.solutions:
             print("solution :" + solution.nom)
             if solution.sol_install_on_casque:
@@ -102,43 +258,6 @@ class Casque:
                 if not self.is_solution_in_library(solution):
                     print(" -> Pull solution !")
                     self.pull_solution(solution)
-
-    def is_solution_in_library(self, solution):
-        """
-        Vérifie si une solution est déjà dans la bibliothèque.
-        
-        Parameters:
-            solution (Solution): La solution à vérifier.
-            
-        Returns:
-            bool: True si la solution est déjà dans la bibliothèque, False sinon.
-        """
-
-        print("is_solution_in_bibli")
-
-        safe_solution_name = re.sub(r'[^\w\-_\. ]', '_', solution.nom)
-        solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
-
-        if os.path.exists(solution_dir):
-            subdirs = ["image", "image360", "sound", "srt", "video"]
-            for subdir in subdirs:
-                target_dir = os.path.join(solution_dir, subdir)
-                if os.path.exists(target_dir):
-                    media_files = getattr(solution, subdir, [])
-                    if media_files:
-                        check_file_command = f"adb -s {self.numero} shell 'ls -l {media_files[0]}'"
-                        try:
-                            result = subprocess.run(check_file_command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                            if result.returncode == 0:
-                                print("la sol est déjà dans la bibli")
-                                return True
-                                
-                        except subprocess.CalledProcessError as e:
-                            #print(f"Erreur lors de la vérification du fichier {media_files[0]} pour {solution.nom} : {e}\n{e.stderr.decode('utf-8')}")
-                            print()
-
-        print("la sol est pas déjà dans la bibli")
-        return False
 
     def pull_solution(self, solution):
         """
@@ -157,75 +276,54 @@ class Casque:
                 target_dir = os.path.join(solution_dir, subdir)
                 os.makedirs(target_dir, exist_ok=True)
                 media_files = getattr(solution, subdir, [])
-                print(f"PULLLL DES SOLUTIONS ")
                 for media_file in media_files:
-                    self.copy_media_file( self.config.upload_casque_path + media_file, target_dir, solution.nom)
- 
-            #json_path = os.path.join(solution_dir, f"{safe_solution_name}.json")
-            #with open(json_path, 'w') as json_file:
-                #json.dump(solution.to_dict(), json_file, indent=4)
+                    self.copy_media_file( self.config.upload_casque_path + media_file, target_dir, solution.nom, "pull")
 
             print(f"Solution {solution.nom} reconstruite avec succès dans {solution_dir}.")
         else:
             self._log_message(f"Solution directory already exists for '{solution.nom}' at {solution_dir}")
 
-    def copy_media_file(self, media_file, target_dir, solution_name):
+
+    def copy_media_file(self, source_dir, target_dir, solution_name, direction):
         """
-        Copie un fichier média depuis le casque vers le répertoire cible.
+        Copie un fichier vers le répertoire cible.
 
         Args:
-            media_file (str): Le chemin du fichier média sur le casque.
+            source_dir (str): Le chemin du fichier média sur le casque.
             target_dir (str): Le répertoire cible local.
             solution_name (str): Le nom de la solution associée.
+            direction (str): pull or push
         """
-        check_file_command = f"adb -s {self.numero} shell 'ls -l {media_file}'"
+        
+        print(f"Solution source  : {source_dir} target : {target_dir}.")
         try:
-            #result = subprocess.run(check_file_command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            #if result.returncode == 0:
-
-            try:
-                result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "pull", media_file, target_dir], check=True)
-
-            except subprocess.CalledProcessError as e:
-                print(f"Erreur lors du téléversement du fichier {media_file} pour {solution_name} : {e}")
-            else:
-                print(f"Le fichier distant {media_file} n'existe pas pour {solution_name}")
+            result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, direction , source_dir, target_dir], check=True)
         except subprocess.CalledProcessError as e:
-            print(f"Erreur lors de la vérification du fichier {media_file} pour {solution_name} : {e}\n{e.stderr.decode('utf-8')}")
+            print(f"Erreur lors du téléversement du fichier {source_dir} pour {solution_name} : {e}")
+
+    def add_solution(self):
+        with self.lock:
+            print("----->>>> Téléversement de la solution")
+            self.print()
+            print("Ajout d'une solution... cela peut prendre quelques minutes")
+            try:
+                subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "rm", "-r", self.config.upload_casque_path], check=True)
+                print("Fichier upload supprimé avec succès, téléversement du nouveau fichier en cours...")
+            except subprocess.CalledProcessError as e:
+                print(f"Une erreur est survenue lors de la suppression du fichier upload : {e}")
+            try:
+                result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "push", self.config.upload_path, self.config.upload_casque_path], check=True)
+                print(self.config.GREEN + f"Téléversement réussi." + self.config.RESET)
+            except subprocess.CalledProcessError as e:
+                print(f"Une erreur est survenue lors de la copie : {e}")
+                print(e.stderr.decode("utf-8"))
+            print("-----------Fin du téléversement-----------")
 
     
-    def print(self):
-        BLUE = self.config.BLUE
-        RESET = self.config.RESET
-
-        print(BLUE + f"| Numéro de série : {self.numero}" + RESET)
-        print(BLUE + f"| Modèle : {self.modele}" + RESET)
-        print(BLUE + f"| Marque : {self.marque.nom}" + RESET)
-        print(BLUE + f"|     APK de la marque : {self.marque.version_apk}" + RESET)
-        print(BLUE + f"|     Chemin de l'APK disponible de la marque : {self.marque.APK_path}" + RESET)
-        print(BLUE + f"| APK installé sur le casque : {self.version_apk}" + RESET)
-        print(BLUE + f"| JSON : {self.JSON_path}" + RESET)
-        print(BLUE + f"| Solutions installées : {len(self.solutions)}" + RESET)
-        for solution in self.solutions:
-            solution.print()
-
-    def check_json_file(self):
-        with self.lock:
-            try:
-                print("self.config.json_file_path")
-                print(self.config.json_file_path)
-                output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", self.config.json_file_path], stderr=subprocess.DEVNULL).decode("utf-8")
-                if self.config.json_file_path in output:
-                    self.JSON_path = os.path.dirname(self.config.json_file_path)
-                    return self.config.json_file_path
-                else:
-                    self.JSON_path = "Fichier JSON inexistant"
-                    return self.JSON_path
-            except subprocess.CalledProcessError as e:
-                self.JSON_path = "Fichier JSON inexistant"
-                return self.JSON_path
-
-
+    #-----------------------------------------------------
+    # APK 
+    #-----------------------------------------------------
+    
     def install_APK(self):
         print("----->>>> Installation de l'APK")
         self.print()
@@ -273,41 +371,6 @@ class Casque:
 
         print("-----------Fin de l'installation-----------")
 
-    def extract_permissions(self, package_name):
-        """
-        Extrait les permissions requises par l'application.
-
-        Args:
-            package_name (str): Le nom du package de l'application.
-
-        Returns:
-            List[str]: La liste des permissions requises.
-        """
-        try:
-            check_permissions_command = f"adb -s {self.numero} shell dumpsys package {package_name} | grep permission"
-            output = subprocess.check_output(check_permissions_command, shell=True, stderr=subprocess.DEVNULL).decode("utf-8")
-            permissions = re.findall(r'android\.permission\.[A-Z_]+', output)
-            permissions = list(set(permissions))  # Retirer les doublons
-            print(f"Permissions extraites : {permissions}")
-            return permissions
-        except subprocess.CalledProcessError as e:
-            print(f"Erreur lors de l'extraction des permissions : {e}")
-            return []
-
-
-    def force_stop_and_clear_cache(self, package_name):
-        """
-        Force l'arrêt de l'application et efface son cache.
-
-        Args:
-            package_name (str): Le nom du package de l'application.
-        """
-        try:
-            subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "am", "force-stop", package_name], check=True)
-            subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "clear", package_name], check=True)
-            print(f"Forced stop and cleared cache for {package_name}.")
-        except subprocess.CalledProcessError as e:
-            print(f"Error forcing stop and clearing cache for {package_name}: {e}")
 
     def uninstall_APK(self):
         print("----->>>> Désinstallation de l'APK")
@@ -323,42 +386,6 @@ class Casque:
         print("-----------Fin de la désinstallation-----------")
 
 
-
-    def get_installed_apk_version(self):
-        with self.lock:
-            try:
-                result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "dumpsys", "package", self.config.package_name],
-                                        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                output = result.stdout.decode('utf-8')
-
-                version_match = re.search(r'versionName=(\S+)', output)
-                if version_match:
-                    version = version_match.group(1)
-                    return version
-                else:
-                    return "X"
-            except subprocess.CalledProcessError as e:
-                print(f"Une erreur est survenue lors de l'obtention de la version de l'APK : {e}")
-                print(e.stderr.decode("utf-8"))
-                return None
-
-    def add_solution(self):
-        with self.lock:
-            print("----->>>> Téléversement de la solution")
-            self.print()
-            print("Ajout d'une solution... cela peut prendre quelques minutes")
-            try:
-                subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "rm", "-r", self.config.upload_casque_path], check=True)
-                print("Fichier upload supprimé avec succès, téléversement du nouveau fichier en cours...")
-            except subprocess.CalledProcessError as e:
-                print(f"Une erreur est survenue lors de la suppression du fichier upload : {e}")
-            try:
-                result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "push", self.config.upload_path, self.config.upload_casque_path], check=True)
-                print(self.config.GREEN + f"Téléversement réussi." + self.config.RESET)
-            except subprocess.CalledProcessError as e:
-                print(f"Une erreur est survenue lors de la copie : {e}")
-                print(e.stderr.decode("utf-8"))
-            print("-----------Fin du téléversement-----------")
 
     def archivage_casque(self):
         print("----->>>> Archivage du casque")
@@ -376,6 +403,11 @@ class Casque:
             print(f"Une erreur est survenue lors de l'archivage : {e}")
             print(e.stderr.decode("utf-8"))
         print("-----------Fin de l'archivage-----------")
+
+
+    #-----------------------------------------------------
+    # CONFIGURATION WIFI
+    #-----------------------------------------------------
 
     def get_wifi_credentials(self):
         with self.lock:
@@ -460,3 +492,23 @@ class Casque:
             self.app.log_debug(message)
         else:
             print(message)
+
+
+    #-----------------------------------------------------
+    # PRINT
+    #-----------------------------------------------------
+    
+    def print(self):
+        BLUE = self.config.BLUE
+        RESET = self.config.RESET
+
+        print(BLUE + f"| Numéro de série : {self.numero}" + RESET)
+        print(BLUE + f"| Modèle : {self.modele}" + RESET)
+        print(BLUE + f"| Marque : {self.marque.nom}" + RESET)
+        print(BLUE + f"|     APK de la marque : {self.marque.version_apk}" + RESET)
+        print(BLUE + f"|     Chemin de l'APK disponible de la marque : {self.marque.APK_path}" + RESET)
+        print(BLUE + f"| APK installé sur le casque : {self.version_apk}" + RESET)
+        print(BLUE + f"| JSON : {self.JSON_path}" + RESET)
+        print(BLUE + f"| Solutions installées : {len(self.solutions)}" + RESET)
+        for solution in self.solutions:
+            solution.print()

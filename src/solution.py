@@ -45,7 +45,7 @@ class Solution:
         if self.verif_sol_install(device_serial,upload_casque_path):
             self.sol_install_on_casque = True
 
-        self.print_light()
+        self.print()
         
         return self
 
