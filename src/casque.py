@@ -24,7 +24,7 @@ class Casque:
         self.solutions = []
         self.code = ""
         self.name = ""
-        self.enterprise_association = ""
+        self.entreprise_association = ""
 
         self.config = Config()
         self.lock = threading.Lock()
@@ -67,6 +67,10 @@ class Casque:
             if  self.JSON_path != "NULL" :
                 self.solutions = self.load_solutions_from_json()
 
+            # Vérifier si l'ancienne APK est installée
+            self.old_apk_installed = self.check_old_apk_installed()
+
+
             #self.pull_solutions()
 
     def load_solutions_from_json(self):
@@ -91,8 +95,8 @@ class Casque:
                 self.code = json_data.get('code', "")
 
                 # Récupérer et enregistrer l'entreprise associée
-                enterprises = json_data.get('enterprises_associate', [])
-                self.enterprise = enterprises[0] if enterprises else ""
+                entreprises = json_data.get('enterprises_associate', [])
+                self.entreprise_association = entreprises[0] if entreprises else ""
 
                 # Créer des objets Solution à partir des données JSON
                 for solution_data in json_data.get('versions', []):
@@ -103,6 +107,23 @@ class Casque:
                 traceback.print_exc()
         return solutions
 
+    def check_old_apk_installed(self):
+        """
+        Vérifie si l'ancienne APK est installée sur le casque.
+        
+        Returns:
+            bool: True si l'ancienne APK est installée, False sinon.
+        """
+        try:
+            result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "list", "packages", self.config.package_old_name_PPV1],
+                                    check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            output = result.stdout.decode('utf-8')
+            if self.config.package_old_name_PPV1 in output:
+                return True
+        except subprocess.CalledProcessError as e:
+            print(f"Erreur lors de la vérification de l'ancienne APK : {e}")
+        return False
+    
     def get_installed_apk_version(self):
         with self.lock:
             try:
@@ -121,6 +142,8 @@ class Casque:
                 print(e.stderr.decode("utf-8"))
                 return None
 
+    def getEntreprise(self):
+        return self.entreprise_association
 
     def is_solution_in_library(self, solution):
         """
@@ -176,8 +199,6 @@ class Casque:
     def check_json_file(self):
         with self.lock:
             try:
-                print("self.config.json_file_path")
-                print(self.config.json_file_path)
                 output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", self.config.json_file_path], stderr=subprocess.DEVNULL).decode("utf-8")
                 if self.config.json_file_path in output:
                     self.JSON_path = os.path.dirname(self.config.json_file_path)
@@ -421,6 +442,29 @@ class Casque:
     #-----------------------------------------------------
     # CONFIGURATION WIFI
     #-----------------------------------------------------
+
+    def is_wifi_connected(self):
+        try:
+            wifi_status_output = subprocess.check_output(
+                [self.config.adb_exe_path, "-s", self.numero, "shell", "dumpsys", "wifi"],
+                stderr=subprocess.DEVNULL
+            ).decode("utf-8")
+
+            if "mWifiInfo" in wifi_status_output:
+                wifi_info = next((line for line in wifi_status_output.split('\n') if "mWifiInfo" in line), None)
+                if wifi_info and "SSID: " in wifi_info:
+                    ssid_info = wifi_info.split("SSID: ")[1].split(",")[0].strip()
+                    if ssid_info:
+                        return True, ssid_info
+            print("Device not connected.")
+            return False, None
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to check Wi-Fi status: {e}")
+            return False, None
+
+
+
+    #old fonctions
 
     def get_wifi_credentials(self):
         with self.lock:

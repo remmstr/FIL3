@@ -19,7 +19,7 @@ class UI_Front:
         Create the main widgets for the UI.
         """
         self.root.configure(bg="white")  # Assurer que le fond de l'application est blanc
-        self.root.geometry("1200x600")  # Augmenter la largeur de la fenêtre initiale
+        self.root.geometry("1500x600")  # Augmenter la largeur de la fenêtre initiale
 
         # Menu
         menu_frame = tk.Frame(self.root, bg="white")
@@ -122,14 +122,16 @@ class UI_Front:
 
         tk.Label(header, text="#", width=5, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="ID", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Name", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")  
+        tk.Label(header, text="Name", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Modèle", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="APK", width=9, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="APK", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Wi-Fi", width=15, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="JSON", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Code", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left") 
-        tk.Label(header, text="Enterprise", width=22, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")  
-        tk.Label(header, text="Solution associé", width=14, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Solution installé", width=14, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Code", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Entreprise", width=22, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Solution associé", width=18, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Solution installé", width=18, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Info Supplémentaire", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
 
     def create_banque_button(self):
         """
@@ -190,7 +192,6 @@ class UI_Front:
 
         tk.Label(item_frame, text=index, width=5, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.numero, width=20, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
-        
         tk.Label(item_frame, text=casque.name, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.modele, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
@@ -198,44 +199,53 @@ class UI_Front:
         version_frame.pack(side="left", fill="x")
         install_button = tk.Button(version_frame, text="⇧", width=1, fg="green", command=lambda c=casque: self.app.ui_back.install_apk(c), bg="white", relief="flat")
         install_button.pack(side="left", padx=0)
-        tk.Label(version_frame, text=casque.version_apk, width=3, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 5))
+        tk.Label(version_frame, text=casque.version_apk, width=4, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 5))
         uninstall_button = tk.Button(version_frame, text="✗", width=1, fg="red", command=lambda c=casque: self.app.ui_back.uninstall_apk(c), bg="white", relief="flat")
         uninstall_button.pack(side="left", padx=0)
+
+        # Vérifier l'état du Wi-Fi
+        is_connected, ssid = casque.is_wifi_connected()
+        wifi_status = f"{ssid}" if is_connected else "Not Connected"
+        tk.Label(item_frame, text=wifi_status, width=15, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
         tk.Label(item_frame, text=json_status, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         tk.Label(item_frame, text=casque.code, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
-
-        # Ajoute cette ligne pour afficher l'entreprise associée
-        tk.Label(item_frame, text=casque.enterprise, width=22, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=casque.getEntreprise(), width=27, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         solutions_text = f"{len(casque.solutions)} solution(s)"
-        tk.Label(item_frame, text=solutions_text, width=10, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
+        tk.Label(item_frame, text=solutions_text, width=9, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
 
         install_solutions_button = tk.Button(item_frame, text="--> Push", width=0, fg="green", command=lambda c=casque: self.app.ui_back.push_solutions(c), bg="white", relief="flat")
         install_solutions_button.pack(side="left", padx=0)
 
         solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
-        tk.Label(item_frame, text=solutions_install_text, width=9, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
+        tk.Label(item_frame, text=solutions_install_text, width=9, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5,0))
 
         gestion_image = Image.open("resources/images/parametres.png")
         gestion_image = gestion_image.resize((15, 15), Image.LANCZOS)
         gestion_photo = ImageTk.PhotoImage(gestion_image)
         gestion_button = tk.Button(item_frame, image=gestion_photo, width=10, height=10, command=lambda c=casque: self.app.ui_back.open_solution_manager(c), bg="white", relief="flat")
         gestion_button.image = gestion_photo
-        gestion_button.pack(side="left", padx=0)
+        gestion_button.pack(side="left", padx=3)
+
+        info_suppl = "   App PPV1 Installée" if casque.old_apk_installed else ""
+        tk.Label(item_frame, text=info_suppl, width=20, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         return item_frame
 
     def update_casque_row(self, index, casque):
+        """
+        Update the information for a casque in the table.
+        """
         item_frame = self.widget_cache[casque.numero]
         widgets = item_frame.winfo_children()
 
         # Update index, numéro, modèle, version_apk, JSON status, solutions count
         widgets[0].config(text=index)
         widgets[1].config(text=casque.numero)
-        widgets[2].config(text=casque.name)  # Ajoute cette ligne pour mettre à jour le nom
+        widgets[2].config(text=casque.name)
         widgets[3].config(text=casque.modele)
 
         # Update version_frame children
@@ -243,19 +253,25 @@ class UI_Front:
         version_widgets = version_frame.winfo_children()
         version_widgets[1].config(text=casque.version_apk)  # version_apk label
 
+         # Update Wi-Fi status
+        is_connected, ssid = casque.is_wifi_connected()
+        wifi_status = f"{ssid}" if is_connected else "Not Connected"
+        widgets[5].config(text=wifi_status)  # Wi-Fi status
+
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
-        widgets[5].config(text=json_status)  # JSON status
+        widgets[6].config(text=json_status)  # JSON status
 
-        widgets[6].config(text=casque.code)  # Ajoute cette ligne
-
-        # Ajoute cette ligne pour mettre à jour l'entreprise associée
-        widgets[7].config(text=casque.enterprise)
+        widgets[7].config(text=casque.code)  # code
+        widgets[8].config(text=casque.getEntreprise())  # entreprise
 
         solutions_text = f"{len(casque.solutions)} solution(s)"
-        widgets[8].config(text=solutions_text)  # solutions count
+        widgets[9].config(text=solutions_text)  # solutions count
 
         solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
-        widgets[10].config(text=solutions_install_text)  # solutions install count
+        widgets[11].config(text=solutions_install_text)  # solutions install count
+
+        info_suppl = "App PPV1 Installée" if casque.old_apk_installed else ""
+        widgets[12].config(text=info_suppl)  # info supplémentaire
 
     def create_progress_bar(self, item_frame):
         """
@@ -290,4 +306,3 @@ class UI_Front:
         Flush method required for redirecting stdout.
         """
         pass  # Nécessaire pour rediriger stdout
-

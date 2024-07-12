@@ -15,7 +15,10 @@ def grant_permissions(adb_exe_path, numero, package_name):
     commands = [
         ["pm", "grant", package_name, "android.permission.ACCESS_FINE_LOCATION"],
         ["pm", "grant", package_name, "android.permission.READ_EXTERNAL_STORAGE"],
-        ["pm", "grant", package_name, "android.permission.WRITE_EXTERNAL_STORAGE"]
+        ["pm", "grant", package_name, "android.permission.WRITE_EXTERNAL_STORAGE"],
+        #["pm", "grant", package_name, "android.permission.ACCESS_WIFI_STATE"],
+        #["pm", "grant", package_name, "android.permission.CHANGE_WIFI_STATE"]
+        
     ]
     for command in commands:
         full_command = [adb_exe_path, "-s", numero, "shell"] + command

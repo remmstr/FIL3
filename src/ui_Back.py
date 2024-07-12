@@ -71,8 +71,18 @@ class UI_Back:
         solution_list.pack(padx=10, pady=10, fill="both", expand=True)
 
         for solution in casque.solutions:
-            solution_list.insert(tk.END, f"{solution.nom} (Version : {solution.version})\n")
-
+            if(solution.sol_install_on_casque):
+                solution_list.insert(tk.END, f"{solution.nom} (Version : {solution.version})\n", "install_on_casque")
+            elif(casque.is_solution_in_library(solution)):
+                solution_list.insert(tk.END, f"{solution.nom} (Version : {solution.version})\n", "in_library")
+            else:
+                solution_list.insert(tk.END, f"{solution.nom} (Version : {solution.version})\n")
+        
+        # Configurer la couleur du texte pour les solutions installe sur le casque
+        solution_list.tag_config("install_on_casque", foreground="green")
+        # Configurer la couleur du texte pour les solutions dans la bibliothèque
+        solution_list.tag_config("in_library", foreground="blue")
+        
         solution_list.config(state=tk.DISABLED)
 
         close_button = tk.Button(solution_window, text="Fermer", command=solution_window.destroy)
