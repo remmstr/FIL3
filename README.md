@@ -1,9 +1,69 @@
-# FIL
-### A ecire avant usage:  pip install -U pure-python-adb
+# FIL3
+
+
+## Installation des dépendances
+
+Pour installer et exécuter ce projet, suivez les étapes ci-dessous :
+
+
+#### 1. Cloner le dépôt
+
+
+```sh
+git clone https://github.com/votre-utilisateur/votre-projet.git
+cd votre-projet
+```
+
+
+#### 2. Créer un environnement virtuel
+Il est recommandé de créer un environnement virtuel pour isoler les dépendances du projet. Pour ce faire, utilisez la commande suivante :
+
+```sh
+python3 -m venv venv
+```
+#### 3. Activer l'environnement virtuel
+
+Sur macOS et Linux :
+```sh
+source venv/bin/activate
+```
+Sur Windows :
+```sh
+venv\Scripts\activate
+```
+
+#### 4. Installer les dépendances
+Installez les dépendances requises à partir du fichier requirements.txt :
+
+```sh
+pip install -r config/requirements.txt
+```
+
+#### 5. Exécuter le projet
+Une fois les dépendances installées, vous pouvez exécuter le projet comme suit :
+
+```sh
+python src/FIL_interface.py
+```
+
+Notes supplémentaires -> Si vous ajoutez de nouvelles dépendances, pensez à mettre à jour le fichier requirements.txt en utilisant la commande suivante :
+
+```sh
+pip freeze > requirements.txt
+```
+
+Désactiver l'environnement virtuel : Pour désactiver l'environnement virtuel, utilisez la commande :
+
+```sh
+deactivate
+```
+
+
+## A ecire avant usage:  pip install -U pure-python-adb
 python -m PyInstaller --onefile --clean --hidden-import ppadb --add-data "platform-tools:platform-tools" FIL.py
 python -m PyInstaller FIL.spec
 
-# Diagramme des classes
+## Diagramme des classes
 
 Voici un diagramme des classes pour le projet.
 
@@ -122,3 +182,5 @@ classDiagram
     GestionCasques <-- App : instancie
     Casque <-- Marque : instancie
     App <-- GestionCasques : accède
+
+
