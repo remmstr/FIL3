@@ -283,10 +283,10 @@ class UI_Front:
         return progress_var
 
     def log_debug(self, message):
-        """
-        Log a debug message to the debug text area.
-        """
-        self.root.after(0, self._log_debug, message)
+        if self.app.running:
+            self.root.after(0, self._log_debug, message)
+        else:
+            print(message)
 
     def _log_debug(self, message):
         """

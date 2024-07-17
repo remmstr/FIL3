@@ -1,11 +1,25 @@
+# FIL3.spec
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
+import sys
+import platform
+
+
+# Determine platform-specific paths
+if platform.system() == 'Windows':
+    adb_path = os.path.join('..', 'platform-tools', 'windows')
+else:
+    adb_path = os.path.join('..', 'platform-tools', 'mac')
 
 a = Analysis(
     ['../src/FIL_interface.py'],
     pathex=[],
     binaries=[],
-    datas=[('../platform-tools/windows/platform-tools', 'platform-tools/windows/platform-tools')],
+    datas=[
+        (adb_path, 'platform-tools'),
+        ('../resources', 'resources')
+        ],
     hiddenimports=['ppadb'],
     hookspath=[],
     hooksconfig={},

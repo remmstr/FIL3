@@ -19,6 +19,8 @@ class UI_Back:
     def _installer_apks_et_solutions(self):
         try:
             for casque in self.casques.liste_casques:
+                if not self.app.running:
+                    break
                 self.app.update_progress(casque.numero, 0)
                 self.app.highlight_row(casque.numero, "yellow")
                 if not self.install_apk_with_progress(casque):
@@ -72,11 +74,11 @@ class UI_Back:
 
         for solution in casque.solutions:
             if(solution.sol_install_on_casque):
-                solution_list.insert(tk.END, f"{solution.nom} (Version : {solution.version})\n", "install_on_casque")
+                solution_list.insert(tk.END, f"{solution.nom} ({solution.version})\n", "install_on_casque")
             elif(casque.is_solution_in_library(solution)):
-                solution_list.insert(tk.END, f"{solution.nom} (Version : {solution.version})\n", "in_library")
+                solution_list.insert(tk.END, f"{solution.nom} ({solution.version})\n", "in_library")
             else:
-                solution_list.insert(tk.END, f"{solution.nom} (Version : {solution.version})\n")
+                solution_list.insert(tk.END, f"{solution.nom} ({solution.version})\n")
         
         # Configurer la couleur du texte pour les solutions installe sur le casque
         solution_list.tag_config("install_on_casque", foreground="green")
@@ -88,14 +90,15 @@ class UI_Back:
         close_button = tk.Button(solution_window, text="Fermer", command=solution_window.destroy)
         close_button.pack(pady=10)
 
-    def track_devices(self):
-        while True:
+    def track_devices(self, stop_event):
+        while not stop_event.is_set():
             try:
                 self.casques.refresh_casques()
-                self.app.ui_front.afficher_casques()
+                if self.app.running:  # Vérifiez si l'application est toujours en cours d'exécution
+                    self.app.ui_front.afficher_casques()
             except Exception as e:
                 self.app.handle_exception("Erreur lors de l'actualisation des casques", e)
-            time.sleep(10)
+            stop_event.wait(10)  # Attendre 10 secondes ou jusqu'à ce que l'événement soit déclenché
 
     def download_banque_solutions(self):
         try:

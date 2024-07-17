@@ -23,15 +23,19 @@ class Config(metaclass=SingletonMeta):
         else:
             raise RuntimeError("Unsupported OS")
 
+        print(f"ADB Path: {self.adb_exe_path}")
+        print(f"Platform Tools Path: {self.platform_tools_path}")
+
         self.json_file_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/hardware.json"
         self.package_name = "com.VRAI_Studio.Reverto"
         self.package_old_name_PPV1 = "com.reverto.player"
         self.package_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto"
-        self.local_archivage_path = "./Archivage"
+        self.local_archivage_path = self.config_path("./Archivage")
         self.upload_casque_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/Downloaded"
-        self.upload_path = "./Banque_de_solutions/upload"
-        self.Banque_de_solution_path = "./Banque_de_solutions"
-        self.APK_path = "./APK"
+        self.upload_path = self.config_path("./Banque_de_solutions/upload")
+        self.Banque_de_solution_path = self.config_path("./Banque_de_solutions")
+        self.APK_path = self.config_path("./APK")
+        self.img_path = self.config_path("resources/images")
 
         self.ensure_directory_exists(self.Banque_de_solution_path)
         self.ensure_directory_exists(self.APK_path)
