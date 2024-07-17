@@ -19,6 +19,7 @@ class Casque:
         self.numero = ""
         self.marque = Marque()
         self.modele = ""
+        self.battery_level : int
         self.version_apk = ""
         self.JSON_path = "NULL"
         self.solutions = []
@@ -39,7 +40,7 @@ class Casque:
     def refresh_casque(self, device):
         with self.refresh_lock:
             self.device = device
-
+            adbtools.wake_up_device(self.config.adb_exe_path, self.numero) 
             try:
                 self.numero = self.device.get_serial_no().strip()
             except Exception as e:
@@ -60,6 +61,8 @@ class Casque:
                 print(f"Erreur lors de l'obtention du modèle: {e}")
                 traceback.print_exc()
                 self.modele = "Inconnu"
+
+            self.battery_level = adbtools.check_battery_level(self.config.adb_exe_path,self.numero)
 
             self.version_apk = self.get_installed_apk_version()
             self.JSON_path = self.check_json_file()
@@ -197,6 +200,7 @@ class Casque:
         return False
     
     def check_json_file(self):
+        
         with self.lock:
             try:
                 output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", self.config.json_file_path], stderr=subprocess.DEVNULL).decode("utf-8")
@@ -372,34 +376,10 @@ class Casque:
 
         # Octroyer les permissions nécessaires
         adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
-        
-        # Extraire les permissions et les octroyer
-        permissions = self.extract_permissions(self.config.package_name)
-        print(permissions)
-        adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
 
-        # Obtenir le nom complet de l'activité principale
-        try:
-            activity_output = subprocess.check_output(
-                [self.config.adb_exe_path, "-s", self.numero, "shell", "cmd", "package", "resolve-activity", "--brief", self.config.package_name],
-                stderr=subprocess.DEVNULL
-            ).decode("utf-8").strip()
+        adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
 
-            # Extraire uniquement la ligne contenant le nom de l'activité (dernière ligne normalement)
-            activity_name = activity_output.split('\n')[-1].strip()
-            print(f"Activity Name: {activity_name}")
-
-            # Démarrer l'application avec le nom complet de l'activité
-            start_command = [
-                self.config.adb_exe_path, "-s", self.numero, "shell", "am", "start",
-                "-n", activity_name
-            ]
-            subprocess.run(start_command, check=True)
-            print(f"Application {self.config.package_name} démarrée avec succès.")
-        except subprocess.CalledProcessError as e:
-            print(f"Erreur lors de l'obtention ou du démarrage de l'activité principale : {e}")
-            #self.force_stop_and_clear_cache(self.config.package_name)
-        adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
+        adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
 
         print("-----------Fin de l'installation-----------")
 

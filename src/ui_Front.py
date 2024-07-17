@@ -121,6 +121,7 @@ class UI_Front:
         header.pack(fill="x")
 
         tk.Label(header, text="#", width=5, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Battery", width=5, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="ID", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Name", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Modèle", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
@@ -191,6 +192,7 @@ class UI_Front:
         item_frame.pack(fill="x")
 
         tk.Label(item_frame, text=index, width=5, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=casque.battery_level, width=5, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.numero, width=20, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.name, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.modele, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
@@ -244,34 +246,35 @@ class UI_Front:
 
         # Update index, numéro, modèle, version_apk, JSON status, solutions count
         widgets[0].config(text=index)
-        widgets[1].config(text=casque.numero)
-        widgets[2].config(text=casque.name)
-        widgets[3].config(text=casque.modele)
+        widgets[1].config(text=casque.battery)
+        widgets[2].config(text=casque.numero)
+        widgets[3].config(text=casque.name)
+        widgets[4].config(text=casque.modele)
 
         # Update version_frame children
-        version_frame = widgets[4]
+        version_frame = widgets[5]
         version_widgets = version_frame.winfo_children()
         version_widgets[1].config(text=casque.version_apk)  # version_apk label
 
          # Update Wi-Fi status
         is_connected, ssid = casque.is_wifi_connected()
         wifi_status = f"{ssid}" if is_connected else "Not Connected"
-        widgets[5].config(text=wifi_status)  # Wi-Fi status
+        widgets[6].config(text=wifi_status)  # Wi-Fi status
 
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
-        widgets[6].config(text=json_status)  # JSON status
+        widgets[7].config(text=json_status)  # JSON status
 
-        widgets[7].config(text=casque.code)  # code
-        widgets[8].config(text=casque.getEntreprise())  # entreprise
+        widgets[8].config(text=casque.code)  # code
+        widgets[9].config(text=casque.getEntreprise())  # entreprise
 
         solutions_text = f"{len(casque.solutions)} solution(s)"
-        widgets[9].config(text=solutions_text)  # solutions count
+        widgets[10].config(text=solutions_text)  # solutions count
 
         solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
-        widgets[11].config(text=solutions_install_text)  # solutions install count
+        widgets[12].config(text=solutions_install_text)  # solutions install count
 
         info_suppl = "App PPV1 Installée" if casque.old_apk_installed else ""
-        widgets[12].config(text=info_suppl)  # info supplémentaire
+        widgets[13].config(text=info_suppl)  # info supplémentaire
 
     def create_progress_bar(self, item_frame):
         """
