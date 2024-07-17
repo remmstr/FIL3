@@ -338,7 +338,6 @@ class Casque:
     def add_solution(self):
         with self.lock:
             print("----->>>> Téléversement de la solution")
-            self.print()
             print("Ajout d'une solution... cela peut prendre quelques minutes")
             try:
                 subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "rm", "-r", self.config.upload_casque_path], check=True)
@@ -347,7 +346,7 @@ class Casque:
                 print(f"Une erreur est survenue lors de la suppression du fichier upload : {e}")
             try:
                 result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "push", self.config.upload_path, self.config.upload_casque_path], check=True)
-                print(self.config.GREEN + f"Téléversement réussi." + self.config.RESET)
+                print(f"Téléversement réussi.")
             except subprocess.CalledProcessError as e:
                 print(f"Une erreur est survenue lors de la copie : {e}")
                 print(e.stderr.decode("utf-8"))
@@ -360,11 +359,10 @@ class Casque:
     
     def install_APK(self):
         print("----->>>> Installation de l'APK")
-        self.print()
         adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
         try:
             subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True)
-            print(self.config.GREEN + f"Installation de l'APK réussie." + self.config.RESET)
+            print(f"Installation de l'APK réussie.")
         except subprocess.CalledProcessError as e:
             print(f"Une erreur est survenue lors de l'installation de l'APK : {e}")
             print(f"forcer l'installation en supprimant l'ancienne app")
@@ -408,10 +406,9 @@ class Casque:
 
     def uninstall_APK(self):
         print("----->>>> Désinstallation de l'APK")
-        self.print()
         try:
             subprocess.run([self.config.adb_exe_path, "-s", self.numero, "uninstall", self.config.package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            print(self.config.GREEN + "Désinstallation de l'APK réussie." + self.config.RESET)
+            print( "Désinstallation de l'APK réussie." )
         except subprocess.CalledProcessError as e:
             if "Unknown package" in str(e):
                 print("L'application n'était pas installée.")
@@ -431,7 +428,7 @@ class Casque:
                 [self.config.adb_exe_path, "-s", self.numero, "pull", self.config.package_path, self.config.local_archivage_path],
                 check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
-            print(self.config.GREEN + f"Copie réussi." + self.config.RESET)
+            print( f"Copie réussi.")
             print(result.stdout.decode("utf-8"))
         except subprocess.CalledProcessError as e:
             print(f"Une erreur est survenue lors de l'archivage : {e}")
@@ -555,17 +552,3 @@ class Casque:
     # PRINT
     #-----------------------------------------------------
     
-    def print(self):
-        BLUE = self.config.BLUE
-        RESET = self.config.RESET
-
-        print(BLUE + f"| Numéro de série : {self.numero}" + RESET)
-        print(BLUE + f"| Modèle : {self.modele}" + RESET)
-        print(BLUE + f"| Marque : {self.marque.nom}" + RESET)
-        print(BLUE + f"|     APK de la marque : {self.marque.version_apk}" + RESET)
-        print(BLUE + f"|     Chemin de l'APK disponible de la marque : {self.marque.APK_path}" + RESET)
-        print(BLUE + f"| APK installé sur le casque : {self.version_apk}" + RESET)
-        print(BLUE + f"| JSON : {self.JSON_path}" + RESET)
-        print(BLUE + f"| Solutions installées : {len(self.solutions)}" + RESET)
-        for solution in self.solutions:
-            solution.print()

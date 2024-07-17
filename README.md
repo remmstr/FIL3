@@ -17,7 +17,6 @@ cd votre-projet
 
 #### 2. Créer un environnement virtuel
 Il est recommandé de créer un environnement virtuel pour isoler les dépendances du projet. Pour ce faire, utilisez la commande suivante :
-
 ```sh
 python3 -m venv venv
 ```
@@ -41,27 +40,29 @@ pip install -r config/requirements.txt
 
 #### 5. Exécuter le projet
 Une fois les dépendances installées, vous pouvez exécuter le projet comme suit :
-
 ```sh
 python src/FIL_interface.py
 ```
+Si il y a une erreur sur le lancement du serveur adb (sur mac), cela peut être du à une absence d'autorisation
+```sh
+sudo chmod +x platform-tools/mac/adb
+```
 
 Notes supplémentaires -> Si vous ajoutez de nouvelles dépendances, pensez à mettre à jour le fichier requirements.txt en utilisant la commande suivante :
-
 ```sh
 pip freeze > requirements.txt
 ```
 
 Désactiver l'environnement virtuel : Pour désactiver l'environnement virtuel, utilisez la commande :
-
 ```sh
 deactivate
 ```
 
 
-## A ecire avant usage:  pip install -U pure-python-adb
-python -m PyInstaller --onefile --clean --hidden-import ppadb --add-data "platform-tools:platform-tools" FIL.py
-python -m PyInstaller FIL.spec
+## Création du fichier exécutable sur mac et windows
+```sh
+python -m PyInstaller config/FIL3.spec
+```
 
 ## Diagramme des classes
 

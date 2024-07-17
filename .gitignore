@@ -12,5 +12,5 @@ build/
 Archivage/
 venv/
 
-# Ignorer le dossier APK et son contenu
 Fil_all.spec
+.DS_Store
