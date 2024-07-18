@@ -159,8 +159,8 @@ class Casque:
             bool: True si la solution est déjà dans la bibliothèque, False sinon.
         """
 
-        # Crée un nom de dossier sûr pour la solution
-        safe_solution_name = re.sub(r'[^\w\-_\. ]', '_', solution.nom)
+        safe_solution_name = self.config.safe_string(solution.nom)
+
         solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
 
         print(f"Checking solution directory: {solution_dir}")
@@ -257,8 +257,8 @@ class Casque:
             solution (Solution): L'objet Solution pour lequel créer le répertoire.
         """
 
-        # Crée un nom de dossier sûr pour la solution
-        safe_solution_name = re.sub(r'[^\w\-_\. ]', '_', solution.nom)
+        safe_solution_name = self.config.safe_string(solution.nom)
+
         solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
 
         if os.path.exists(solution_dir):
@@ -304,7 +304,9 @@ class Casque:
         Args:
             solution (Solution): L'objet Solution pour lequel créer le répertoire.
         """
-        safe_solution_name = re.sub(r'[^\w\-_\. ]', '_', solution.nom)
+        
+        safe_solution_name = self.config.safe_string(solution.nom)
+
         solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
 
         if not os.path.exists(solution_dir):

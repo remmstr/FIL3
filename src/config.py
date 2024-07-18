@@ -40,6 +40,18 @@ class Config(metaclass=SingletonMeta):
         self.ensure_directory_exists(self.Banque_de_solution_path)
         self.ensure_directory_exists(self.APK_path)
 
+    def safe_string(nom) :
+        
+        # Crée un nom de dossier sûr pour la solution
+        safe_solution_name = re.sub(r'[^a-zA-Z0-9]', '', nom)
+        # Remplacer les multiples underscores par un seul
+        safe_solution_name = re.sub(r'+', '', safe_solution_name)
+        # Optionnel : supprimer les underscores en début et fin de chaîne
+        safe_solution_name = safe_solution_name.strip('')
+
+        return safe_solution_name
+
+
     def config_path(self, relative_path):
         try:
             base_path = sys._MEIPASS
