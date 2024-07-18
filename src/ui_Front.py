@@ -246,7 +246,7 @@ class UI_Front:
 
         # Update index, numéro, modèle, version_apk, JSON status, solutions count
         widgets[0].config(text=index)
-        widgets[1].config(text=casque.battery)
+        widgets[1].config(text=casque.battery_level)
         widgets[2].config(text=casque.numero)
         widgets[3].config(text=casque.name)
         widgets[4].config(text=casque.modele)

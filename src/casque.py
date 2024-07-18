@@ -22,6 +22,7 @@ class Casque:
         self.battery_level : int
         self.version_apk = ""
         self.JSON_path = "NULL"
+        self.JSON_size = "NULL"
         self.solutions = []
         self.code = ""
         self.name = ""
@@ -66,6 +67,8 @@ class Casque:
 
             self.version_apk = self.get_installed_apk_version()
             self.JSON_path = self.check_json_file()
+            self.JSON_size = self.get_json_file_size()
+            print (self.JSON_size)
 
             if  self.JSON_path != "NULL" :
                 self.solutions = self.load_solutions_from_json()
@@ -74,7 +77,7 @@ class Casque:
             self.old_apk_installed = self.check_old_apk_installed()
 
 
-            #self.pull_solutions()
+            self.pull_solutions()
 
     def load_solutions_from_json(self):
         solutions = []
@@ -127,6 +130,19 @@ class Casque:
             print(f"Erreur lors de la vérification de l'ancienne APK : {e}")
         return False
     
+    def get_json_file_size(self):
+        """
+        Retourne la taille du fichier JSON en octets en utilisant ADB.
+        """
+        if self.JSON_path != "Fichier JSON inexistant":
+            command = [self.config.adb_exe_path, "-s", self.numero, "shell", "stat", "-c%s", self.JSON_path]
+            try:
+                output = subprocess.check_output(command, stderr=subprocess.DEVNULL).decode("utf-8").strip()
+                return int(output)
+            except subprocess.CalledProcessError as e:
+                print(f"Erreur lors de la récupération de la taille du fichier JSON : {e}")
+        return 0
+    
     def get_installed_apk_version(self):
         with self.lock:
             try:
@@ -145,6 +161,7 @@ class Casque:
                 print(e.stderr.decode("utf-8"))
                 return None
 
+    
     def getEntreprise(self):
         return self.entreprise_association
 
@@ -247,7 +264,47 @@ class Casque:
                 # Vérifier si la solution qui est sur le casque est dans la bibliothèque
                 #if self.is_solution_in_library(solution):
                 print(" -> Push solution !")
-                self.push_solution(solution)
+                self.push_solution_with_progress(solution)
+
+    def push_solution_with_progress(self, solution):
+        safe_solution_name = self.config.safe_string(solution.nom)
+        solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
+        print("solution_dir")
+        print(solution_dir)
+
+        if os.path.exists(solution_dir):
+            subdirs = ["image", "image360", "sound", "srt", "video"]
+            
+            # Calculate total files and size
+            total_files, total_size = self.calculate_total_files_and_size(solution_dir)
+            copied_size = 0
+
+            def progress_callback(copied_bytes):
+                nonlocal copied_size
+                copied_size += copied_bytes
+                progress = copied_size / total_size * 100
+                print(f"Progress: {progress:.2f}%")
+
+            for subdir in subdirs:
+                source_dir = os.path.join(solution_dir, subdir)
+                
+                if os.path.exists(source_dir):
+                    media_files = getattr(solution, subdir, [])
+                    
+                    for media_file in media_files:
+                        local_file_path = os.path.join(source_dir, os.path.basename(media_file)).replace("'\'", "/")
+                        
+                        try:
+                            self.copy_media_file_with_progress(local_file_path, self.config.upload_casque_path + media_file , solution.nom, "push", progress_callback)
+                        except Exception as e:
+                            print(f"Erreur lors du téléversement du fichier {local_file_path} pour {solution.nom} : {e}")
+                            return
+
+            solution.sol_install_on_casque = True
+            print(f"Solution {solution.nom} copiée avec succès dans le casque.")
+        else:
+            self._log_message(f"Solution directory does not exist for '{solution.nom}' in the library")
+
 
     def push_solution(self, solution):
         """
@@ -271,7 +328,7 @@ class Casque:
                     
                     for media_file in media_files:
                         local_file_path = os.path.join(source_dir, os.path.basename(media_file)).replace("'\'", "/")
-                        print(local_file_path)
+                        
                         try:
                             self.copy_media_file(local_file_path, self.config.upload_casque_path + media_file , solution.nom, "push")
                         except Exception as e:
@@ -323,6 +380,43 @@ class Casque:
         else:
             self._log_message(f"Solution directory already exists for '{solution.nom}' at {solution_dir}")
 
+    def calculate_total_files_and_size(self, solution_dir):
+        total_files = 0
+        total_size = 0
+        subdirs = ["image", "image360", "sound", "srt", "video"]
+
+        for subdir in subdirs:
+            source_dir = os.path.join(solution_dir, subdir)
+            if os.path.exists(source_dir):
+                for root, _, files in os.walk(source_dir):
+                    total_files += len(files)
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        total_size += os.path.getsize(file_path)
+
+        return total_files, total_size
+
+    def copy_media_file_with_progress(self, source_dir, target_dir, solution_name, direction, progress_callback):
+        """
+        Copie un fichier vers le répertoire cible avec une barre de progression.
+
+        Args:
+            source_dir (str): Le chemin du fichier média sur le casque.
+            target_dir (str): Le répertoire cible local.
+            solution_name (str): Le nom de la solution associée.
+            direction (str): pull or push
+        """
+        print(f"Solution source : {source_dir} target : {target_dir}.")
+        try:
+            command = [self.config.adb_exe_path, "-s", self.numero, direction, source_dir, target_dir]
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            for line in process.stdout:
+                progress_callback(len(line))
+            process.wait()
+            if process.returncode != 0:
+                raise subprocess.CalledProcessError(process.returncode, command)
+        except subprocess.CalledProcessError as e:
+            print(f"Erreur lors du téléversement du fichier {source_dir} pour {solution_name} : {e}")
 
     def copy_media_file(self, source_dir, target_dir, solution_name, direction):
         """
@@ -528,9 +622,3 @@ class Casque:
             self.app.log_debug(message)
         else:
             print(message)
-
-
-    #-----------------------------------------------------
-    # PRINT
-    #-----------------------------------------------------
-    
