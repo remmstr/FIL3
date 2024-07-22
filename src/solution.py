@@ -1,7 +1,7 @@
 class Solution:
     def __init__(self):
 
-        self.size : int
+        self.size = 0
         self.nom = ""
         self.version = ""
         self.image = []

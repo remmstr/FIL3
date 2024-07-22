@@ -77,7 +77,7 @@ class Casque:
             self.old_apk_installed = self.check_old_apk_installed()
 
 
-            self.pull_solutions()
+            #self.pull_solutions()
 
     def load_solutions_from_json(self):
         solutions_casque = []
@@ -181,24 +181,21 @@ class Casque:
 
         solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
 
-        print(f"Checking solution directory: {solution_dir}")
-
         # Vérifie si le dossier de la solution existe
         if os.path.exists(solution_dir):
-            print("1: Solution directory exists.")
             subdirs = ["image", "image360", "sound", "srt", "video"]
             
             for subdir in subdirs:
                 target_dir = os.path.join(solution_dir, subdir)
-                print(f"2: Checking subdir: {subdir} at {target_dir}")
                 
                 # Vérifie si le sous-dossier existe
                 if os.path.exists(target_dir):
-                    print("3: Subdirectory exists.")
+
                     media_files = getattr(solution, subdir, [])
                     
                     if media_files:
-                        print(f"4: Media files found in {subdir}: {media_files}")
+                        pass
+                        #print(f"4: Media files found in library {subdir}: {media_files}")
                         #for media_file in media_files:
                             # Extrait le nom du fichier du chemin complet
                             #local_media_file_path = os.path.join(target_dir, os.path.basename(media_file))
@@ -260,15 +257,15 @@ class Casque:
         print("push_solutions")
         for solution in self.solutions_casque:
             print("solution :" + solution.nom)
-            if not solution.sol_install_on_casque:
+            if not solution.sol_install_on_casque :
                 print(" -> Solution not on casque")
                 # Vérifier si la solution qui est sur le casque est dans la bibliothèque
                 #if self.is_solution_in_library(solution):
                 print(" -> Push solution !")
                 self.push_solution_with_progress(solution)
 
-    def push_solution_with_progress(self, solution):
-        safe_solution_name = self.config.safe_string(solution.nom)
+    def push_solution_with_progress(self, solution_biblio):
+        safe_solution_name = self.config.safe_string(solution_biblio.nom)
         solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
         print("solution_dir")
         print(solution_dir)
@@ -283,28 +280,28 @@ class Casque:
             def progress_callback(copied_bytes):
                 nonlocal copied_size
                 copied_size += copied_bytes
-                progress = copied_size / total_size * 100
+                progress = copied_size / solution_biblio.size * 100
                 print(f"Progress: {progress:.2f}%")
 
             for subdir in subdirs:
                 source_dir = os.path.join(solution_dir, subdir)
                 
                 if os.path.exists(source_dir):
-                    media_files = getattr(solution, subdir, [])
+                    media_files = getattr(solution_biblio, subdir, [])
                     
                     for media_file in media_files:
                         local_file_path = os.path.join(source_dir, os.path.basename(media_file)).replace("'\'", "/")
                         
                         try:
-                            self.copy_media_file_with_progress(local_file_path, self.config.upload_casque_path + media_file , solution.nom, "push", progress_callback)
+                            self.copy_media_file_with_progress(local_file_path, self.config.upload_casque_path + media_file , solution_biblio.nom, "push", progress_callback)
                         except Exception as e:
-                            print(f"Erreur lors du téléversement du fichier {local_file_path} pour {solution.nom} : {e}")
+                            print(f"Erreur lors du téléversement du fichier {local_file_path} pour {solution_biblio.nom} : {e}")
                             return
 
-            solution.sol_install_on_casque = True
-            print(f"Solution {solution.nom} copiée avec succès dans le casque.")
+            solution_biblio.sol_install_on_casque = True
+            print(f"Solution {solution_biblio.nom} copiée avec succès dans le casque.")
         else:
-            self._log_message(f"Solution directory does not exist for '{solution.nom}' in the library")
+            self._log_message(f"Solution directory does not exist for '{solution_biblio.nom}' in the library")
 
 
     def push_solution(self, solution):

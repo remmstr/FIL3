@@ -5,10 +5,7 @@ class SolutionBiblio(Solution):
 
     def __init__(self):
         super().__init__()
-    
-    #-----------------------------------------------------
-    # METHODES SOLUTION IN BIBLIOTHEQUE
-    #-----------------------------------------------------
+        self.size = self.get_sol_size()
 
     def get_sol_size(self):
         """
