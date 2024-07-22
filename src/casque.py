@@ -8,7 +8,7 @@ import base64
 import time
 
 from marque import Marque
-from solution import Solution
+from solutionCasque import SolutionCasque
 from config import Config
 import adbtools
 
@@ -23,7 +23,7 @@ class Casque:
         self.version_apk = ""
         self.JSON_path = "NULL"
         self.JSON_size = "NULL"
-        self.solutions = []
+        self.solutions_casque = []
         self.code = ""
         self.name = ""
         self.entreprise_association = ""
@@ -71,7 +71,7 @@ class Casque:
             print (self.JSON_size)
 
             if  self.JSON_path != "NULL" :
-                self.solutions = self.load_solutions_from_json()
+                self.solutions_casque = self.load_solutions_from_json()
 
             # Vérifier si l'ancienne APK est installée
             self.old_apk_installed = self.check_old_apk_installed()
@@ -80,7 +80,7 @@ class Casque:
             self.pull_solutions()
 
     def load_solutions_from_json(self):
-        solutions = []
+        solutions_casque = []
         if self.JSON_path != "Fichier JSON inexistant":
             try:
                 # Lire le contenu du fichier JSON encodé en base 64 sur le casque
@@ -106,12 +106,13 @@ class Casque:
 
                 # Créer des objets Solution à partir des données JSON
                 for solution_data in json_data.get('versions', []):
-                    solution = Solution().from_json(solution_data, self.numero, self.config.upload_casque_path)
-                    solutions.append(solution)
+                    solution_casque = SolutionCasque().from_json(solution_data, self.numero, self.config.upload_casque_path)
+                    #solution_casque.size = solution_casque.get_sol_size(self.config.upload_casque_path)
+                    solutions_casque.append(solution_casque)
             except Exception as e:
                 print(f"Erreur lors du chargement du fichier JSON : {e}")
                 traceback.print_exc()
-        return solutions
+        return solutions_casque
 
     def check_old_apk_installed(self):
         """
@@ -239,7 +240,7 @@ class Casque:
             list: Liste des solutions installées.
         """
         installed_solutions = []
-        for solution in self.solutions:
+        for solution in self.solutions_casque:
             if solution.sol_install_on_casque:
                 installed_solutions.append(solution)
         return installed_solutions
@@ -257,7 +258,7 @@ class Casque:
             list: Liste des solutions installées.
         """
         print("push_solutions")
-        for solution in self.solutions:
+        for solution in self.solutions_casque:
             print("solution :" + solution.nom)
             if not solution.sol_install_on_casque:
                 print(" -> Solution not on casque")
@@ -345,7 +346,7 @@ class Casque:
         """
         Reconstitue les répertoires des solutions installées sur le casque.
         """
-        for solution in self.solutions:
+        for solution in self.solutions_casque:
             print("solution :" + solution.nom)
             if solution.sol_install_on_casque:
                 print(" -> Solution on casques")

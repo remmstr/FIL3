@@ -19,7 +19,7 @@ class UI_Front:
         Create the main widgets for the UI.
         """
         self.root.configure(bg="white")  # Assurer que le fond de l'application est blanc
-        self.root.geometry("1500x600")  # Augmenter la largeur de la fenêtre initiale
+        self.root.geometry("1500x800")  # Augmenter la largeur de la fenêtre initiale
 
         # Menu
         menu_frame = tk.Frame(self.root, bg="white")
@@ -216,8 +216,8 @@ class UI_Front:
         tk.Label(item_frame, text=casque.code, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.getEntreprise(), width=27, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
-        solutions_text = f"{len(casque.solutions)} solution(s)"
-        tk.Label(item_frame, text=solutions_text, width=9, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
+        solutions_casque_text = f"{len(casque.solutions_casque)} solution(s)"
+        tk.Label(item_frame, text=solutions_casque_text, width=9, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
 
         install_solutions_button = tk.Button(item_frame, text="--> Push", width=0, fg="green", command=lambda c=casque: self.app.ui_back.push_solutions(c), bg="white", relief="flat")
         install_solutions_button.pack(side="left", padx=0)
@@ -267,8 +267,8 @@ class UI_Front:
         widgets[8].config(text=casque.code)  # code
         widgets[9].config(text=casque.getEntreprise())  # entreprise
 
-        solutions_text = f"{len(casque.solutions)} solution(s)"
-        widgets[10].config(text=solutions_text)  # solutions count
+        solutions_casque_text = f"{len(casque.solutions_casque)} solution(s)"
+        widgets[10].config(text=solutions_casque_text)  # solutions count
 
         solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
         widgets[12].config(text=solutions_install_text)  # solutions install count
