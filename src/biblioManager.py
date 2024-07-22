@@ -10,24 +10,19 @@ class BiblioManager(metaclass=SingletonMeta):
     def __init__(self):
         print("Bibliothèque Manager created")
         self.config = Config()
+
         self.liste_solutions = []
-        self.liste_solutions = self.get_sols_bibli()
+        self.get_sols_bibli()
+
+    def print(self):
+        for i, sol in enumerate(self.liste_solutions, 1):
+            print(f"\nSOlutions #{i}:")
+            sol.print()
+            print("-" * 20)
 
     def get_sols_bibli(self):
         """
         Récupère toutes les solutions disponibles dans la bibliothèque des solutions et remplit les objets solutions avec les noms des fichiers de médias.
-
-        ATTENTION : dans les objets solutionCasque le nom de l'attribut n'est pas passé par la fonction safe,
-        alors que pour la solution Biblio puisque l'on tire le nom d'un dossier c'est déjà safe.
-
-        ATTENTION : dans les attributs suivants :
-            self.image = []
-            self.image360 = []
-            self.sound = []
-            self.srt = []
-            self.video = []
-        dans l'objet solutionBiblio il y a juste le nom du fichier
-        alors que dans l'objet solutionCasque il y aussi le chemin dans le dossier upload.
         """
         solution_base_dir = self.config.Banque_de_solution_path
         subdirs = ["image", "image360", "sound", "srt", "video"]
@@ -63,14 +58,18 @@ class BiblioManager(metaclass=SingletonMeta):
 
                     nouvelle_solution.size = totale_size  # Attribuer la taille totale à l'objet SolutionBiblio
                     self.liste_solutions.append(nouvelle_solution)
-                    nouvelle_solution.print()
                 except Exception as e:
                     print(f"Erreur lors de l'ajout de la solution {solution_name} : {e}")
                     traceback.print_exc()
+        
+        return self.liste_solutions  # Retourner la liste des solutions
+
 
     def is_sol_in_library(self,solution):
         for sol_in_biblio in self.liste_solutions:
-            if sol_in_biblio.name == solution.name:
-                return True
-            else:
-                return False
+            print(f"sol_in_biblio.nom : {sol_in_biblio.nom} == solution.nom : {self.config.safe_string(solution.nom)}" )
+            if sol_in_biblio.nom == self.config.safe_string(solution.nom):
+                #pour plus tard il faudra vérifier davantage de choses que le nom comme la version et le poid
+                return sol_in_biblio
+        return False
+            

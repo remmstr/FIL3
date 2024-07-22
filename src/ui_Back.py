@@ -72,7 +72,7 @@ class UI_Back:
         solution_list = tk.Text(solution_window, wrap="word", width=50, height=20)
         solution_list.pack(padx=10, pady=10, fill="both", expand=True)
 
-        for solution in casque.solutions:
+        for solution in casque.solutions_casque:
             if(solution.sol_install_on_casque):
                 solution_list.insert(tk.END, f"{solution.nom} ({solution.version})\n", "install_on_casque")
             elif(casque.is_solution_in_library(solution)):
@@ -98,7 +98,7 @@ class UI_Back:
                     self.app.ui_front.afficher_casques()
             except Exception as e:
                 self.app.handle_exception("Erreur lors de l'actualisation des casques", e)
-            stop_event.wait(5)  # Attendre 10 secondes ou jusqu'à ce que l'événement soit déclenché
+            stop_event.wait(10)  # Attendre 10 secondes ou jusqu'à ce que l'événement soit déclenché
 
     def download_banque_solutions(self):
         try:

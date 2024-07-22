@@ -40,6 +40,9 @@ class UI_Front:
         # Banque de Solutions Button
         self.create_banque_button()
 
+        # Ajouter le bouton pour afficher les solutions de la bibliothèque
+        self.create_biblio_solutions_button()
+
         # Debug Area
         self.create_debug_area()
 
@@ -93,6 +96,23 @@ class UI_Front:
         self.install_button = tk.Button(button_frame, text="INSTALLER", font=("Helvetica", 10, "bold"), command=self.app.ui_back.installer_apks_et_solutions, bg="white")
         self.install_button.pack()
 
+    def create_debug_area(self):
+        """
+        Create the debug area for displaying log messages.
+        """
+        debug_frame = tk.Frame(self.root, bg="white")
+        debug_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        debug_label = tk.Label(debug_frame, text="Fenêtre de débogage", bg="white", font=("Helvetica", 10, "bold"))  # Texte en gras
+        debug_label.pack(side=tk.TOP, anchor='w')
+
+        # Ajouter une barre de défilement
+        self.debug_text = tk.Text(debug_frame, height=10)
+        self.debug_scrollbar = tk.Scrollbar(debug_frame, command=self.debug_text.yview)
+        self.debug_text.configure(yscrollcommand=self.debug_scrollbar.set, bg="white")
+        self.debug_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.debug_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
     def create_table_frame(self):
         """
         Create the table frame for displaying casque information.
@@ -143,22 +163,32 @@ class UI_Front:
         self.banque_solutions_button = tk.Button(banque_button_frame, text="Banque de solutions", command=self.app.ui_back.download_banque_solutions, bg="white")
         self.banque_solutions_button.pack(pady=10)
 
-    def create_debug_area(self):
+    def create_biblio_solutions_button(self):
         """
-        Create the debug area for displaying log messages.
+        Create the button for displaying solutions from the library.
         """
-        debug_frame = tk.Frame(self.root, bg="white")
-        debug_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        biblio_button_frame = tk.Frame(self.root, bg="white")
+        biblio_button_frame.pack(side=tk.TOP, pady=10)
+        self.biblio_solutions_button = tk.Button(biblio_button_frame, text="Afficher Solutions Bibliothèque", command=self.show_biblio_solutions, bg="white")
+        self.biblio_solutions_button.pack(pady=10)
 
-        debug_label = tk.Label(debug_frame, text="Fenêtre de débogage", bg="white", font=("Helvetica", 10, "bold"))  # Texte en gras
-        debug_label.pack(side=tk.TOP, anchor='w')
+    def show_biblio_solutions(self):
+        """
+        Open a new window displaying all solutions in the library with their weights.
+        """
+        biblio_window = tk.Toplevel(self.root)
+        biblio_window.title("Solutions de la Bibliothèque")
 
-        # Ajouter une barre de défilement
-        self.debug_text = tk.Text(debug_frame, height=10)
-        self.debug_scrollbar = tk.Scrollbar(debug_frame, command=self.debug_text.yview)
-        self.debug_text.configure(yscrollcommand=self.debug_scrollbar.set, bg="white")
-        self.debug_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.debug_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        solutions_list = tk.Text(biblio_window, wrap="word", width=80, height=20)
+        solutions_list.pack(padx=10, pady=10, fill="both", expand=True)
+
+        for solution in self.app.biblio_manager.liste_solutions:
+            solutions_list.insert(tk.END, f"{solution.nom} - {solution.size / 1024:.2f} KB\n")
+
+        solutions_list.config(state=tk.DISABLED)
+
+        close_button = tk.Button(biblio_window, text="Fermer", command=biblio_window.destroy)
+        close_button.pack(pady=10)
 
     def afficher_casques(self):
         """

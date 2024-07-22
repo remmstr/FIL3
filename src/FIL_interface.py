@@ -5,14 +5,14 @@ import traceback
 import threading
 import re
 import sys
-from casquesManager import CasquesManager 
-from biblioManager import BiblioManager 
+from casquesManager import CasquesManager
+from biblioManager import BiblioManager
 
 class FIL_interface:
     def __init__(self, root):
         self.running = True
+        self.biblio_manager = BiblioManager()  # Initialiser biblio_manager ici
         self.casques = CasquesManager()
-        self.solutions_biblio = BiblioManager()
         self.config = self.casques.config  # Accès à la configuration
 
         self.ui_front = UI_Front(root, self)
@@ -29,7 +29,6 @@ class FIL_interface:
         finally:
             self.stop_event.set()  # Indiquer aux threads de s'arrêter
             self.tracking_thread.join()  # Attendre la fin des threads
-
 
     def log_debug(self, message):
         if self.running:
@@ -68,6 +67,7 @@ class FIL_interface:
                 values = self.ui_front.treeview.item(item, "values")
                 if values[1] == casque_numero:
                     self.ui_front.treeview.set(item, column="Solutions", value=status)
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = FIL_interface(root)
