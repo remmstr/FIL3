@@ -53,8 +53,8 @@ class SolutionCasque(Solution):
         end_time = time.time()
         execution_time = end_time - start_time
 
-        print(f"VERIFICATION FICHIERS EXISTANTS en {execution_time:.2f}s :")
-        print(f"EXPERIENCE : {self.nom}, INTALL: {self.sol_install_on_casque},{self.size} octets")
+        #print(f"VERIFICATION FICHIERS EXISTANTS en {execution_time:.2f}s :")
+        #print(f"EXPERIENCE : {self.nom}, INTALL: {self.sol_install_on_casque},{self.size} octets")
 
         return self
 
@@ -107,8 +107,8 @@ class SolutionCasque(Solution):
                     print(f"Erreur lors de la lecture de la taille du fichier {file_path}: {e}")
                     return False
         except subprocess.CalledProcessError as e:
-            print(f"Erreur lors de la vérification du fichier : {file_path}")
-            print(f"Détails de l'erreur: {e.output.decode('utf-8')}")
+            #print(f"Erreur lors de la vérification du fichier : {file_path}")
+            # Je ne print pas ici car si le fichier n'est pas trouvé on ne souhaite pas affiché une erreur puisque c'est une simple vérification
             return False
 
 

@@ -1,4 +1,20 @@
 class Solution:
+    """
+    ATTENTION : dans les objets solutionCasque le nom de l'attribut n'est pas passé par la fonction safe, 
+    alors que pour la solution Biblio puique l'on tire le nom d'un dossier c'est déja safe
+
+    ATTENTION : dans les attibuts suivants :
+        self.image = []
+        self.image360 = []
+        self.sound = []
+        self.srt = []
+        self.video = []
+    dans l'objet solutionBiblio il y a juste le nom du ficher 
+    alors que dans l'objet solutionCasque il y aussi le chemin dans le dossier upload
+        
+    """
+
+
     def __init__(self):
 
         self.size = 0
@@ -19,16 +35,16 @@ class Solution:
         Affiche les détails principaux de la solution.
         """
         print(f"Solution: {self.nom}")
-        print(f"  Installed on casque: {self.sol_install_on_casque}")
         print(f"  Version: {self.version}")
+        print(f"  Size: {self.size}")
         
     def print(self):
         """
-        Affiche les détails de la solution de manière formatée.
+        Affiche les détails complet de la solution .
         """
         print(f"Solution: {self.nom}")
-        print(f"  Installed on casque: {self.sol_install_on_casque}")
         print(f"  Version: {self.version}")
+        print(f"  Size: {self.size}")
 
         
         print("  Images:")

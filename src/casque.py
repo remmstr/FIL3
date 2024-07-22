@@ -165,8 +165,20 @@ class Casque:
     
     def getEntreprise(self):
         return self.entreprise_association
-
+    
     def is_solution_in_library(self, solution):
+        """
+        Vérifie si une solution est déjà dans la bibliothèque.
+        
+        Parameters:
+            solution (Solution): La solution à vérifier.
+                
+        Returns:
+            bool: True si la solution est déjà dans la bibliothèque, False sinon.
+        """
+        self.biblioManager.is_sol_in_library(solution)
+
+    def is_solution_in_library_old(self, solution):
         """
         Vérifie si une solution est déjà dans la bibliothèque.
         
@@ -267,7 +279,7 @@ class Casque:
     def push_solution_with_progress(self, solution_biblio):
         safe_solution_name = self.config.safe_string(solution_biblio.nom)
         solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
-        print("solution_dir")
+        #print("solution_dir")
         print(solution_dir)
 
         if os.path.exists(solution_dir):
@@ -280,7 +292,7 @@ class Casque:
             def progress_callback(copied_bytes):
                 nonlocal copied_size
                 copied_size += copied_bytes
-                progress = copied_size / solution_biblio.size * 100
+                progress = copied_size / 10000 * 100
                 print(f"Progress: {progress:.2f}%")
 
             for subdir in subdirs:
@@ -295,11 +307,11 @@ class Casque:
                         try:
                             self.copy_media_file_with_progress(local_file_path, self.config.upload_casque_path + media_file , solution_biblio.nom, "push", progress_callback)
                         except Exception as e:
-                            print(f"Erreur lors du téléversement du fichier {local_file_path} pour {solution_biblio.nom} : {e}")
+                            #print(f"Erreur lors du téléversement du fichier {local_file_path} pour {solution_biblio.nom} : {e}")
                             return
 
             solution_biblio.sol_install_on_casque = True
-            print(f"Solution {solution_biblio.nom} copiée avec succès dans le casque.")
+            #print(f"Solution {solution_biblio.nom} copiée avec succès dans le casque.")
         else:
             self._log_message(f"Solution directory does not exist for '{solution_biblio.nom}' in the library")
 
@@ -404,7 +416,7 @@ class Casque:
             solution_name (str): Le nom de la solution associée.
             direction (str): pull or push
         """
-        print(f"Solution source : {source_dir} target : {target_dir}.")
+        #print(f"Solution source : {source_dir} target : {target_dir}.")
         try:
             command = [self.config.adb_exe_path, "-s", self.numero, direction, source_dir, target_dir]
             process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

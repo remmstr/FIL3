@@ -5,12 +5,14 @@ import traceback
 import threading
 import re
 import sys
-from gestionCasques import GestionCasques 
+from casquesManager import CasquesManager 
+from biblioManager import BiblioManager 
 
 class FIL_interface:
     def __init__(self, root):
         self.running = True
-        self.casques = GestionCasques()
+        self.casques = CasquesManager()
+        self.solutions_biblio = BiblioManager()
         self.config = self.casques.config  # Accès à la configuration
 
         self.ui_front = UI_Front(root, self)

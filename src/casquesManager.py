@@ -6,7 +6,9 @@ import adbtools
 from config import Config
 from singletonMeta import SingletonMeta
 
-class GestionCasques(metaclass=SingletonMeta):
+
+
+class CasquesManager(metaclass=SingletonMeta):
 
     def __init__(self):
         print("GestionsCasques created")
