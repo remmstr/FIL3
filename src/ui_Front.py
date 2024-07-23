@@ -46,6 +46,9 @@ class UI_Front:
         # Debug Area
         self.create_debug_area()
 
+        # Start updating progress bars
+        self.update_progress_bars()
+
         # Redirect stdout to the debug text
         sys.stdout = self
 
@@ -140,20 +143,21 @@ class UI_Front:
         header = tk.Frame(self.scrollable_frame, bg="white")
         header.pack(fill="x")
 
-        tk.Label(header, text="#", width=5, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Battery", width=5, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="#", width=3, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Batt", width=3, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="ID", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Name", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Name", width=7, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Modèle", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="APK", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Wi-Fi", width=15, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="JSON", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Code", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Entreprise", width=22, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="JSON", width=7, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Code", width=5, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Entreprise", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Solution associé", width=18, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Solution installé", width=18, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Info Supplémentaire", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-
+        tk.Label(header, text="Barre de téléchar.", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Info supplémentaire", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        
     def create_banque_button(self):
         """
         Create the button for downloading solutions from the bank.
@@ -221,10 +225,10 @@ class UI_Front:
         item_frame = tk.Frame(self.scrollable_frame, bg="white")
         item_frame.pack(fill="x")
 
-        tk.Label(item_frame, text=index, width=5, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
-        tk.Label(item_frame, text=casque.battery_level, width=5, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=index, width=3, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=casque.battery_level, width=3, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.numero, width=20, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
-        tk.Label(item_frame, text=casque.name, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=casque.name, width=7, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.modele, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         version_frame = tk.Frame(item_frame, bg="white")
@@ -241,10 +245,10 @@ class UI_Front:
         tk.Label(item_frame, text=wifi_status, width=15, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
-        tk.Label(item_frame, text=json_status, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=json_status, width=7, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
-        tk.Label(item_frame, text=casque.code, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
-        tk.Label(item_frame, text=casque.getEntreprise(), width=27, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=casque.code, width=5, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=casque.getEntreprise(), width=25, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         solutions_casque_text = f"{len(casque.solutions_casque)} solution(s)"
         tk.Label(item_frame, text=solutions_casque_text, width=9, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
@@ -260,9 +264,16 @@ class UI_Front:
         gestion_photo = ImageTk.PhotoImage(gestion_image)
         gestion_button = tk.Button(item_frame, image=gestion_photo, width=10, height=10, command=lambda c=casque: self.app.ui_back.open_solution_manager(c), bg="white")
         gestion_button.image = gestion_photo
-        gestion_button.pack(side="left", padx=3)
+        gestion_button.pack(side="left", padx=5)
 
-        info_suppl = "   App PPV1 Installée" if casque.old_apk_installed else ""
+        # Ajouter la barre de progression
+        progress_var = tk.DoubleVar()
+        progress_bar = ttk.Progressbar(item_frame, orient="horizontal", length=150, mode="determinate", variable=progress_var)
+        progress_bar.pack(side="left", padx=15)
+        self.progress_bars[casque.numero] = progress_var
+
+        # Ajouter les informations supplémentaires
+        info_suppl = "PPV1 Installée" if casque.old_apk_installed else ""
         tk.Label(item_frame, text=info_suppl, width=20, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         return item_frame
@@ -286,7 +297,7 @@ class UI_Front:
         version_widgets = version_frame.winfo_children()
         version_widgets[1].config(text=casque.version_apk)  # version_apk label
 
-         # Update Wi-Fi status
+        # Update Wi-Fi status
         is_connected, ssid = casque.is_wifi_connected()
         wifi_status = f"{ssid}" if is_connected else "Not Connected"
         widgets[6].config(text=wifi_status)  # Wi-Fi status
@@ -303,8 +314,21 @@ class UI_Front:
         solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
         widgets[12].config(text=solutions_install_text)  # solutions install count
 
+        # Mettre à jour la barre de progression
+        self.progress_bars[casque.numero].set(casque.download_progress)
+
+        # Mettre à jour les informations supplémentaires
         info_suppl = "App PPV1 Installée" if casque.old_apk_installed else ""
         widgets[13].config(text=info_suppl)  # info supplémentaire
+
+    def update_progress_bars(self):
+        """
+        Periodically update the progress bars based on the download_progress attribute of each casque.
+        """
+        for casque in self.app.casques.liste_casques:
+            if casque.numero in self.progress_bars:
+                self.progress_bars[casque.numero].set(casque.download_progress)
+        self.root.after(1000, self.update_progress_bars)  # Re-check every second
 
     def create_progress_bar(self, item_frame):
         """

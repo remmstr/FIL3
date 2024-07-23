@@ -28,6 +28,7 @@ class Casque:
         self.code = ""
         self.name = ""
         self.entreprise_association = ""
+        self.download_progress = 0
 
         self.config = Config()
         self.lock = threading.Lock()
@@ -269,18 +270,18 @@ class Casque:
         Returns:
             list: Liste des solutions installées.
         """
-        with self.refresh_lock:
-            print("push_solutions")
-            for solution in self.solutions_casque:
-                print("solution :" + solution.nom)
-                if not solution.sol_install_on_casque :
-                    print(" -> Solution not on casque")
-                    # Vérifier si la solution qui est sur le casque est dans la bibliothèque, 
-                    # Si la sol est bien dans la biblio alors la fonction renvoie l'objet qui se trouve dans la biblio
-                    solution_from_bibli = self.biblio.is_sol_in_library(solution)
-                    if solution_from_bibli != False :
-                        print(" -> Push solution !")
-                        self.push_solution_with_progress(solution,solution_from_bibli)
+        
+        print("push_solutions")
+        for solution in self.solutions_casque:
+            print("solution :" + solution.nom)
+            if not solution.sol_install_on_casque :
+                print(" -> Solution not on casque")
+                # Vérifier si la solution qui est sur le casque est dans la bibliothèque, 
+                # Si la sol est bien dans la biblio alors la fonction renvoie l'objet qui se trouve dans la biblio
+                solution_from_bibli = self.biblio.is_sol_in_library(solution)
+                if solution_from_bibli != False :
+                    print(" -> Push solution !")
+                    self.push_solution_with_progress(solution,solution_from_bibli)
 
     def push_solution_with_progress(self,solution_json_casque, solution_biblio):
         safe_solution_name = self.config.safe_string(solution_json_casque.nom)
@@ -302,6 +303,8 @@ class Casque:
                 progress = copied_size / total_size *100
                 #print (f"téléversement en cours : {copied_size}/{total_size}")
                 print(f"Progress: {progress:.2f}%")
+                self.download_progress = progress  # Mise à jour de la progression du téléchargement
+
 
             for subdir in subdirs:
                 source_dir = os.path.join(solution_dir, subdir)
@@ -527,10 +530,10 @@ class Casque:
                     if ssid_info:
                         return True, ssid_info
             print("Device not connected.")
-            return False, None
+            return False, "not connected"
         except subprocess.CalledProcessError as e:
             print(f"Failed to check Wi-Fi status: {e}")
-            return False, None
+            return False, "Erreur"
 
 
 

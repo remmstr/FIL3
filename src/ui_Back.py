@@ -98,7 +98,7 @@ class UI_Back:
                     self.app.ui_front.afficher_casques()
             except Exception as e:
                 self.app.handle_exception("Erreur lors de l'actualisation des casques", e)
-            stop_event.wait(10)  # Attendre 10 secondes ou jusqu'à ce que l'événement soit déclenché
+            stop_event.wait(100)  # Attendre 10 secondes ou jusqu'à ce que l'événement soit déclenché
 
     def download_banque_solutions(self):
         try:
