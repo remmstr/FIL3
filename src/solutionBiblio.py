@@ -7,6 +7,9 @@ class SolutionBiblio(Solution):
         super().__init__()
         self.size = self.get_sol_size()
 
+
+        
+
     def get_sol_size(self):
         """
         Calcule la taille totale de la solution en additionnant les tailles de tous les fichiers.
