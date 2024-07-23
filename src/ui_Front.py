@@ -179,7 +179,7 @@ class UI_Front:
         biblio_window = tk.Toplevel(self.root)
         biblio_window.title("Solutions de la Bibliothèque")
 
-        solutions_list = tk.Text(biblio_window, wrap="word", width=80, height=20)
+        solutions_list = tk.Text(biblio_window, wrap="word", width=100, height=20)
         solutions_list.pack(padx=10, pady=10, fill="both", expand=True)
 
         for solution in self.app.biblio_manager.liste_solutions:
@@ -229,10 +229,10 @@ class UI_Front:
 
         version_frame = tk.Frame(item_frame, bg="white")
         version_frame.pack(side="left", fill="x")
-        install_button = tk.Button(version_frame, text="⇧", width=1, fg="green", command=lambda c=casque: self.app.ui_back.install_apk(c), bg="white", relief="flat")
+        install_button = tk.Button(version_frame, text="⇧", width=1, fg="green", command=lambda c=casque: self.app.ui_back.install_apk(c), bg="white")
         install_button.pack(side="left", padx=0)
         tk.Label(version_frame, text=casque.version_apk, width=4, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 5))
-        uninstall_button = tk.Button(version_frame, text="✗", width=1, fg="red", command=lambda c=casque: self.app.ui_back.uninstall_apk(c), bg="white", relief="flat")
+        uninstall_button = tk.Button(version_frame, text="✗", width=1, fg="red", command=lambda c=casque: self.app.ui_back.uninstall_apk(c), bg="white")
         uninstall_button.pack(side="left", padx=0)
 
         # Vérifier l'état du Wi-Fi
@@ -249,7 +249,7 @@ class UI_Front:
         solutions_casque_text = f"{len(casque.solutions_casque)} solution(s)"
         tk.Label(item_frame, text=solutions_casque_text, width=9, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
 
-        install_solutions_button = tk.Button(item_frame, text="--> Push", width=0, fg="green", command=lambda c=casque: self.app.ui_back.push_solutions(c), bg="white", relief="flat")
+        install_solutions_button = tk.Button(item_frame, text="--> Push", width=0, fg="green", command=lambda c=casque: self.app.ui_back.push_solutions(c), bg="white")
         install_solutions_button.pack(side="left", padx=0)
 
         solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
@@ -258,7 +258,7 @@ class UI_Front:
         gestion_image = Image.open("resources/images/parametres.png")
         gestion_image = gestion_image.resize((15, 15), Image.LANCZOS)
         gestion_photo = ImageTk.PhotoImage(gestion_image)
-        gestion_button = tk.Button(item_frame, image=gestion_photo, width=10, height=10, command=lambda c=casque: self.app.ui_back.open_solution_manager(c), bg="white", relief="flat")
+        gestion_button = tk.Button(item_frame, image=gestion_photo, width=10, height=10, command=lambda c=casque: self.app.ui_back.open_solution_manager(c), bg="white")
         gestion_button.image = gestion_photo
         gestion_button.pack(side="left", padx=3)
 

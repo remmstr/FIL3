@@ -23,6 +23,7 @@ class BiblioManager(metaclass=SingletonMeta):
     def get_sols_bibli(self):
         """
         Récupère toutes les solutions disponibles dans la bibliothèque des solutions et remplit les objets solutions avec les noms des fichiers de médias.
+        Si il y a pas de solutions, retourne 0
         """
         solution_base_dir = self.config.Banque_de_solution_path
         subdirs = ["image", "image360", "sound", "srt", "video"]
@@ -62,7 +63,7 @@ class BiblioManager(metaclass=SingletonMeta):
                     print(f"Erreur lors de l'ajout de la solution {solution_name} : {e}")
                     traceback.print_exc()
         
-        return self.liste_solutions  # Retourner la liste des solutions
+        return self.liste_solutions  # Retourner la liste des solutions 
 
 
     def is_sol_in_library(self,solution):
