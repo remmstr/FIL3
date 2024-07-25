@@ -53,6 +53,7 @@ class CasquesManager(metaclass=SingletonMeta):
                     # Sinon, on crée un nouveau casque
                     nouveau_casque = Casque()
                     nouveau_casque.refresh_casque(device, self.apk_folder)
+                    nouveau_casque.refresh_casque_serveur()
                     new_casques.append(nouveau_casque)
             except Exception as e:
                 print(f"Erreur lors de l'ajout du casque {device} (numéro de série: {numero}) : {e}")

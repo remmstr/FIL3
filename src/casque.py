@@ -67,25 +67,26 @@ class Casque:
                 traceback.print_exc()
                 self.modele = "Inconnu"
 
-            try:
-                self.battery_level = adbtools.check_battery_level(self.config.adb_exe_path,self.numero)
-                # Vérifier si l'ancienne APK est installée
-                self.old_apk_installed = self.check_old_apk_installed()
+            self.battery_level = adbtools.check_battery_level(self.config.adb_exe_path,self.numero)
+            
+            self.version_apk = self.get_installed_apk_version()
+            # Vérifier si l'ancienne APK est installée
+            self.old_apk_installed = self.check_old_apk_installed()
+            
+            self.JSON_path = self.check_json_file()
 
-                self.refresh_JSON()
-                self.JSON_path = self.check_json_file()
-                self.version_apk = self.get_installed_apk_version()
-                
-                if ( self.JSON_size != self.get_json_file_size() ) :
-                    self.JSON_size = self.get_json_file_size()
-                    if  self.JSON_path != "NULL" :
-                        self.solutions_casque = self.load_solutions_from_json()
-
-            except Exception as e:
-                print(f"Erreur{e}")
-                traceback.print_exc()
             
             #self.pull_solutions()
+
+    def refresh_casque_serveur(self):
+            self.refresh_JSON()
+            self.JSON_path = self.check_json_file()
+            
+            if ( self.JSON_size != self.get_json_file_size() ) :
+                self.JSON_size = self.get_json_file_size()
+                if  self.JSON_path != "NULL" :
+                    self.solutions_casque = self.load_solutions_from_json()
+
 
     def load_solutions_from_json(self):
         solutions_casque = []
@@ -263,6 +264,7 @@ class Casque:
         return installed_solutions
 
     def refresh_JSON(self):
+        adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
         if(adbtools.is_application_running(self.config.adb_exe_path,self.numero,self.config.package_name)):
             adbtools.stop_application(self.config.adb_exe_path,self.numero,self.config.package_name)
         adbtools.start_application(self.config.adb_exe_path,self.numero,self.config.package_name)
@@ -407,8 +409,7 @@ class Casque:
                     self.copy_media_file( self.config.upload_casque_path + media_file, target_dir, solution.nom, "pull")
 
             print(f"Solution {solution.nom} reconstruite avec succès dans {solution_dir}.")
-        else:
-            self._log_message(f"Solution directory already exists for '{solution.nom}' at {solution_dir}")
+
 
     def calculate_total_files_and_size(self, solution_dir):
         total_files = 0
@@ -481,25 +482,24 @@ class Casque:
         # Octroyer les permissions nécessaires
         adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
 
-        adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
-
-        adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
+        self.refresh_casque_serveur()
 
         print("-----------Fin de l'installation-----------")
 
 
     def uninstall_APK(self):
         print("----->>>> Désinstallation de l'APK")
-        try:
-            subprocess.run([self.config.adb_exe_path, "-s", self.numero, "uninstall", self.config.package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
-            print( "Désinstallation de l'APK réussie." )
-        except subprocess.CalledProcessError as e:
-            if "Unknown package" in str(e):
-                print("L'application n'était pas installée.")
-            else:
-                print(f"Une erreur est survenue lors de la désinstallation de l'APK : {e}")
-        print("-----------Fin de la désinstallation-----------")
-
+        if (self.version_apk != 'X') :
+            try:
+                subprocess.run([self.config.adb_exe_path, "-s", self.numero, "uninstall", self.config.package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
+                print( "Désinstallation de l'APK réussie." )
+            except subprocess.CalledProcessError as e:
+                if "Unknown package" in str(e):
+                    print(f"L'application n'était pas installée.")
+                else:
+                    print(f"Une erreur est survenue lors de la désinstallation de l'APK : {e}")
+        else :
+            print(f"L'application est déjà desinstallée.")
 
 
     def archivage_casque(self):

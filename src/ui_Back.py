@@ -60,7 +60,7 @@ class UI_Back:
                     self.casques.refresh_casques()
                     if self.app.running:  # Vérifiez si l'application est toujours en cours d'exécution
                         self.app.ui_front.afficher_casques()
-                    time.sleep(13)
+                    time.sleep(3)
             except Exception as e:
                 self.app.handle_exception("Erreur lors de l'actualisation des casques", e)
             #stop_event.wait(10)  # Attendre 10 secondes ou jusqu'à ce que l'événement soit déclenché
@@ -91,5 +91,8 @@ class UI_Back:
 
     def pull_solutions(self, casque):
         Thread(target=casque.pull_solutions).start()
+
+    def refresh_json(self,casque):
+        Thread(target=casque.refresh_casque_serveur).start()
 
         

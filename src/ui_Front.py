@@ -31,11 +31,11 @@ class UI_Front:
         # Charger et afficher l'image redimensionnée
         self.load_image(self.config.img_path_menu, menu_frame)
 
-        # Create APK Dropdown
-        self.create_apk_dropdown(menu_frame)
-
         # Installation Button
         self.create_install_button(menu_frame)
+
+        # Create APK Dropdown
+        self.create_apk_dropdown(menu_frame)
 
         # Table Frame
         self.create_table_frame()
@@ -75,7 +75,7 @@ class UI_Front:
         Create the button for installing APKs and solutions.
         """
         button_frame = tk.Frame(parent, bg="white")
-        button_frame.pack(side=tk.LEFT, pady=10)
+        button_frame.pack(side=tk.TOP, pady=10)
 
         self.install_button = tk.Button(button_frame, text="INSTALLER", font=("Helvetica", 10, "bold"), command=self.app.ui_back.installer_apks_et_solutions, bg="white")
         self.install_button.pack()
@@ -130,7 +130,7 @@ class UI_Front:
         tk.Label(header, text="Name", width=7, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Modèle", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="APK", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Wi-Fi", width=16, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Wi-Fi", width=15, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="JSON", width=7, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Code", width=5, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Entreprise", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
@@ -256,7 +256,12 @@ class UI_Front:
         tk.Label(item_frame, text=wifi_status, width=16, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
-        tk.Label(item_frame, text=json_status, width=7, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        
+        json_frame = tk.Frame(item_frame, bg="white")
+        json_frame.pack(side="left", fill="x")
+        tk.Label(json_frame, text=json_status, width=2, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        refresh_button = tk.Button(json_frame, text="⟳", width=2, fg="blue", command=lambda c=casque: self.app.ui_back.refresh_json(c), bg="white")
+        refresh_button.pack(side="left", padx=6)
 
         tk.Label(item_frame, text=casque.code, width=5, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.getEntreprise(), width=25, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
@@ -318,7 +323,10 @@ class UI_Front:
         widgets[6].config(text=wifi_status)  # Wi-Fi status
 
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
-        widgets[7].config(text=json_status)  # JSON status
+        
+        json_frame = widgets[7]
+        json_widgets = json_frame.winfo_children()
+        json_widgets[0].config(text=json_status)  # JSON status
 
         widgets[8].config(text=casque.code)  # code
         widgets[9].config(text=casque.getEntreprise())  # entreprise
