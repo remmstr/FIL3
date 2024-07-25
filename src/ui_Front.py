@@ -3,6 +3,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import os
 import sys
+import http.client
 from config import Config
 
 class UI_Front:
@@ -45,6 +46,11 @@ class UI_Front:
 
         # Debug Area
         self.create_debug_area()
+
+        # Connection status indicator
+        self.connection_status_label = tk.Label(menu_frame, text="", bg="white", font=("Helvetica", 10, "bold"))
+        self.connection_status_label.pack(side=tk.RIGHT, padx=10)
+        self.update_connection_status()
 
         # Start updating progress bars
         self.update_progress_bars()
@@ -386,3 +392,26 @@ class UI_Front:
         Flush method required for redirecting stdout.
         """
         pass  # Nécessaire pour rediriger stdout
+
+    def update_connection_status(self):
+        """
+        Update the connection status indicator.
+        """
+        connected = self.check_connection()
+        status_text = "Connection PPV2 ●" if connected else "Erreur connection PPV2 ●"
+        color = "green" if connected else "red"
+        self.connection_status_label.config(text=status_text, fg=color)
+        self.root.after(5000, self.update_connection_status)  # Re-check every 5 seconds
+
+    def check_connection(self):
+        """
+        Check the connection to the website.
+        """
+        try:
+            conn = http.client.HTTPSConnection("plateforme-beta.reverto.fr", timeout=5)
+            conn.request("HEAD", "/")
+            response = conn.getresponse()
+            return response.status == 200
+        except Exception as e:
+            self.log_debug(f"Erreur de connexion: {e}")
+            return False
