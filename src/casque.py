@@ -67,22 +67,24 @@ class Casque:
                 traceback.print_exc()
                 self.modele = "Inconnu"
 
-            self.battery_level = adbtools.check_battery_level(self.config.adb_exe_path,self.numero)
-             # Vérifier si l'ancienne APK est installée
-            self.old_apk_installed = self.check_old_apk_installed()
+            try:
+                self.battery_level = adbtools.check_battery_level(self.config.adb_exe_path,self.numero)
+                # Vérifier si l'ancienne APK est installée
+                self.old_apk_installed = self.check_old_apk_installed()
 
-            self.refresh_JSON()
-            self.JSON_path = self.check_json_file()
-            self.version_apk = self.get_installed_apk_version()
+                self.refresh_JSON()
+                self.JSON_path = self.check_json_file()
+                self.version_apk = self.get_installed_apk_version()
+                
+                if ( self.JSON_size != self.get_json_file_size() ) :
+                    self.JSON_size = self.get_json_file_size()
+                    if  self.JSON_path != "NULL" :
+                        self.solutions_casque = self.load_solutions_from_json()
+
+            except Exception as e:
+                print(f"Erreur{e}")
+                traceback.print_exc()
             
-            if ( self.JSON_size != self.get_json_file_size() ) :
-                self.JSON_size = self.get_json_file_size()
-                if  self.JSON_path != "NULL" :
-                    self.solutions_casque = self.load_solutions_from_json()
-
-           
-
-
             #self.pull_solutions()
 
     def load_solutions_from_json(self):
@@ -90,7 +92,7 @@ class Casque:
         if self.JSON_path != "Fichier JSON inexistant":
             try:
                 # Lire le contenu du fichier JSON encodé en base 64 sur le casque
-                encoded_output = subprocess.check_output(["adb", "-s", self.numero, "shell", "cat", self.JSON_path], stderr=subprocess.DEVNULL).decode('utf-8')
+                encoded_output = subprocess.check_output(["adb", "-s", self.numero, "shell", "cat", self.JSON_path], stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode('utf-8')
                 if encoded_output.strip() == "":
                     raise ValueError("Le fichier JSON est vide")
 
@@ -129,7 +131,7 @@ class Casque:
         """
         try:
             result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "list", "packages", self.config.package_old_name_PPV1],
-                                    check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                    check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
             output = result.stdout.decode('utf-8')
             if self.config.package_old_name_PPV1 in output:
                 return True
@@ -144,7 +146,7 @@ class Casque:
         if self.JSON_path != "Fichier JSON inexistant":
             command = [self.config.adb_exe_path, "-s", self.numero, "shell", "stat", "-c%s", self.JSON_path]
             try:
-                output = subprocess.check_output(command, stderr=subprocess.DEVNULL).decode("utf-8").strip()
+                output = subprocess.check_output(command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8").strip()
                 return int(output)
             except subprocess.CalledProcessError as e:
                 print(f"Erreur lors de la récupération de la taille du fichier JSON : {e}")
@@ -154,7 +156,7 @@ class Casque:
         with self.lock:
             try:
                 result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "dumpsys", "package", self.config.package_name],
-                                        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
                 output = result.stdout.decode('utf-8')
 
                 version_match = re.search(r'versionName=(\S+)', output)
@@ -236,7 +238,7 @@ class Casque:
         
         with self.lock:
             try:
-                output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", self.config.json_file_path], stderr=subprocess.DEVNULL).decode("utf-8")
+                output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", self.config.json_file_path], stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8")
                 if self.config.json_file_path in output:
                     self.JSON_path = os.path.dirname(self.config.json_file_path)
                     return self.config.json_file_path
@@ -437,7 +439,7 @@ class Casque:
         
         #print(f"Solution source  : {source_dir} target : {target_dir}.")
         try:
-            result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, direction , source_dir, target_dir], check=True)
+            result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, direction , source_dir, target_dir], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
         except subprocess.CalledProcessError as e:
             print(f"Erreur lors du téléversement du fichier {source_dir} pour {solution_name} : {e}")
 
@@ -446,12 +448,12 @@ class Casque:
             print("----->>>> Téléversement de la solution")
             print("Ajout d'une solution... cela peut prendre quelques minutes")
             try:
-                subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "rm", "-r", self.config.upload_casque_path], check=True)
+                subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "rm", "-r", self.config.upload_casque_path], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
                 print("Fichier upload supprimé avec succès, téléversement du nouveau fichier en cours...")
             except subprocess.CalledProcessError as e:
                 print(f"Une erreur est survenue lors de la suppression du fichier upload : {e}")
             try:
-                result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "push", self.config.upload_path, self.config.upload_casque_path], check=True)
+                result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "push", self.config.upload_path, self.config.upload_casque_path], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
                 print(f"Téléversement réussi.")
             except subprocess.CalledProcessError as e:
                 print(f"Une erreur est survenue lors de la copie : {e}")
@@ -467,7 +469,7 @@ class Casque:
         print("----->>>> Installation de l'APK")
         adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
         try:
-            subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True)
+            subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
             print(f"Installation de l'APK réussie.")
         except subprocess.CalledProcessError as e:
             print(f"Une erreur est survenue lors de l'installation de l'APK : {e}")
@@ -489,7 +491,7 @@ class Casque:
     def uninstall_APK(self):
         print("----->>>> Désinstallation de l'APK")
         try:
-            subprocess.run([self.config.adb_exe_path, "-s", self.numero, "uninstall", self.config.package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run([self.config.adb_exe_path, "-s", self.numero, "uninstall", self.config.package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
             print( "Désinstallation de l'APK réussie." )
         except subprocess.CalledProcessError as e:
             if "Unknown package" in str(e):
@@ -508,7 +510,7 @@ class Casque:
         try:
             result = subprocess.run(
                 [self.config.adb_exe_path, "-s", self.numero, "pull", self.config.package_path, self.config.local_archivage_path],
-                check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW
             )
             print( f"Copie réussi.")
             print(result.stdout.decode("utf-8"))
@@ -526,7 +528,7 @@ class Casque:
         try:
             wifi_status_output = subprocess.check_output(
                 [self.config.adb_exe_path, "-s", self.numero, "shell", "dumpsys", "wifi"],
-                stderr=subprocess.DEVNULL
+                stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW
             ).decode("utf-8")
 
             if "mWifiInfo" in wifi_status_output:
@@ -542,7 +544,3 @@ class Casque:
         except subprocess.CalledProcessError as e:
             print(f"Failed to check Wi-Fi status: {e}")
             return False, "Erreur"
-
-
-
-   

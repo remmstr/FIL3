@@ -3,6 +3,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import os
 import sys
+from config import Config
 
 class UI_Front:
     def __init__(self, root, app):
@@ -10,6 +11,7 @@ class UI_Front:
         self.app = app
         self.progress_bars = {}
         self.widget_cache = {}
+        self.config = Config()
 
     # ---------------------------------------------------------------------------
     # Initial Setup Functions
@@ -27,7 +29,10 @@ class UI_Front:
         menu_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=10)
 
         # Charger et afficher l'image redimensionnée
-        self.load_image("resources/images/image.png", menu_frame)
+        self.load_image(self.config.img_path_menu, menu_frame)
+
+        # Create APK Dropdown
+        self.create_apk_dropdown(menu_frame)
 
         # Installation Button
         self.create_install_button(menu_frame)
@@ -40,9 +45,6 @@ class UI_Front:
 
         # Debug Area
         self.create_debug_area()
-
-        # Create APK Dropdown
-        self.create_apk_dropdown(menu_frame)
 
         # Start updating progress bars
         self.update_progress_bars()
@@ -73,7 +75,7 @@ class UI_Front:
         Create the button for installing APKs and solutions.
         """
         button_frame = tk.Frame(parent, bg="white")
-        button_frame.pack(side=tk.TOP, pady=10)
+        button_frame.pack(side=tk.LEFT, pady=10)
 
         self.install_button = tk.Button(button_frame, text="INSTALLER", font=("Helvetica", 10, "bold"), command=self.app.ui_back.installer_apks_et_solutions, bg="white")
         self.install_button.pack()
@@ -136,7 +138,7 @@ class UI_Front:
         tk.Label(header, text="Solution installé", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Barre de téléchar.", width=18, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Info supplémentaire", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        
+
     def create_solution_buttons(self):
         """
         Create the buttons for downloading and displaying solutions from the library.
@@ -173,33 +175,36 @@ class UI_Front:
         Create the dropdown menu for selecting APKs.
         """
         dropdown_frame = tk.Frame(parent, bg="white")
-        dropdown_frame.pack(side=tk.TOP, pady=10)
+        dropdown_frame.pack(side=tk.RIGHT, pady=10)
 
-        folder_label = tk.Label(dropdown_frame, text="Version de l'apk:", bg="white")
+        folder_label = tk.Label(dropdown_frame, text="Choisissez un dossier:", bg="white")
         folder_label.pack(side=tk.LEFT, padx=5)
 
         self.selected_folder = tk.StringVar()
         self.folder_menu = ttk.Combobox(dropdown_frame, textvariable=self.selected_folder)
-        self.folder_menu.pack(side=tk.RIGHT, padx=5)
-        self.folder_menu.bind("<<ComboboxSelected>>", self.folder_selected)
+        self.folder_menu.pack(side=tk.LEFT, padx=5)
+        self.folder_menu.bind("<<ComboboxSelected>>", self.update_apk_folder)
 
         self.populate_folders()
 
     def populate_folders(self):
         """
-        Populate the folder dropdown menu with folders in the APK directory.
+        Populate the folder dropdown menu with folders in the APK directory and select the first one by default.
         """
         apk_dir = "apk"  # Assuming APK folders are in a directory named "apk"
         folders = [d for d in os.listdir(apk_dir) if os.path.isdir(os.path.join(apk_dir, d))]
         self.folder_menu['values'] = folders
 
-    def folder_selected(self, event):
+        if folders:
+            self.folder_menu.current(0)
+            self.update_apk_folder(None)  # Set the default folder
+
+    def update_apk_folder(self, event):
         """
-        Update the selected APK folder in CasquesManager.
+        Update the APK folder in the CasquesManager when a folder is selected from the dropdown menu.
         """
         selected_folder = self.selected_folder.get()
         self.app.casques.set_apk_folder(selected_folder)
-        self.log_debug(f"Dossier APK sélectionné : {selected_folder}")
 
     def afficher_casques(self):
         """
@@ -214,7 +219,7 @@ class UI_Front:
                 else:
                     self.update_casque_row(i, casque)
                 casques_to_remove.discard(casque.numero)
-                self.update_casque_row(i,casque)
+                self.update_casque_row(i, casque)
 
             for casque_num in casques_to_remove:
                 self.widget_cache[casque_num].pack_forget()
@@ -263,12 +268,12 @@ class UI_Front:
         install_solutions_button.pack(side="left", padx=0)
 
         solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
-        tk.Label(item_frame, text=solutions_install_text, width=9, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5,0))
+        tk.Label(item_frame, text=solutions_install_text, width=9, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
         
         pull_button = tk.Button(item_frame, text="⇧", width=3, fg="blue", command=lambda c=casque: self.app.ui_back.pull_solutions(c), bg="white")
         pull_button.pack(side="left", padx=0)
 
-        gestion_image = Image.open("resources/images/parametres.png")
+        gestion_image = Image.open(self.config.img_path_icon_setting)
         gestion_image = gestion_image.resize((15, 15), Image.LANCZOS)
         gestion_photo = ImageTk.PhotoImage(gestion_image)
         gestion_button = tk.Button(item_frame, image=gestion_photo, width=20, height=20, command=lambda c=casque: self.app.ui_back.open_solution_manager(c), bg="white")
@@ -287,7 +292,6 @@ class UI_Front:
         tk.Label(item_frame, text=info_suppl, width=20, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         return item_frame
-
 
     def update_casque_row(self, index, casque):
         """
@@ -339,7 +343,6 @@ class UI_Front:
         for casque in self.app.casques.get_liste_casque():
             if casque.numero in self.progress_bars:
                 self.progress_bars[casque.numero].set(casque.download_progress)
-                #progress_bar = ttk.Progressbar(item_frame, orient="horizontal", length=100, mode="determinate", variable=progress_var)
         self.root.after(1000, self.update_progress_bars)  # Re-check every second
 
     def create_progress_bar(self, item_frame):

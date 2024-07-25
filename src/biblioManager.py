@@ -8,9 +8,7 @@ import os
 class BiblioManager(metaclass=SingletonMeta):
 
     def __init__(self):
-        print("Bibliothèque Manager created")
         self.config = Config()
-
         self.liste_solutions = []
         self.get_sols_bibli()
 

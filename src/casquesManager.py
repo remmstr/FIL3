@@ -11,7 +11,6 @@ from singletonMeta import SingletonMeta
 class CasquesManager(metaclass=SingletonMeta):
 
     def __init__(self):
-        print("GestionsCasques created")
         self.apk_folder = ""
         self.config = Config()
         adbtools.check_adb_connection(self.config.platform_tools_path)
@@ -27,7 +26,6 @@ class CasquesManager(metaclass=SingletonMeta):
         self.apk_folder = apk_folder
     
     def refresh_casques(self):
-
         try:
             devices = self.client.devices()
         except Exception as e:
@@ -49,16 +47,16 @@ class CasquesManager(metaclass=SingletonMeta):
                 if numero in current_casques:
                     # Si le casque existe déjà, on le met à jour
                     existing_casque = current_casques[numero]
-                    existing_casque.refresh_casque(device,self.apk_folder)
+                    existing_casque.refresh_casque(device, self.apk_folder)
                     new_casques.append(existing_casque)
                 else:
                     # Sinon, on crée un nouveau casque
                     nouveau_casque = Casque()
-                    nouveau_casque.refresh_casque(device,self.apk_folder)
+                    nouveau_casque.refresh_casque(device, self.apk_folder)
                     new_casques.append(nouveau_casque)
             except Exception as e:
-                print(f"Erreur lors de l'ajout du casque {device} : {e}")
-                traceback.print_exc()
+                print(f"Erreur lors de l'ajout du casque {device} (numéro de série: {numero}) : {e}")
+                print(traceback.format_exc())
 
         # Remplacer la liste des casques par la nouvelle liste mise à jour
         self.liste_casques = new_casques

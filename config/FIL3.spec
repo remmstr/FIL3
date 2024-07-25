@@ -3,21 +3,13 @@
 
 import os
 import sys
-import platform
-
-
-# Determine platform-specific paths
-if platform.system() == 'Windows':
-    adb_path = os.path.join('..', 'platform-tools', 'windows')
-else:
-    adb_path = os.path.join('..', 'platform-tools', 'mac')
 
 a = Analysis(
     ['../src/FIL_interface.py'],
-    pathex=[],
+    pathex=['../src'],
     binaries=[],
     datas=[
-        (adb_path, 'platform-tools'),
+        ('../platform-tools', 'platform-tools'),
         ('../resources', 'resources')
         ],
     hiddenimports=['ppadb'],
@@ -36,14 +28,15 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='FIL',
+    name='FIL3',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=False,
+    windowed=True,  # Add this line to create a windowed application
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

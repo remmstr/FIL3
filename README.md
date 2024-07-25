@@ -3,24 +3,14 @@
 
 ## Installation des dépendances
 
-Pour installer et exécuter ce projet, suivez les étapes ci-dessous :
+Pour exécuter ce projet, suivez les étapes ci-dessous :
 
-
-#### 1. Cloner le dépôt
-
-
-```sh
-git clone https://github.com/votre-utilisateur/votre-projet.git
-cd votre-projet
-```
-
-
-#### 2. Créer un environnement virtuel
-Il est recommandé de créer un environnement virtuel pour isoler les dépendances du projet. Pour ce faire, utilisez la commande suivante :
+#### 1. Créer un environnement virtuel
+Il est recommandé de créer un environnement virtuel pour isoler les dépendances du projet. Pour ce faire, utilisez la commande suivante dans ke dossier orijet, téléchargé cloner prélablement :
 ```sh
 python3 -m venv venv
 ```
-#### 3. Activer l'environnement virtuel
+#### 2. Activer l'environnement virtuel
 
 Sur macOS et Linux :
 ```sh
@@ -31,14 +21,14 @@ Sur Windows :
 venv\Scripts\activate
 ```
 
-#### 4. Installer les dépendances
+#### 3. Installer les dépendances
 Installez les dépendances requises à partir du fichier requirements.txt :
 
 ```sh
 pip install -r config/requirements.txt
 ```
 
-#### 5. Exécuter le projet
+#### 4. Exécuter le projet
 Une fois les dépendances installées, vous pouvez exécuter le projet comme suit :
 ```sh
 python src/FIL_interface.py

@@ -1,6 +1,5 @@
 import subprocess
 import time
-import threading
 import os
 from solution import Solution
 from config import Config
@@ -58,7 +57,7 @@ class SolutionCasque(Solution):
 
         return self
 
-    def quick_verif_sol_install(self,device_serial,upload_casque_path):
+    def quick_verif_sol_install(self, device_serial, upload_casque_path):
         """
         Vérifie si la solution est installée sur le casque en vérifiant l'existence
         du premier fichier de chaque répertoire (image, image360, sound, srt, video).
@@ -72,7 +71,7 @@ class SolutionCasque(Solution):
                 first_file = upload_casque_path + dir[0]
                 check_file_command = [self.config.adb_exe_path, "-s", device_serial, "shell", "ls", first_file]
                 try:
-                    output = subprocess.check_output(check_file_command, stderr=subprocess.DEVNULL).decode("utf-8")
+                    output = subprocess.check_output(check_file_command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8")
                     if first_file not in output:
                         print("fichier non trouvé")
                         return False
@@ -94,7 +93,7 @@ class SolutionCasque(Solution):
         check_file_command = [self.config.adb_exe_path, "-s", device_serial, "shell", "ls", "-l", file_path]
 
         try:
-            output = subprocess.check_output(check_file_command, stderr=subprocess.DEVNULL).decode("utf-8")
+            output = subprocess.check_output(check_file_command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8")
             if file_path not in output:
                 print(f"Fichier non trouvé : {file_path}")
                 return False
@@ -110,7 +109,6 @@ class SolutionCasque(Solution):
             #print(f"Erreur lors de la vérification du fichier : {file_path}")
             # Je ne print pas ici car si le fichier n'est pas trouvé on ne souhaite pas affiché une erreur puisque c'est une simple vérification
             return False
-
 
     def verif_sol_install(self, device_serial, upload_casque_path):
         """

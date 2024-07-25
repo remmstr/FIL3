@@ -1,15 +1,19 @@
 import os
 import subprocess
+
+def check_file_exists(filepath):
+    if not os.path.isfile(filepath):
+        raise FileNotFoundError(f"Le fichier spécifié est introuvable: {filepath}")
     
 def check_adb_connection(platform_tools_path):
-        try:
-            os.environ["PATH"] += os.pathsep + platform_tools_path
-            output = subprocess.check_output(["adb", "start-server"])
-            print(output.decode('utf-8'))
-        except Exception as e:
-            print(f"Erreur lors du démarrage du serveur ADB : {e}")
-            return False
-        return True
+    try:
+        os.environ["PATH"] += os.pathsep + platform_tools_path
+        output = subprocess.check_output(["adb", "start-server"], stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+        # print(output.decode('utf-8')) # Commenté pour ne pas afficher la sortie
+    except Exception as e:
+        print(f"Erreur lors du démarrage du serveur ADB : {e}")
+        return False
+    return True
 
 def is_permission_granted(adb_exe_path, numero, package_name, permission):
     try:
@@ -17,7 +21,7 @@ def is_permission_granted(adb_exe_path, numero, package_name, permission):
         check_command = [
             adb_exe_path, "-s", numero, "shell", "dumpsys", "package", package_name
         ]
-        output = subprocess.check_output(check_command, stderr=subprocess.DEVNULL).decode("utf-8")
+        output = subprocess.check_output(check_command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8")
         return f"grantedPermissions: {permission}" in output
     except subprocess.CalledProcessError as e:
         print(f"Erreur lors de la vérification de la permission {permission} : {e}")
@@ -35,8 +39,8 @@ def grant_permissions(adb_exe_path, numero, package_name):
         if not is_permission_granted(adb_exe_path, numero, package_name, permission):
             full_command = [adb_exe_path, "-s", numero, "shell", "pm", "grant", package_name, permission]
             try:
-                subprocess.run(full_command, check=True)
-                #print(f"Permission accordée avec succès : {permission}")
+                subprocess.run(full_command, check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+                # print(f"Permission accordée avec succès : {permission}")
             except subprocess.CalledProcessError as e:
                 print(f"Erreur lors de l'accord de la permission {permission} : {e}")
         else:
@@ -45,7 +49,7 @@ def grant_permissions(adb_exe_path, numero, package_name):
 def is_device_awake(adb_exe_path, numero):
     try:
         command = [adb_exe_path, "-s", numero, "shell", "dumpsys power | grep 'Display Power'"]
-        output = subprocess.check_output(command).decode('utf-8')
+        output = subprocess.check_output(command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode('utf-8')
         if 'state=ON' in output:
             return True
     except subprocess.CalledProcessError as e:
@@ -56,42 +60,41 @@ def wake_up_device(adb_exe_path, numero):
     if not is_device_awake(adb_exe_path, numero):
         command = [adb_exe_path, "-s", numero, "shell", "input", "keyevent", "KEYCODE_POWER"]
         try:
-            subprocess.run(command, check=True)
-            #print("Commande POWER exécutée avec succès")
+            subprocess.run(command, check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+            # print("Commande POWER exécutée avec succès")
         except subprocess.CalledProcessError as e:
             print(f"Erreur lors de l'exécution de la commande POWER : {e}")
     else:
         pass
-        #print("L'appareil est déjà éveillé")
+        # print("L'appareil est déjà éveillé")
 
 def start_application(adb_exe_path, numero, package_name):
     try:
         # Obtenir le nom complet de l'activité principale
         activity_output = subprocess.check_output(
             [adb_exe_path, "-s", numero, "shell", "cmd", "package", "resolve-activity", "--brief", package_name],
-            stderr=subprocess.DEVNULL
+            stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW
         ).decode("utf-8").strip()
 
         # Extraire uniquement la ligne contenant le nom de l'activité (dernière ligne normalement)
         activity_name = activity_output.split('\n')[-1].strip()
-        #print(f"Activity Name: {activity_name}")
+        # print(f"Activity Name: {activity_name}")
 
         # Démarrer l'application avec le nom complet de l'activité
         start_command = [
             adb_exe_path, "-s", numero, "shell", "am", "start",
             "-n", activity_name
         ]
-        subprocess.run(start_command, check=True)
-        #print(f"Application {package_name} démarrée avec succès.")
+        subprocess.run(start_command, check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+        # print(f"Application {package_name} démarrée avec succès.")
     except subprocess.CalledProcessError as e:
         print(f"Erreur lors de l'obtention ou du démarrage de l'activité principale : {e}")
 
 def stop_application(adb_exe_path, numero, package_name):
     try:
-
         stop_command = [adb_exe_path, "-s", numero, "shell", "am", "force-stop", package_name]
-        subprocess.run(stop_command, check=True)
-        #print(f"Application {package_name} arrêtée avec succès.")
+        subprocess.run(stop_command, check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+        # print(f"Application {package_name} arrêtée avec succès.")
     except subprocess.CalledProcessError as e:
         print(f"Erreur lors de l'arrêt de l'application {package_name} : {e}")
 
@@ -99,7 +102,7 @@ def is_application_running(adb_exe_path, numero, package_name):
     try:
         # Commande pour lister les processus en cours d'exécution
         check_command = [adb_exe_path, "-s", numero, "shell", "pidof", package_name]
-        output = subprocess.check_output(check_command, stderr=subprocess.DEVNULL).decode("utf-8").strip()
+        output = subprocess.check_output(check_command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8").strip()
         
         # Si la sortie n'est pas vide, l'application est en cours d'exécution
         if output:
@@ -119,7 +122,7 @@ def configure_wifi_on_casque(self, adb_exe_path, ssid, password):
             "com.yourapp.CONFIGURE_WIFI", "--es", "ssid", ssid, "--es", "password", password
         ]
 
-        result = subprocess.run([adb_exe_path] + set_network_command, text=True, capture_output=True, check=True)
+        result = subprocess.run([adb_exe_path] + set_network_command, text=True, capture_output=True, check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
         
         if "Broadcast completed: result=0" in result.stdout:
             print("Broadcast was sent, but no changes were made. Output:", result.stdout)
@@ -128,7 +131,6 @@ def configure_wifi_on_casque(self, adb_exe_path, ssid, password):
 
     except subprocess.CalledProcessError as e:
         print(f"An error occurred while configuring WiFi on the casque: {e}\n{e.stderr.decode()}")
-
 
 def check_battery_level(adb_exe_path, device_serial):
     """
@@ -143,7 +145,7 @@ def check_battery_level(adb_exe_path, device_serial):
     """
     try:
         battery_info_command = [adb_exe_path, "-s", device_serial, "shell", "dumpsys", "battery"]
-        output = subprocess.check_output(battery_info_command, stderr=subprocess.STDOUT).decode("utf-8")
+        output = subprocess.check_output(battery_info_command, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8")
 
         for line in output.split('\n'):
             if 'level' in line:

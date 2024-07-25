@@ -23,6 +23,7 @@ class UI_Back:
         try:
             for casque in self.casques.liste_casques:
                 self.install_apk(casque)
+                
                 self.push_solutions(casque)
         except Exception as e:
             self.app.handle_exception("Erreur lors de l'installation des APKs et des solutions", e)

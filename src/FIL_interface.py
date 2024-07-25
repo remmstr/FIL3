@@ -8,6 +8,17 @@ import sys
 from casquesManager import CasquesManager
 from biblioManager import BiblioManager
 
+import sys
+
+### permet d'enlever tout les prints
+import builtins
+# Définir une nouvelle fonction print qui ne fait rien
+def silent_print(*args, **kwargs):
+    pass
+# Redéfinir print pour qu'elle soit silencieuse
+#builtins.print = silent_print
+
+
 class FIL_interface:
     def __init__(self, root):
         self.running = True
