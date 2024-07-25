@@ -7,14 +7,14 @@ class Marque:
         self.version_apk = ""
         self.APK_path = ""
 
-    def setNom(self, nom: str):
+    def setNom(self, nom: str,apk_folder):
         self.nom = nom
-        self.choixApp()
+        self.choixApp(apk_folder)
 
-    def choixApp(self):
+    def choixApp(self,apk_folder):
         try:
             apk_names = []
-            apk_directory = "./APK"
+            apk_directory = "./APK/" + apk_folder
             
             # Vérifier si le répertoire existe
             if not os.path.exists(apk_directory):

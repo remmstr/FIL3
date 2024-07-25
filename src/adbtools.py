@@ -74,7 +74,7 @@ def start_application(adb_exe_path, numero, package_name):
 
         # Extraire uniquement la ligne contenant le nom de l'activité (dernière ligne normalement)
         activity_name = activity_output.split('\n')[-1].strip()
-        print(f"Activity Name: {activity_name}")
+        #print(f"Activity Name: {activity_name}")
 
         # Démarrer l'application avec le nom complet de l'activité
         start_command = [
@@ -82,9 +82,31 @@ def start_application(adb_exe_path, numero, package_name):
             "-n", activity_name
         ]
         subprocess.run(start_command, check=True)
-        print(f"Application {package_name} démarrée avec succès.")
+        #print(f"Application {package_name} démarrée avec succès.")
     except subprocess.CalledProcessError as e:
         print(f"Erreur lors de l'obtention ou du démarrage de l'activité principale : {e}")
+
+def stop_application(adb_exe_path, numero, package_name):
+    try:
+
+        stop_command = [adb_exe_path, "-s", numero, "shell", "am", "force-stop", package_name]
+        subprocess.run(stop_command, check=True)
+        #print(f"Application {package_name} arrêtée avec succès.")
+    except subprocess.CalledProcessError as e:
+        print(f"Erreur lors de l'arrêt de l'application {package_name} : {e}")
+
+def is_application_running(adb_exe_path, numero, package_name):
+    try:
+        # Commande pour lister les processus en cours d'exécution
+        check_command = [adb_exe_path, "-s", numero, "shell", "pidof", package_name]
+        output = subprocess.check_output(check_command, stderr=subprocess.DEVNULL).decode("utf-8").strip()
+        
+        # Si la sortie n'est pas vide, l'application est en cours d'exécution
+        if output:
+            return True
+    except subprocess.CalledProcessError:
+        pass
+    return False
 
 def configure_wifi_on_casque(self, adb_exe_path, ssid, password):
     if not ssid or not password:

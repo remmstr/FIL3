@@ -23,7 +23,7 @@ class Casque:
         self.battery_level : int
         self.version_apk = ""
         self.JSON_path = "NULL"
-        self.JSON_size = "NULL"
+        self.JSON_size = -1
         self.solutions_casque = []
         self.code = ""
         self.name = ""
@@ -42,7 +42,7 @@ class Casque:
     # INSTANCIATION INFO ET VERIFICATION
     #-----------------------------------------------------
 
-    def refresh_casque(self, device):
+    def refresh_casque(self, device, apk_folder):
         with self.refresh_lock:
             self.device = device
             adbtools.wake_up_device(self.config.adb_exe_path, self.numero) 
@@ -54,7 +54,7 @@ class Casque:
                 self.numero = "Inconnu"
 
             try:
-                self.marque.setNom(self.device.shell("getprop ro.product.manufacturer").strip())
+                self.marque.setNom(self.device.shell("getprop ro.product.manufacturer").strip(),apk_folder)
             except Exception as e:
                 print(f"Erreur lors de l'obtention de la marque: {e}")
                 traceback.print_exc()
@@ -68,17 +68,19 @@ class Casque:
                 self.modele = "Inconnu"
 
             self.battery_level = adbtools.check_battery_level(self.config.adb_exe_path,self.numero)
-
-            self.version_apk = self.get_installed_apk_version()
-            self.JSON_path = self.check_json_file()
-            self.JSON_size = self.get_json_file_size()
-
-
-            if  self.JSON_path != "NULL" :
-                self.solutions_casque = self.load_solutions_from_json()
-
-            # Vérifier si l'ancienne APK est installée
+             # Vérifier si l'ancienne APK est installée
             self.old_apk_installed = self.check_old_apk_installed()
+
+            self.refresh_JSON()
+            self.JSON_path = self.check_json_file()
+            self.version_apk = self.get_installed_apk_version()
+            
+            if ( self.JSON_size != self.get_json_file_size() ) :
+                self.JSON_size = self.get_json_file_size()
+                if  self.JSON_path != "NULL" :
+                    self.solutions_casque = self.load_solutions_from_json()
+
+           
 
 
             #self.pull_solutions()
@@ -258,6 +260,10 @@ class Casque:
                 installed_solutions.append(solution)
         return installed_solutions
 
+    def refresh_JSON(self):
+        if(adbtools.is_application_running(self.config.adb_exe_path,self.numero,self.config.package_name)):
+            adbtools.stop_application(self.config.adb_exe_path,self.numero,self.config.package_name)
+        adbtools.start_application(self.config.adb_exe_path,self.numero,self.config.package_name)
     
     #-----------------------------------------------------
     # PUSH ET PULL SOLUTION
@@ -273,21 +279,21 @@ class Casque:
         
         print("push_solutions")
         for solution in self.solutions_casque:
-            print("solution :" + solution.nom)
+            print(f"solution :" + solution.nom)
             if not solution.sol_install_on_casque :
-                print(" -> Solution not on casque")
+                print(f" -> Solution not on casque")
                 # Vérifier si la solution qui est sur le casque est dans la bibliothèque, 
                 # Si la sol est bien dans la biblio alors la fonction renvoie l'objet qui se trouve dans la biblio
                 solution_from_bibli = self.biblio.is_sol_in_library(solution)
                 if solution_from_bibli != False :
-                    print(" -> Push solution !")
+                    print(f" -> Push solution !")
                     self.push_solution_with_progress(solution,solution_from_bibli)
 
     def push_solution_with_progress(self,solution_json_casque, solution_biblio):
         safe_solution_name = self.config.safe_string(solution_json_casque.nom)
         print(safe_solution_name)
         solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
-        print("solution_dir")
+        print(f"solution_dir")
         print(solution_dir)
 
         print(solution_biblio.size)
@@ -527,98 +533,16 @@ class Casque:
                 wifi_info = next((line for line in wifi_status_output.split('\n') if "mWifiInfo" in line), None)
                 if wifi_info and "SSID: " in wifi_info:
                     ssid_info = wifi_info.split("SSID: ")[1].split(",")[0].strip()
-                    if ssid_info:
+                    if ssid_info == "<unknown ssid>":
+                        print("Device not connected.")
+                        return False, "not connected"           
+                    else :
                         return True, ssid_info
-            print("Device not connected.")
-            return False, "not connected"
+           
         except subprocess.CalledProcessError as e:
             print(f"Failed to check Wi-Fi status: {e}")
             return False, "Erreur"
 
 
 
-    #old fonctions
-
-    def get_wifi_credentials(self):
-        with self.lock:
-            try:
-                ssid_output = subprocess.check_output(["netsh", "wlan", "show", "interfaces"], shell=False).decode('cp850')
-                print(ssid_output)
-                ssid = ""
-                for line in ssid_output.split("\n"):
-                    if "SSID" in line and "BSSID" not in line:
-                        ssid = line.split(":")[1].strip()
-                        break
-                if ssid:
-                    password_output = subprocess.check_output(f'netsh wlan show profile name="{ssid}" key=clear', shell=True).decode('cp850')
-                    password = ""
-                    for line in password_output.split("\n"):
-                        if "Contenu de la clé" in line or "Key Content" in line:
-                            password = line.split(":")[1].strip()
-                            break
-                    return ssid, password
-                else:
-                    print("SSID not found.")
-                    return None, None
-            except subprocess.CalledProcessError as e:
-                print(f"Command failed: {e}")
-                return None, None
-            except UnicodeDecodeError as e:
-                print(f"Decode error: {e}")
-                return None, None
-
-    def share_wifi_to_casque(self):
-        with self.lock:
-            try:
-                ssid, password = self.get_wifi_credentials()
-                if ssid and password:
-                    print(ssid)
-                    print(password)
-                    adbtools.self.configure_wifi_on_casque(adbtools.adb_exe_path, ssid, password)
-                    self.reconnect_wifi()
-                    self.check_wifi_connection(ssid)
-                else:
-                    print("Failed to retrieve WiFi credentials.")
-            except Exception as e:
-                print(f"An error occurred: {e}")
-
-    def check_wifi_connection(self, ssid):
-        try:
-            check_command = ["shell", "dumpsys", "wifi"]
-            result = subprocess.run([self.config.adb_exe_path] + check_command, text=True, capture_output=True, check=True)
-
-            if "mNetworkInfo" in result.stdout:
-                network_info = next((line for line in result.stdout.split('\n') if "mNetworkInfo" in line), None)
-                if network_info and "CONNECTED" in network_info:
-                    ssid_info = next((line for line in result.stdout.split('\n') if "SSID:" in line), None)
-                    if ssid_info and ssid in ssid_info:
-                        print("Device is connected to the targeted WiFi network.")
-                    else:
-                        print("Device is connected to a different network.")
-                else:
-                    print("Device is not connected to any WiFi network.")
-            else:
-                print("Unable to determine the WiFi status.")
-                print(result.stdout)
-        except subprocess.CalledProcessError as e:
-            print(f"Failed to check WiFi status: {e}")
-            if e.stdout:
-                print(e.stdout)
-            if e.stderr:
-                print(e.stderr)
-
-    def reconnect_wifi(self):
-        try:
-            reconnect_command = ["shell", "svc", "wifi", "disable"]
-            subprocess.run([self.config.adb_exe_path] + reconnect_command, check=True)
-            reconnect_command = ["shell", "svc", "wifi", "enable"]
-            subprocess.run([self.config.adb_exe_path] + reconnect_command, check=True)
-            print("WiFi has been reset and reconnected.")
-        except subprocess.CalledProcessError as e:
-            print(f"Failed to reconnect WiFi: {e}")
-
-    def _log_message(self, message):
-        if hasattr(self, 'app'):
-            self.app.log_debug(message)
-        else:
-            print(message)
+   

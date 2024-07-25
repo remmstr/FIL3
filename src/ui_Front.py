@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
+import os
 import sys
 
 class UI_Front:
@@ -28,23 +29,20 @@ class UI_Front:
         # Charger et afficher l'image redimensionnée
         self.load_image("resources/images/image.png", menu_frame)
 
-        # APK Frame
-        self.create_apk_frame(menu_frame)
-
         # Installation Button
         self.create_install_button(menu_frame)
 
         # Table Frame
         self.create_table_frame()
 
-        # Banque de Solutions Button
-        self.create_banque_button()
-
-        # Ajouter le bouton pour afficher les solutions de la bibliothèque
-        self.create_biblio_solutions_button()
+        # 2 bouton pour biblio
+        self.create_solution_buttons()
 
         # Debug Area
         self.create_debug_area()
+
+        # Create APK Dropdown
+        self.create_apk_dropdown(menu_frame)
 
         # Start updating progress bars
         self.update_progress_bars()
@@ -69,25 +67,6 @@ class UI_Front:
             label.pack(side=tk.LEFT, pady=0)
         except Exception as e:
             self.log_debug(f"Erreur lors du chargement de l'image : {e}")
-
-    def create_apk_frame(self, parent):
-        """
-        Create the frame for displaying APK information.
-        """
-        apk_frame = tk.Frame(parent, bg="white", bd=1, relief=tk.SOLID)
-        apk_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=10, pady=10)
-
-        apk_title = tk.Label(apk_frame, text="APK disponible", font=("Helvetica", 10, "bold"), bg="white")
-        apk_title.pack(side=tk.TOP, pady=5)
-
-        self.apk_labels = {
-            "oculus": tk.Label(apk_frame, text="Oculus : ", font=("Helvetica", 9), bg="white"),
-            "pico": tk.Label(apk_frame, text="Pico : ", font=("Helvetica", 9), bg="white"),
-            "vive": tk.Label(apk_frame, text="Vive : ", font=("Helvetica", 9), bg="white"),
-        }
-
-        for label in self.apk_labels.values():
-            label.pack(side=tk.TOP, anchor="w", padx=10, pady=2)
 
     def create_install_button(self, parent):
         """
@@ -148,33 +127,28 @@ class UI_Front:
         tk.Label(header, text="ID", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Name", width=7, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Modèle", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="APK", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Wi-Fi", width=15, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="APK", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Wi-Fi", width=16, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="JSON", width=7, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Code", width=5, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Entreprise", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Solution associé", width=18, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Solution installé", width=18, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Barre de téléchar.", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Solution installé", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Barre de téléchar.", width=18, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Info supplémentaire", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         
-    def create_banque_button(self):
+    def create_solution_buttons(self):
         """
-        Create the button for downloading solutions from the bank.
+        Create the buttons for downloading and displaying solutions from the library.
         """
-        banque_button_frame = tk.Frame(self.root, bg="white")
-        banque_button_frame.pack(side=tk.TOP, pady=10)
-        self.banque_solutions_button = tk.Button(banque_button_frame, text="Banque de solutions", command=self.app.ui_back.download_banque_solutions, bg="white")
-        self.banque_solutions_button.pack(pady=10)
+        buttons_frame = tk.Frame(self.root, bg="white")
+        buttons_frame.pack(side=tk.TOP, pady=10)
 
-    def create_biblio_solutions_button(self):
-        """
-        Create the button for displaying solutions from the library.
-        """
-        biblio_button_frame = tk.Frame(self.root, bg="white")
-        biblio_button_frame.pack(side=tk.TOP, pady=10)
-        self.biblio_solutions_button = tk.Button(biblio_button_frame, text="Afficher Solutions Bibliothèque", command=self.show_biblio_solutions, bg="white")
-        self.biblio_solutions_button.pack(pady=10)
+        self.banque_solutions_button = tk.Button(buttons_frame, text="Télécharger Biblio", command=self.app.ui_back.download_banque_solutions, bg="white")
+        self.banque_solutions_button.pack(side=tk.LEFT, padx=5)
+
+        self.biblio_solutions_button = tk.Button(buttons_frame, text="Afficher Bibliothèque", command=self.show_biblio_solutions, bg="white")
+        self.biblio_solutions_button.pack(side=tk.LEFT, padx=5)
 
     def show_biblio_solutions(self):
         """
@@ -194,6 +168,39 @@ class UI_Front:
         close_button = tk.Button(biblio_window, text="Fermer", command=biblio_window.destroy)
         close_button.pack(pady=10)
 
+    def create_apk_dropdown(self, parent):
+        """
+        Create the dropdown menu for selecting APKs.
+        """
+        dropdown_frame = tk.Frame(parent, bg="white")
+        dropdown_frame.pack(side=tk.TOP, pady=10)
+
+        folder_label = tk.Label(dropdown_frame, text="Version de l'apk:", bg="white")
+        folder_label.pack(side=tk.LEFT, padx=5)
+
+        self.selected_folder = tk.StringVar()
+        self.folder_menu = ttk.Combobox(dropdown_frame, textvariable=self.selected_folder)
+        self.folder_menu.pack(side=tk.RIGHT, padx=5)
+        self.folder_menu.bind("<<ComboboxSelected>>", self.folder_selected)
+
+        self.populate_folders()
+
+    def populate_folders(self):
+        """
+        Populate the folder dropdown menu with folders in the APK directory.
+        """
+        apk_dir = "apk"  # Assuming APK folders are in a directory named "apk"
+        folders = [d for d in os.listdir(apk_dir) if os.path.isdir(os.path.join(apk_dir, d))]
+        self.folder_menu['values'] = folders
+
+    def folder_selected(self, event):
+        """
+        Update the selected APK folder in CasquesManager.
+        """
+        selected_folder = self.selected_folder.get()
+        self.app.casques.set_apk_folder(selected_folder)
+        self.log_debug(f"Dossier APK sélectionné : {selected_folder}")
+
     def afficher_casques(self):
         """
         Display the list of casques.
@@ -201,22 +208,17 @@ class UI_Front:
         try:
             casques_to_remove = set(self.widget_cache.keys())
 
-            for i, casque in enumerate(self.app.casques.liste_casques, 1):
+            for i, casque in enumerate(self.app.casques.get_liste_casque(), 1):
                 if casque.numero not in self.widget_cache:
                     self.widget_cache[casque.numero] = self.create_casque_row(i, casque)
                 else:
                     self.update_casque_row(i, casque)
                 casques_to_remove.discard(casque.numero)
+                self.update_casque_row(i,casque)
 
             for casque_num in casques_to_remove:
                 self.widget_cache[casque_num].pack_forget()
                 del self.widget_cache[casque_num]
-
-            # Mettre à jour les informations APK pour chaque marque
-            marques = ["Oculus", "Pico", "Vive"]
-            for marque in marques:
-                version = self.app.config.get_apk_version(marque)
-                self.apk_labels[marque.lower()].config(text=f"{marque} : {version}")
 
         except Exception as e:
             self.app.handle_exception("Erreur lors de l'affichage des casques", e)
@@ -233,16 +235,20 @@ class UI_Front:
 
         version_frame = tk.Frame(item_frame, bg="white")
         version_frame.pack(side="left", fill="x")
-        install_button = tk.Button(version_frame, text="⇧", width=1, fg="green", command=lambda c=casque: self.app.ui_back.install_apk(c), bg="white")
+        install_button = tk.Button(version_frame, text="install", width=4, fg="green", command=lambda c=casque: self.app.ui_back.install_apk(c), bg="white")
         install_button.pack(side="left", padx=0)
-        tk.Label(version_frame, text=casque.version_apk, width=4, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 5))
         uninstall_button = tk.Button(version_frame, text="✗", width=1, fg="red", command=lambda c=casque: self.app.ui_back.uninstall_apk(c), bg="white")
         uninstall_button.pack(side="left", padx=0)
+        tk.Label(version_frame, text=casque.version_apk, width=4, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 5))
+        open_button = tk.Button(version_frame, text="open", width=4, fg="green", command=lambda c=casque: self.app.ui_back.start_apk(c), bg="white")
+        open_button.pack(side="left", padx=0)
+        close_button = tk.Button(version_frame, text="✗", width=1, fg="red", command=lambda c=casque: self.app.ui_back.close_apk(c), bg="white")
+        close_button.pack(side="left", padx=2)
 
         # Vérifier l'état du Wi-Fi
         is_connected, ssid = casque.is_wifi_connected()
-        wifi_status = f"{ssid}" if is_connected else "Not Connected"
-        tk.Label(item_frame, text=wifi_status, width=15, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        wifi_status = f"{ssid}" if is_connected else "Please Connect to Wifi"
+        tk.Label(item_frame, text=wifi_status, width=16, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
         tk.Label(item_frame, text=json_status, width=7, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
@@ -258,25 +264,30 @@ class UI_Front:
 
         solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
         tk.Label(item_frame, text=solutions_install_text, width=9, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5,0))
+        
+        pull_button = tk.Button(item_frame, text="⇧", width=3, fg="blue", command=lambda c=casque: self.app.ui_back.pull_solutions(c), bg="white")
+        pull_button.pack(side="left", padx=0)
 
         gestion_image = Image.open("resources/images/parametres.png")
         gestion_image = gestion_image.resize((15, 15), Image.LANCZOS)
         gestion_photo = ImageTk.PhotoImage(gestion_image)
-        gestion_button = tk.Button(item_frame, image=gestion_photo, width=10, height=10, command=lambda c=casque: self.app.ui_back.open_solution_manager(c), bg="white")
+        gestion_button = tk.Button(item_frame, image=gestion_photo, width=20, height=20, command=lambda c=casque: self.app.ui_back.open_solution_manager(c), bg="white")
         gestion_button.image = gestion_photo
         gestion_button.pack(side="left", padx=5)
 
         # Ajouter la barre de progression
         progress_var = tk.DoubleVar()
-        progress_bar = ttk.Progressbar(item_frame, orient="horizontal", length=150, mode="determinate", variable=progress_var)
+        progress_bar = ttk.Progressbar(item_frame, orient="horizontal", length=100, mode="determinate", variable=progress_var)
         progress_bar.pack(side="left", padx=15)
         self.progress_bars[casque.numero] = progress_var
+        self.progress_bars[casque.numero].set(casque.download_progress)
 
         # Ajouter les informations supplémentaires
         info_suppl = "PPV1 Installée" if casque.old_apk_installed else ""
         tk.Label(item_frame, text=info_suppl, width=20, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         return item_frame
+
 
     def update_casque_row(self, index, casque):
         """
@@ -295,11 +306,11 @@ class UI_Front:
         # Update version_frame children
         version_frame = widgets[5]
         version_widgets = version_frame.winfo_children()
-        version_widgets[1].config(text=casque.version_apk)  # version_apk label
+        version_widgets[2].config(text=casque.version_apk)  # version_apk label
 
         # Update Wi-Fi status
         is_connected, ssid = casque.is_wifi_connected()
-        wifi_status = f"{ssid}" if is_connected else "Not Connected"
+        wifi_status = f"{ssid}" if is_connected else "Please connect to Wifi"
         widgets[6].config(text=wifi_status)  # Wi-Fi status
 
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
@@ -319,15 +330,16 @@ class UI_Front:
 
         # Mettre à jour les informations supplémentaires
         info_suppl = "App PPV1 Installée" if casque.old_apk_installed else ""
-        widgets[13].config(text=info_suppl)  # info supplémentaire
+        widgets[14].config(text=info_suppl)  # info supplémentaire
 
     def update_progress_bars(self):
         """
         Periodically update the progress bars based on the download_progress attribute of each casque.
         """
-        for casque in self.app.casques.liste_casques:
+        for casque in self.app.casques.get_liste_casque():
             if casque.numero in self.progress_bars:
                 self.progress_bars[casque.numero].set(casque.download_progress)
+                #progress_bar = ttk.Progressbar(item_frame, orient="horizontal", length=100, mode="determinate", variable=progress_var)
         self.root.after(1000, self.update_progress_bars)  # Re-check every second
 
     def create_progress_bar(self, item_frame):

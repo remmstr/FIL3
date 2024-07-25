@@ -64,9 +64,9 @@ deactivate
 python -m PyInstaller config/FIL3.spec
 ```
 
-## Diagramme des classes
+## Diagramme de classes
 
-Voici un diagramme des classes pour le projet.
+Voici un diagramme de classes pour le projet.
 
 ```mermaid
 classDiagram

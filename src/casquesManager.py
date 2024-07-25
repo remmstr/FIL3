@@ -12,13 +12,22 @@ class CasquesManager(metaclass=SingletonMeta):
 
     def __init__(self):
         print("GestionsCasques created")
+        self.apk_folder = ""
         self.config = Config()
         adbtools.check_adb_connection(self.config.platform_tools_path)
         self.liste_casques = []
         self.client = AdbClient(host="127.0.0.1", port=5037)
         self.refresh_casques()
 
+
+    def get_liste_casque(self):
+        return self.liste_casques
+
+    def set_apk_folder(self,apk_folder):
+        self.apk_folder = apk_folder
+    
     def refresh_casques(self):
+
         try:
             devices = self.client.devices()
         except Exception as e:
@@ -26,16 +35,34 @@ class CasquesManager(metaclass=SingletonMeta):
             traceback.print_exc()
             return
 
-        self.liste_casques.clear()
+        # Création d'un dictionnaire temporaire pour les casques actuels
+        current_casques = {casque.numero: casque for casque in self.liste_casques}
+
+        # Liste temporaire pour les nouveaux casques
+        new_casques = []
 
         for device in devices:
             try:
-                nouveau_casque = Casque()
-                nouveau_casque.refresh_casque(device)
-                self.liste_casques.append(nouveau_casque)
+                # Obtenir le numéro de série du device
+                numero = device.get_serial_no().strip()
+
+                if numero in current_casques:
+                    # Si le casque existe déjà, on le met à jour
+                    existing_casque = current_casques[numero]
+                    existing_casque.refresh_casque(device,self.apk_folder)
+                    new_casques.append(existing_casque)
+                else:
+                    # Sinon, on crée un nouveau casque
+                    nouveau_casque = Casque()
+                    nouveau_casque.refresh_casque(device,self.apk_folder)
+                    new_casques.append(nouveau_casque)
             except Exception as e:
                 print(f"Erreur lors de l'ajout du casque {device} : {e}")
                 traceback.print_exc()
+
+        # Remplacer la liste des casques par la nouvelle liste mise à jour
+        self.liste_casques = new_casques
+
 
     def is_device_online(self, device):
         try:
