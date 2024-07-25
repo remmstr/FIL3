@@ -73,7 +73,9 @@ class Casque:
             # Vérifier si l'ancienne APK est installée
             self.old_apk_installed = self.check_old_apk_installed()
             
-            self.JSON_path = self.check_json_file()
+            if(self.JSON_path != self.check_json_file()):
+                self.JSON_path = self.check_json_file()
+                self.refresh_casque_serveur()
 
             
             #self.pull_solutions()

@@ -17,16 +17,22 @@ class UI_Back:
         self.config = Config()
 
     def installer_apks_et_solutions(self):
-        Thread(target=self._installer_apks_et_solutions).start()
-
-    def _installer_apks_et_solutions(self):
         try:
             for casque in self.casques.liste_casques:
-                self.install_apk(casque)
-                
-                self.push_solutions(casque)
+                        Thread(target=self.installer_apks_et_solution(casque)).start()
         except Exception as e:
             self.app.handle_exception("Erreur lors de l'installation des APKs et des solutions", e)
+
+
+
+    def installer_apks_et_solution(self,casque):
+        try:
+            self.install_apk(casque)
+            while(casque.JSON_path == 'X') : pass
+            time.sleep(1)
+            self.push_solutions(casque)
+        except Exception as e:
+            self.app.handle_exception("Erreur lors del'installation des APKs et des solutions", e)
 
     def open_solution_manager(self, casque):
         solution_window = tk.Toplevel(self.app.ui_front.root)
