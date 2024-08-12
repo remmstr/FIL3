@@ -48,7 +48,7 @@ class SolutionCasque(Solution):
                     break
 
         # Calculate total size and check installation status
-        self.size = self.verif_sol_install(device_serial, upload_casque_path)
+        self.size = self.verif_sol_install_opti(device_serial, upload_casque_path)
         self.sol_install_on_casque = self.size != 0
 
         return self
@@ -179,4 +179,59 @@ class SolutionCasque(Solution):
                 if output == 0:
                     return False
                 total_size += output
+        return total_size
+    
+
+    def verif_sol_install_opti(self, device_serial, upload_casque_path):
+        """
+        Vérifie si tous les fichiers de la solution sont installés sur l'appareil et calcule la taille totale.
+
+        Args:
+            device_serial (str): Le numéro de série de l'appareil.
+            upload_casque_path (str): Le chemin de base des fichiers sur l'appareil.
+
+        Returns:
+            int: La taille totale des fichiers s'ils sont tous présents, sinon 0.
+        """
+        directories = {
+            "image": self.image,
+            "image360": self.image360,
+            "sound": self.sound,
+            "srt": self.srt,
+            "video": self.video
+        }
+        total_size = 0
+        all_files = []
+
+        # Collect all file paths
+        for subdir, files in directories.items():
+            for file in files:
+                file_path = upload_casque_path + file
+                all_files.append(file_path)
+
+        # Batch process file checks
+        batch_size = 50  # Number of files to check in one adb command
+        for i in range(0, len(all_files), batch_size):
+            batch_files = all_files[i:i + batch_size]
+
+            try:
+                # Use adb to list details of all files in the current batch
+                command = [self.config.adb_exe_path, "-s", device_serial, "shell", "ls", "-l"] + batch_files
+                output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode("utf-8")
+
+                # Parse output to extract file sizes
+                for line in output.splitlines():
+                    parts = line.split()
+                    if len(parts) >= 5:
+                        try:
+                            file_size = int(parts[4])
+                            total_size += file_size
+                        except ValueError:
+                            print(f"Erreur lors de la lecture de la taille du fichier : {line}")
+                            return 0  # Return 0 if there's an error reading any file size
+            except subprocess.CalledProcessError as e:
+                # print(f"Erreur lors de la vérification du fichier : {file_path}")
+                # Je ne print pas ici car si le fichier n'est pas trouvé on ne souhaite pas affiché une erreur puisque c'est une simple vérification
+                return 0  # Return 0 if any batch fails
+
         return total_size
