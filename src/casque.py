@@ -75,7 +75,7 @@ class Casque:
             
             if(self.JSON_path != self.check_json_file()):
                 self.JSON_path = self.check_json_file()
-                self.refresh_casque_serveur()
+                #self.refresh_casque_serveur()
 
             
             #self.pull_solutions()
