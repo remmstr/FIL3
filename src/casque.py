@@ -73,22 +73,23 @@ class Casque:
             # Vérifier si l'ancienne APK est installée
             self.old_apk_installed = self.check_old_apk_installed()
             
-            if(self.JSON_path != self.check_json_file()):
-                self.JSON_path = self.check_json_file()
-                #self.refresh_casque_serveur()
+            # verifie que le fichier JSON ai une taille différent et que le fichier existe bien MAIS MARCHE PAS !!!!!!!!!
+            if((self.JSON_path != self.check_json_file()) or ( self.JSON_size != self.get_json_file_size() )):
+                
+                self.refresh_casque_serveur()
 
-            
-            #self.pull_solutions()
 
     def refresh_casque_serveur(self):
-            self.refresh_JSON()
+            #self.refresh_JSON()
             self.JSON_path = self.check_json_file()
+            self.JSON_size = self.get_json_file_size()
             
-            if ( self.JSON_size != self.get_json_file_size() ) :
-                self.JSON_size = self.get_json_file_size()
-                if  self.JSON_path != "NULL" :
-                    self.solutions_casque = self.load_solutions_from_json()
-
+            if  self.JSON_path != "NULL" :
+                self.solutions_casque = self.load_solutions_from_json()
+                pass
+            else :
+                pass
+                #dois je remettre a zero info casque 
 
     def load_solutions_from_json(self):
         solutions_casque = []
@@ -117,7 +118,7 @@ class Casque:
 
                 # Créer des objets Solution à partir des données JSON
                 for solution_data in json_data.get('versions', []):
-                    solution_casque = SolutionCasque().from_json(solution_data, self.numero, self.config.upload_casque_path)
+                    solution_casque = SolutionCasque().from_json_opti(solution_data, self.numero, self.config.upload_casque_path)
                     #solution_casque.size = solution_casque.get_sol_size(self.config.upload_casque_path)
                     solutions_casque.append(solution_casque)
             except Exception as e:
@@ -270,6 +271,7 @@ class Casque:
         if(adbtools.is_application_running(self.config.adb_exe_path,self.numero,self.config.package_name)):
             adbtools.stop_application(self.config.adb_exe_path,self.numero,self.config.package_name)
         adbtools.start_application(self.config.adb_exe_path,self.numero,self.config.package_name)
+        time
     
     #-----------------------------------------------------
     # PUSH ET PULL SOLUTION

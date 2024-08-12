@@ -11,6 +11,48 @@ class SolutionCasque(Solution):
         self.sol_install_on_casque = False
         self.config = Config()
 
+    def from_json_opti(self, json_data, device_serial, upload_casque_path):
+        """
+        Initialise l'objet Solution à partir des données JSON.
+
+        Args:
+            json_data (dict): Les données JSON pour initialiser l'objet.
+            device_serial (str): Le numéro de série du casque pour les vérifications ADB.
+
+        Returns:
+            Solution: L'instance de l'objet Solution initialisée.
+        """
+        # Fetch data using local variables for repeated access
+        name_module = json_data.get('name_module', {})
+        name_version = json_data.get('name_version', {})
+        self.nom = name_module.get('fr', "")
+        self.version = name_version.get('fr', "")
+        self.device_serial = device_serial  # Utilisation de l'argument device_serial
+
+        # Prepare media lists using dictionary to reduce condition checks
+        media_mapping = {
+            '.png': self.image,
+            '.jpg': self.image,
+            'image360': self.image360,
+            '.mp3': self.sound,
+            '.srt': self.srt,
+            '.mp4': self.video,
+            '.mkv': self.video
+        }
+
+        # Categorize medias using a single loop and optimized conditionals
+        for media in json_data.get('medias', []):
+            for key, media_list in media_mapping.items():
+                if key in media:
+                    media_list.append(media)
+                    break
+
+        # Calculate total size and check installation status
+        self.size = self.verif_sol_install(device_serial, upload_casque_path)
+        self.sol_install_on_casque = self.size != 0
+
+        return self
+
 
     def from_json(self, json_data, device_serial, upload_casque_path):
         """
@@ -52,8 +94,8 @@ class SolutionCasque(Solution):
         end_time = time.time()
         execution_time = end_time - start_time
 
-        #print(f"VERIFICATION FICHIERS EXISTANTS en {execution_time:.2f}s :")
-        #print(f"EXPERIENCE : {self.nom}, INTALL: {self.sol_install_on_casque},{self.size} octets")
+        print(f"VERIFICATION FICHIERS EXISTANTS en {execution_time:.2f}s :")
+        print(f"EXPERIENCE : {self.nom}, INTALL: {self.sol_install_on_casque},{self.size} octets")
 
         return self
 
