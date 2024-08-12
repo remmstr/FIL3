@@ -382,13 +382,17 @@ class Casque:
         Reconstitue les répertoires des solutions installées sur le casque.
         """
         for solution in self.solutions_casque:
-            print("solution :" + solution.nom)
+            print(f"Checking solution: {solution.nom}")
             if solution.sol_install_on_casque:
-                print(" -> Solution on casques")
+                print(f" -> Solution is installed on casque: {solution.nom}")
                 # Vérifier si la solution qui est sur le casque est dans la bibliothèque
                 if not self.is_solution_in_library(solution):
-                    print(" -> Pull solution !")
+                    print(f" -> Solution not in library, pulling solution: {solution.nom}")
                     self.pull_solution(solution)
+                else:
+                    print(f" -> Solution already in library: {solution.nom}")
+            else:
+                print(f" -> Solution not installed on casque: {solution.nom}")
 
     def pull_solution(self, solution):
         """
@@ -397,23 +401,34 @@ class Casque:
         Args:
             solution (Solution): L'objet Solution pour lequel créer le répertoire.
         """
-        
-        safe_solution_name = self.config.safe_string(solution.nom)
+        try:
+            safe_solution_name = self.config.safe_string(solution.nom)
+            solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
+            print(f"Creating directory for solution: {solution_dir}")
 
-        solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
+            if not os.path.exists(solution_dir):
+                os.makedirs(solution_dir)
+                print(f"Directory created: {solution_dir}")
 
-        if not os.path.exists(solution_dir):
-            os.makedirs(solution_dir)
-            subdirs = ["image", "image360", "sound", "srt", "video"]
-            for subdir in subdirs:
-                target_dir = os.path.join(solution_dir, subdir)
-                os.makedirs(target_dir, exist_ok=True)
-                media_files = getattr(solution, subdir, [])
-                for media_file in media_files:
-                    self.copy_media_file( self.config.upload_casque_path + media_file, target_dir, solution.nom, "pull")
+                subdirs = ["image", "image360", "sound", "srt", "video"]
+                for subdir in subdirs:
+                    target_dir = os.path.join(solution_dir, subdir)
+                    os.makedirs(target_dir, exist_ok=True)
+                    print(f"Subdirectory created: {target_dir}")
 
-            print(f"Solution {solution.nom} reconstruite avec succès dans {solution_dir}.")
+                    media_files = getattr(solution, subdir, [])
+                    print(f"Media files in {subdir}: {media_files}")
 
+                    for media_file in media_files:
+                        print(f"Copying media file: {media_file} to {target_dir}")
+                        self.copy_media_file(self.config.upload_casque_path + media_file, target_dir, solution.nom, "pull")
+
+                print(f"Solution {solution.nom} reconstruite avec succès dans {solution_dir}.")
+            else:
+                print(f"Directory already exists, skipping: {solution_dir}")
+        except Exception as e:
+            print(f"Error occurred while pulling solution {solution.nom}: {e}")
+            traceback.print_exc()
 
     def calculate_total_files_and_size(self, solution_dir):
         total_files = 0

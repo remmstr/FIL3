@@ -14,6 +14,9 @@ class Config(metaclass=SingletonMeta):
 
         self.system_name = platform.system()
 
+
+
+
         if self.system_name == "Darwin":
             self.adb_exe_path = self.config_path("platform-tools/mac/adb")
             self.platform_tools_path = self.config_path("platform-tools/mac")
@@ -33,7 +36,7 @@ class Config(metaclass=SingletonMeta):
         self.local_archivage_path = self.config_path("./Archivage")
         self.upload_casque_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/Downloaded"
         self.upload_path = self.config_path("./Banque_de_solutions/upload")
-        self.Banque_de_solution_path = self.config_path("./Banque_de_solutions")
+        self.Banque_de_solution_path = "./Banque_de_solutions"
         self.APK_path = self.config_path("./APK")
         self.img_path = self.config_path("resources/images")
         self.img_path_menu = self.config_path("resources/images/image.png")

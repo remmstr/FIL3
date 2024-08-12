@@ -217,7 +217,7 @@ class SolutionCasque(Solution):
             try:
                 # Use adb to list details of all files in the current batch
                 command = [self.config.adb_exe_path, "-s", device_serial, "shell", "ls", "-l"] + batch_files
-                output = subprocess.check_output(command, stderr=subprocess.STDOUT).decode("utf-8")
+                output = subprocess.check_output(command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8")
 
                 # Parse output to extract file sizes
                 for line in output.splitlines():
