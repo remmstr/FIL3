@@ -241,7 +241,7 @@ class UI_Front:
         tk.Label(item_frame, text=index, width=3, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.battery_level, width=3, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.numero, width=20, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
-        tk.Label(item_frame, text=casque.name, width=7, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=casque.name, width=7, anchor="center", bg="white", fg="blue", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.modele, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         version_frame = tk.Frame(item_frame, bg="white")
@@ -250,7 +250,7 @@ class UI_Front:
         install_button.pack(side="left", padx=0)
         uninstall_button = tk.Button(version_frame, text="✗", width=1, fg="red", command=lambda c=casque: self.app.ui_back.uninstall_apk(c), bg="white")
         uninstall_button.pack(side="left", padx=0)
-        tk.Label(version_frame, text=casque.version_apk, width=4, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 5))
+        tk.Label(version_frame, text=casque.version_apk, width=4, anchor="center", bg="white",  font=("Helvetica", 10)).pack(side="left", padx=(5, 5))
         open_button = tk.Button(version_frame, text="open", width=4, fg="green", command=lambda c=casque: self.app.ui_back.start_apk(c), bg="white")
         open_button.pack(side="left", padx=0)
         close_button = tk.Button(version_frame, text="✗", width=1, fg="red", command=lambda c=casque: self.app.ui_back.close_apk(c), bg="white")
@@ -269,19 +269,19 @@ class UI_Front:
         refresh_button = tk.Button(json_frame, text="⟳", width=2, fg="blue", command=lambda c=casque: self.app.ui_back.refresh_json(c), bg="white")
         refresh_button.pack(side="left", padx=6)
 
-        tk.Label(item_frame, text=casque.code, width=5, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
-        tk.Label(item_frame, text=casque.getEntreprise(), width=25, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=casque.code, width=5, anchor="center", bg="white", fg="blue", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=casque.getEntreprise(), width=25, anchor="center", bg="white", fg="blue", font=("Helvetica", 10)).pack(side="left")
 
         solutions_casque_text = f"{len(casque.solutions_casque)} solution(s)"
-        tk.Label(item_frame, text=solutions_casque_text, width=9, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
+        tk.Label(item_frame, text=solutions_casque_text, width=9, anchor="w", bg="white", fg="blue", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
 
         install_solutions_button = tk.Button(item_frame, text="--> Push", width=0, fg="green", command=lambda c=casque: self.app.ui_back.push_solutions(c), bg="white")
         install_solutions_button.pack(side="left", padx=0)
 
         solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
-        tk.Label(item_frame, text=solutions_install_text, width=9, anchor="w", bg="white", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
+        tk.Label(item_frame, text=solutions_install_text, width=9, anchor="w", bg="white", fg="blue", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
         
-        pull_button = tk.Button(item_frame, text="⇧", width=3, fg="blue", command=lambda c=casque: self.app.ui_back.pull_solutions(c), bg="white")
+        pull_button = tk.Button(item_frame, text="Pull", width=3, fg="dark orange", command=lambda c=casque: self.app.ui_back.pull_solutions(c), bg="white")
         pull_button.pack(side="left", padx=0)
 
         gestion_image = Image.open(self.config.img_path_icon_setting)
