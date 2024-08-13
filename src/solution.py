@@ -26,7 +26,7 @@ class Solution:
         self.srt = []
         self.video = []
 
-    def get_sol_size(self):
+    def size(self):
         pass
 
 

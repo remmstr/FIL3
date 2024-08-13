@@ -336,6 +336,7 @@ class Casque:
                 if not self.is_solution_in_library(solution):
                     print(f" -> Solution not in library, pulling solution: {solution.nom}")
                     self.pull_solution(solution)
+                    self.biblio.refresh_biblio()
                 else:
                     print(f" -> Solution already in library: {solution.nom}")
             else:

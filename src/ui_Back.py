@@ -8,12 +8,15 @@ import tkinter as tk
 import os
 from config import Config
 import adbtools
+from biblioManager import BiblioManager
+from casquesManager import CasquesManager
 
 
 class UI_Back:
     def __init__(self, app):
         self.app = app
-        self.casques = self.app.casques
+        self.casques = CasquesManager()
+        self.biblio = BiblioManager()
         self.config = Config()
 
     def installer_apks_et_solutions(self):
@@ -64,12 +67,12 @@ class UI_Back:
             try:
                 while(1) :
                     self.casques.refresh_casques()
+                    self.biblio.refresh_biblio()
                     if self.app.running:  # Vérifiez si l'application est toujours en cours d'exécution
                         self.app.ui_front.afficher_casques()
                     time.sleep(2.5)
             except Exception as e:
                 self.app.handle_exception("Erreur lors de l'actualisation des casques", e)
-            #stop_event.wait(10)  # Attendre 10 secondes ou jusqu'à ce que l'événement soit déclenché
 
     def download_banque_solutions(self):
         try:
