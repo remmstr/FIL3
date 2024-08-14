@@ -31,8 +31,10 @@ class UI_Back:
     def installer_apks_et_solution(self,casque):
         try:
             self.install_apk(casque)
-            while(casque.JSON_path == 'X') : pass
-            time.sleep(1)
+            print(f"casque.JSON_path : {casque.JSON_path}")
+            while(casque.JSON_path == 'X') :
+                print(f"casque.JSON_path : {casque.JSON_path}")
+                time.sleep(1)
             self.push_solutions(casque)
         except Exception as e:
             self.app.handle_exception("Erreur lors del'installation des APKs et des solutions", e)
@@ -121,6 +123,6 @@ class UI_Back:
         Thread(target=casque.pull_solutions).start()
 
     def refresh_json(self,casque):
-        Thread(target=casque.refresh_casque_serveur).start()
+        Thread(target=casque.refresh_JSON).start()
 
         

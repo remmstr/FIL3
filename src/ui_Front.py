@@ -174,7 +174,7 @@ class UI_Front:
         Update the text on the 'Afficher Bibliothèque' button to reflect the number of solutions in the library.
         """
         num_solutions = len(self.biblio.liste_solutions)
-        button_text = f"Afficher Bibliothèque ({num_solutions} solution(s)"
+        button_text = f"Afficher Bibliothèque ({num_solutions} solution(s))"
         self.biblio_solutions_button.config(text=button_text)
         self.root.after(5000, self.update_biblio_button_text)  # Re-check every 5 seconds
 

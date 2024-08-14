@@ -243,6 +243,8 @@ class Casque:
                 if solution_from_bibli != False :
                     print(f" -> Push solution !")
                     self.push_solution_with_progress(solution,solution_from_bibli)
+                    self.refresh_json()
+        
 
     def push_solution_with_progress(self,solution_json_casque, solution_biblio):
         safe_solution_name = self.config.safe_string(solution_json_casque.nom)
@@ -505,10 +507,12 @@ class Casque:
             except subprocess.CalledProcessError as e:
                 if "Unknown package" in str(e):
                     print(f"L'application n'était pas installée.")
+    
                 else:
                     print(f"Une erreur est survenue lors de la désinstallation de l'APK : {e}")
         else :
             print(f"L'application est déjà desinstallée.")
+        self.refresh_casque()
 
 
     #-----------------------------------------------------
