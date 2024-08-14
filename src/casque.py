@@ -183,7 +183,7 @@ class Casque:
         Returns:
             bool: True si la solution est déjà dans la bibliothèque, False sinon.
         """
-        self.biblio.is_sol_in_library(solution)
+        return self.biblio.is_sol_in_library(solution)
     
     def check_json_file(self):
         
@@ -335,14 +335,14 @@ class Casque:
                 # Vérifier si la solution qui est sur le casque est dans la bibliothèque
                 if not self.is_solution_in_library(solution):
                     print(f" -> Solution not in library, pulling solution: {solution.nom}")
-                    self.pull_solution(solution)
+                    self.pull_solution_sans_progress(solution)
                     self.biblio.refresh_biblio()
                 else:
                     print(f" -> Solution already in library: {solution.nom}")
             else:
                 print(f" -> Solution not installed on casque: {solution.nom}")
 
-    def pull_solution(self, solution):
+    def pull_solution_sans_progress(self, solution):
         """
         Crée un répertoire pour une solution et copie les fichiers média depuis le casque.
 
@@ -368,8 +368,66 @@ class Casque:
                     print(f"Media files in {subdir}: {media_files}")
 
                     for media_file in media_files:
-                        print(f"Copying media file: {media_file} to {target_dir}")
-                        self.copy_media_file(self.config.upload_casque_path + media_file, target_dir, solution.nom, "pull")
+                        try :
+                            print(f"Copying media file: {media_file} to {target_dir}")
+                            self.copy_media_file(self.config.upload_casque_path + media_file, target_dir, solution.nom, "pull")
+                        except Exception as e:
+                            print(f"Erreur lors de la copie du fichier {self.config.upload_casque_path + media_file} pour {solution.nom} : {e}")
+                            continue  # Passer au fichier suivant en cas d'erreur
+                print(f"Solution {solution.nom} reconstruite avec succès dans {solution_dir}.")
+            else:
+                print(f"Directory already exists, skipping: {solution_dir}")
+        except Exception as e:
+            print(f"Error occurred while pulling solution {solution.nom}: {e}")
+            traceback.print_exc()
+
+    def pull_solution(self, solution):
+        """
+        Crée un répertoire pour une solution et copie les fichiers média depuis le casque.
+
+        Args:
+            solution (Solution): L'objet Solution pour lequel créer le répertoire.
+        """
+        try:
+            safe_solution_name = self.config.safe_string(solution.nom)
+            solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
+            print(f"Creating directory for solution: {solution_dir}")
+
+            if not os.path.exists(solution_dir):
+                os.makedirs(solution_dir)
+                print(f"Directory created: {solution_dir}")
+
+                subdirs = ["image", "image360", "sound", "srt", "video"]
+                
+                # Utiliser la taille déjà calculée dans solution.size
+                total_size = solution.size
+                copied_size = 0
+
+                def progress_callback(copied_bytes):
+                    nonlocal copied_size
+                    copied_size += copied_bytes
+                    progress = copied_size / total_size * 100
+                    print(f"Progress: {progress:.2f}%")
+                    self.download_progress = progress  # Mise à jour de la progression du téléchargement
+
+                for subdir in subdirs:
+                    target_dir = os.path.join(solution_dir, subdir)
+                    os.makedirs(target_dir, exist_ok=True)
+                    print(f"Subdirectory created: {target_dir}")
+
+                    media_files = getattr(solution, subdir, [])
+                    print(f"Media files in {subdir}: {media_files}")
+
+                    for media_file in media_files:
+                        print(f"Copying media file: {self.config.upload_casque_path + media_file} to {target_dir}")
+                        try:
+                            progress_callback(os.path.getsize(self.config.upload_casque_path + media_file))  # Mise à jour de la taille copiée
+                            self.copy_media_file(self.config.upload_casque_path + media_file, target_dir, solution.nom, "pull")
+                            
+
+                        except Exception as e:
+                            print(f"Erreur lors de la copie du fichier {self.config.upload_casque_path + media_file} pour {solution.nom} : {e}")
+                            continue  # Passer au fichier suivant en cas d'erreur
 
                 print(f"Solution {solution.nom} reconstruite avec succès dans {solution_dir}.")
             else:
@@ -377,6 +435,7 @@ class Casque:
         except Exception as e:
             print(f"Error occurred while pulling solution {solution.nom}: {e}")
             traceback.print_exc()
+
 
     def calculate_total_files_and_size(self, solution_dir):
         total_files = 0

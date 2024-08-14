@@ -98,7 +98,7 @@ class BiblioManager(metaclass=SingletonMeta):
                 if existing_solution:
                     # Vérifier si la taille a changé
                     current_size = existing_solution.get_sol_size()
-                    print(f"current_size {current_size} != existing_solution.size {existing_solution.size} ")
+                    #print(f"current_size {current_size} != existing_solution.size {existing_solution.size} ")
                     if existing_solution.size != existing_solution.get_sol_size():
                         existing_solution.size = existing_solution.get_sol_size()
                     updated_solutions.append(existing_solution)
@@ -111,15 +111,29 @@ class BiblioManager(metaclass=SingletonMeta):
 
         # Mettre à jour la liste des solutions avec les nouvelles et mises à jour solutions
         self.liste_solutions = updated_solutions
-
+        #self.print_solutions_with_size()
         # Supprimer les solutions qui n'existent plus
         self.liste_solutions = [sol for sol in self.liste_solutions if sol.nom in name_sols_in_folder]
 
 
     def is_sol_in_library(self, solution):
         for sol_in_biblio in self.liste_solutions:
-            print(f"sol_in_biblio.nom : {sol_in_biblio.nom} == solution.nom : {self.config.safe_string(solution.nom)}" )
+            #print(f"sol_in_biblio.nom : {sol_in_biblio.nom} == solution.nom : {self.config.safe_string(solution.nom)}" )
             if sol_in_biblio.nom == self.config.safe_string(solution.nom):
                 # Pour plus tard, il faudra vérifier davantage de choses que le nom, comme la version et le poids
                 return sol_in_biblio
+        
         return False
+        
+
+    def print_solutions_with_size(self):
+        """
+        Affiche toutes les solutions disponibles dans la bibliothèque avec leurs tailles respectives.
+        """
+        if not self.liste_solutions:
+            print("Aucune solution disponible dans la bibliothèque.")
+            return
+
+        print("Liste des solutions et leurs tailles :")
+        for solution in self.liste_solutions:
+            print(f"Solution: {solution.nom}, Taille: {solution.size} octets")

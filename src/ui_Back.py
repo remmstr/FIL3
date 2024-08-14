@@ -38,29 +38,48 @@ class UI_Back:
             self.app.handle_exception("Erreur lors del'installation des APKs et des solutions", e)
 
     def open_solution_manager(self, casque):
+        # Renommer la fenêtre
         solution_window = tk.Toplevel(self.app.ui_front.root)
-        solution_window.title(f"Solutions du casque {casque.numero}")
+        solution_window.title(f"Licence associée au casque {casque.numero}")
 
-        solution_list = tk.Text(solution_window, wrap="word", width=50, height=20)
+        # Zone de texte pour afficher les solutions
+        solution_list = tk.Text(solution_window, wrap="word", width=100, height=20)
         solution_list.pack(padx=10, pady=10, fill="both", expand=True)
 
         for solution in casque.solutions_casque:
-            if(solution.sol_install_on_casque):
+            in_library = casque.is_solution_in_library(solution)  # Stocker le résultat
+            print(f"Résultat de is_solution_in_library: {in_library}")
+
+            if solution.sol_install_on_casque:
                 solution_list.insert(tk.END, f"{solution.nom} ({solution.version})\n", "install_on_casque")
-            elif(casque.is_solution_in_library(solution)):
+            elif in_library:
                 solution_list.insert(tk.END, f"{solution.nom} ({solution.version})\n", "in_library")
+                print(f"in library")
             else:
+                print(f"casque.is_solution_in_library(solution): {in_library}")
                 solution_list.insert(tk.END, f"{solution.nom} ({solution.version})\n")
-        
-        # Configurer la couleur du texte pour les solutions installe sur le casque
+                print(f"not in library")
+                
+        # Configurer la couleur du texte pour les solutions installées sur le casque
         solution_list.tag_config("install_on_casque", foreground="green")
         # Configurer la couleur du texte pour les solutions dans la bibliothèque
         solution_list.tag_config("in_library", foreground="blue")
         
         solution_list.config(state=tk.DISABLED)
 
+        # Ajouter la légende en bas de la fenêtre
+        legend_frame = tk.Frame(solution_window, bg="white")
+        legend_frame.pack(fill=tk.X, pady=5)
+        
+        tk.Label(legend_frame, text="Légende : ", bg="white", font=("Helvetica", 10, "bold")).pack(side=tk.LEFT)
+        tk.Label(legend_frame, text="Solution téléchargée dans le casque", fg="green", bg="white", font=("Helvetica", 10)).pack(side=tk.LEFT, padx=10)
+        tk.Label(legend_frame, text="Pas téléchargée, disponible dans la bibliothèque", fg="blue", bg="white", font=("Helvetica", 10)).pack(side=tk.LEFT, padx=20)
+        tk.Label(legend_frame, text="Pas téléchargée", bg="white", font=("Helvetica", 10)).pack(side=tk.LEFT, padx=10)
+
+        # Bouton Fermer
         close_button = tk.Button(solution_window, text="Fermer", command=solution_window.destroy)
         close_button.pack(pady=10)
+
 
     def track_devices(self, stop_event):
         while not stop_event.is_set():

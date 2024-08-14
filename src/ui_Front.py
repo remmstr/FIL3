@@ -5,11 +5,15 @@ import os
 import sys
 import http.client
 from config import Config
+from biblioManager import BiblioManager
+from casquesManager import CasquesManager
 
 class UI_Front:
     def __init__(self, root, app):
         self.root = root
         self.app = app
+        self.casques = CasquesManager()
+        self.biblio = BiblioManager()
         self.progress_bars = {}
         self.widget_cache = {}
         self.config = Config()
@@ -51,6 +55,8 @@ class UI_Front:
         self.connection_status_label = tk.Label(menu_frame, text="", bg="white", font=("Helvetica", 10, "bold"))
         self.connection_status_label.pack(side=tk.RIGHT, padx=10)
         self.update_connection_status()
+        self.update_biblio_button_text()
+
 
         # Start updating progress bars
         self.update_progress_bars()
@@ -155,8 +161,24 @@ class UI_Front:
         self.banque_solutions_button = tk.Button(buttons_frame, text="Télécharger Biblio", command=self.app.ui_back.download_banque_solutions, bg="white")
         self.banque_solutions_button.pack(side=tk.LEFT, padx=5)
 
-        self.biblio_solutions_button = tk.Button(buttons_frame, text="Afficher Bibliothèque", command=self.show_biblio_solutions, bg="white")
+        # Récupérer le nombre de solutions dans la bibliothèque
+        num_solutions = len(self.biblio.liste_solutions)
+        
+        # Mettre à jour le texte du bouton pour afficher le nombre de solutions
+        button_text = f"Afficher Bibliothèque ({num_solutions} solutions)"
+        self.biblio_solutions_button = tk.Button(buttons_frame, text=button_text, command=self.show_biblio_solutions, bg="white")
         self.biblio_solutions_button.pack(side=tk.LEFT, padx=5)
+
+    def update_biblio_button_text(self):
+        """
+        Update the text on the 'Afficher Bibliothèque' button to reflect the number of solutions in the library.
+        """
+        num_solutions = len(self.biblio.liste_solutions)
+        button_text = f"Afficher Bibliothèque ({num_solutions} solution(s)"
+        self.biblio_solutions_button.config(text=button_text)
+        self.root.after(5000, self.update_biblio_button_text)  # Re-check every 5 seconds
+
+        
 
     def show_biblio_solutions(self):
         """
@@ -169,7 +191,7 @@ class UI_Front:
         solutions_list.pack(padx=10, pady=10, fill="both", expand=True)
 
         for solution in self.app.biblio_manager.liste_solutions:
-            solutions_list.insert(tk.END, f"{solution.nom} - {solution.size / 1024:.2f} KB\n")
+            solutions_list.insert(tk.END, f"{solution.nom} \n")
 
         solutions_list.config(state=tk.DISABLED)
 
