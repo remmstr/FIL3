@@ -137,7 +137,7 @@ class UI_Front:
         header.pack(fill="x")
 
         tk.Label(header, text="#", width=3, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Batt", width=3, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Batt", width=4, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="ID", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Name", width=7, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Modèle", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
@@ -148,7 +148,7 @@ class UI_Front:
         tk.Label(header, text="Entreprise", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Solution associé", width=18, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Solution installé", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Barre de téléchar.", width=18, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Barre de téléchar.", width=14, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Info supplémentaire", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
 
     def create_solution_buttons(self):
@@ -239,16 +239,29 @@ class UI_Front:
         Display the list of casques.
         """
         try:
+            # Obtenez la liste des casques actuels
+            casques_list = self.app.casques.get_liste_casque()
+
+            # Supprimez les messages précédents s'il en existe
+            for widget in self.scrollable_frame.winfo_children():
+                if isinstance(widget, tk.Label) and "Veuillez brancher un ou plusieurs casques" in widget.cget("text"):
+                    widget.destroy()
+
+            # Si aucun casque n'est connecté, affichez le message
+            if not casques_list:
+                message = "Veuillez brancher un ou plusieurs casques"
+                tk.Label(self.scrollable_frame, text=message, bg="white", fg="orange", font=("Helvetica", 14, "bold")).pack(pady=20)
+            
             casques_to_remove = set(self.widget_cache.keys())
 
-            for i, casque in enumerate(self.app.casques.get_liste_casque(), 1):
+            for i, casque in enumerate(casques_list, 1):
                 if casque.numero not in self.widget_cache:
                     self.widget_cache[casque.numero] = self.create_casque_row(i, casque)
                 else:
                     self.update_casque_row(i, casque)
                 casques_to_remove.discard(casque.numero)
-                self.update_casque_row(i, casque)
 
+            # Supprimer les casques débranchés de l'affichage
             for casque_num in casques_to_remove:
                 self.widget_cache[casque_num].pack_forget()
                 del self.widget_cache[casque_num]
@@ -256,12 +269,16 @@ class UI_Front:
         except Exception as e:
             self.app.handle_exception("Erreur lors de l'affichage des casques", e)
 
+
+
     def create_casque_row(self, index, casque):
         item_frame = tk.Frame(self.scrollable_frame, bg="white")
         item_frame.pack(fill="x")
 
         tk.Label(item_frame, text=index, width=3, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
-        tk.Label(item_frame, text=casque.battery_level, width=3, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        battery_text = f"{casque.battery_level}%"
+        tk.Label(item_frame, text=battery_text, width=7, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+
         tk.Label(item_frame, text=casque.numero, width=20, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.name, width=7, anchor="center", bg="white", fg="blue", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.modele, width=10, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
@@ -280,9 +297,13 @@ class UI_Front:
 
         # Vérifier l'état du Wi-Fi
         is_connected, ssid = casque.is_wifi_connected()
-        wifi_status = f"{ssid}" if is_connected else "Please Connect to Wifi"
-        tk.Label(item_frame, text=wifi_status, width=16, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
-
+        if is_connected:
+            wifi_status = f"{ssid}"
+            wifi_color = "black"  # Couleur normale si connecté
+        else:
+            wifi_status = "Please Connect to Wifi"
+            wifi_color = "orange"  # Couleur orange si non connecté
+        tk.Label(item_frame, text=wifi_status, width=16, anchor="center", bg="white", fg=wifi_color, font=("Helvetica", 10)).pack(side="left")
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
         
         json_frame = tk.Frame(item_frame, bg="white")
@@ -303,7 +324,7 @@ class UI_Front:
         solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
         tk.Label(item_frame, text=solutions_install_text, width=9, anchor="w", bg="white", fg="blue", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
         
-        pull_button = tk.Button(item_frame, text="Pull", width=3, fg="dark orange", command=lambda c=casque: self.app.ui_back.pull_solutions(c), bg="white")
+        pull_button = tk.Button(item_frame, text="Pull", width=3, fg="green", command=lambda c=casque: self.app.ui_back.pull_solutions(c), bg="white")
         pull_button.pack(side="left", padx=0)
 
         gestion_image = Image.open(self.config.img_path_icon_setting)
@@ -335,7 +356,9 @@ class UI_Front:
 
         # Update index, numéro, modèle, version_apk, JSON status, solutions count
         widgets[0].config(text=index)
-        widgets[1].config(text=casque.battery_level)
+        battery_text = f"{casque.battery_level}%"
+        widgets[1].config(text=battery_text)
+
         widgets[2].config(text=casque.numero)
         widgets[3].config(text=casque.name)
         widgets[4].config(text=casque.modele)
@@ -347,8 +370,13 @@ class UI_Front:
 
         # Update Wi-Fi status
         is_connected, ssid = casque.is_wifi_connected()
-        wifi_status = f"{ssid}" if is_connected else "Please connect to Wifi"
-        widgets[6].config(text=wifi_status)  # Wi-Fi status
+        if is_connected:
+            wifi_status = f"{ssid}"
+            wifi_color = "black"  # Couleur normale si connecté
+        else:
+            wifi_status = "Please connect to Wifi"
+            wifi_color = "orange"  # Couleur orange si non connecté
+        widgets[6].config(text=wifi_status, fg=wifi_color)  # Wi-Fi status
 
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
         
