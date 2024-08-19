@@ -531,7 +531,7 @@ class Casque:
                 if wifi_info and "SSID: " in wifi_info:
                     ssid_info = wifi_info.split("SSID: ")[1].split(",")[0].strip()
                     if ssid_info == "<unknown ssid>":
-                        print("Device not connected.")
+                        #print("Device not connected.")
                         return False, "not connected"           
                     else :
                         return True, ssid_info
