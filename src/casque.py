@@ -527,7 +527,7 @@ class Casque:
         """
         max_attempts = 3
         attempt = 0
-
+        
         while attempt < max_attempts:
             try:
                 adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)

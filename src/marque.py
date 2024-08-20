@@ -18,6 +18,7 @@ class Marque:
             nom (str): Le nom de la marque.
             apk_folder (str): Le dossier contenant les fichiers APK.
         """
+        if(self.nom == "HTC") : nom = "Vive" #car le nom du manufacturier n'est pas le meme que le nom du store pour HTC
         self.nom = nom
         self.choixApp(apk_folder)
 
@@ -50,7 +51,7 @@ class Marque:
                     self.version_apk = apk_name
                     self.APK_path = os.path.join(apk_directory, apk_name)
                     break
-        
+
         except FileNotFoundError as e:
             print(f"Erreur: Répertoire ou fichier non trouvé. Détails: {e}")
         except Exception as e:
