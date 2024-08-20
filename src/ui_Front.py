@@ -10,6 +10,13 @@ from casquesManager import CasquesManager
 
 class UI_Front:
     def __init__(self, root, app):
+        """
+        Initialise l'interface utilisateur (UI) principale pour l'application.
+
+        Args:
+            root: La fenêtre racine de Tkinter.
+            app: L'application principale à laquelle cette interface est liée.
+        """
         self.root = root
         self.app = app
         self.casques = CasquesManager()
@@ -24,10 +31,10 @@ class UI_Front:
 
     def create_widgets(self):
         """
-        Create the main widgets for the UI.
+        Crée les widgets principaux de l'interface utilisateur.
         """
         self.root.configure(bg="white")  # Assurer que le fond de l'application est blanc
-        self.root.geometry("1500x800")  # Augmenter la largeur de la fenêtre initiale
+        self.root.geometry("1500x800")  # Définir la taille de la fenêtre
 
         # Menu
         menu_frame = tk.Frame(self.root, bg="white")
@@ -36,32 +43,31 @@ class UI_Front:
         # Charger et afficher l'image redimensionnée
         self.load_image(self.config.img_path_menu, menu_frame)
 
-        # Installation Button
+        # Bouton d'installation
         self.create_install_button(menu_frame)
 
-        # Create APK Dropdown
+        # Créer le menu déroulant pour APK
         self.create_apk_dropdown(menu_frame)
 
         # Table Frame
         self.create_table_frame()
 
-        # 2 bouton pour biblio
+        # Boutons pour la bibliothèque
         self.create_solution_buttons()
 
-        # Debug Area
+        # Zone de débogage
         self.create_debug_area()
 
-        # Connection status indicator
+        # Indicateur de statut de connexion
         self.connection_status_label = tk.Label(menu_frame, text="", bg="white", font=("Helvetica", 10, "bold"))
         self.connection_status_label.pack(side=tk.RIGHT, padx=10)
         self.update_connection_status()
         self.update_biblio_button_text()
 
-
-        # Start updating progress bars
+        # Démarrer la mise à jour des barres de progression
         self.update_progress_bars()
 
-        # Redirect stdout to the debug text
+        # Rediriger stdout vers la zone de débogage
         sys.stdout = self
 
     # ---------------------------------------------------------------------------
@@ -70,21 +76,28 @@ class UI_Front:
 
     def load_image(self, path, parent):
         """
-        Load and display an image in the specified parent frame.
+        Charge et affiche une image dans le cadre parent spécifié.
+
+        Args:
+            path (str): Chemin vers l'image à charger.
+            parent: Le cadre parent dans lequel l'image sera affichée.
         """
         try:
             image = Image.open(path)
             image = image.resize((250, 100), Image.LANCZOS)  # Redimensionnement de l'image
             photo = ImageTk.PhotoImage(image)
             label = tk.Label(parent, image=photo, bg="white")
-            label.image = photo  # keep a reference!
+            label.image = photo  # Conserver une référence!
             label.pack(side=tk.LEFT, pady=0)
         except Exception as e:
             self.log_debug(f"Erreur lors du chargement de l'image : {e}")
 
     def create_install_button(self, parent):
         """
-        Create the button for installing APKs and solutions.
+        Crée le bouton pour l'installation des APKs et des solutions.
+
+        Args:
+            parent: Le cadre parent dans lequel le bouton sera placé.
         """
         button_frame = tk.Frame(parent, bg="white")
         button_frame.pack(side=tk.TOP, pady=10)
@@ -94,12 +107,12 @@ class UI_Front:
 
     def create_debug_area(self):
         """
-        Create the debug area for displaying log messages.
+        Crée la zone de débogage pour afficher les messages de log.
         """
         debug_frame = tk.Frame(self.root, bg="white")
         debug_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        debug_label = tk.Label(debug_frame, text="Fenêtre de débogage", bg="white", font=("Helvetica", 10, "bold"))  # Texte en gras
+        debug_label = tk.Label(debug_frame, text="Fenêtre de débogage", bg="white", font=("Helvetica", 10, "bold"))
         debug_label.pack(side=tk.TOP, anchor='w')
 
         # Ajouter une barre de défilement
@@ -111,7 +124,7 @@ class UI_Front:
 
     def create_table_frame(self):
         """
-        Create the table frame for displaying casque information.
+        Crée le cadre de la table pour afficher les informations des casques.
         """
         self.table_frame = tk.Frame(self.root, bg="white")
         self.table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
@@ -126,12 +139,12 @@ class UI_Front:
         canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         self.scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
-        # Add column headers
+        # Ajouter les en-têtes de colonnes
         self.create_table_headers()
 
     def create_table_headers(self):
         """
-        Create headers for the casque table.
+        Crée les en-têtes pour la table des casques.
         """
         header = tk.Frame(self.scrollable_frame, bg="white")
         header.pack(fill="x")
@@ -152,7 +165,7 @@ class UI_Front:
 
     def create_solution_buttons(self):
         """
-        Create the buttons for downloading and displaying solutions from the library.
+        Crée les boutons pour télécharger et afficher les solutions de la bibliothèque.
         """
         buttons_frame = tk.Frame(self.root, bg="white")
         buttons_frame.pack(side=tk.TOP, pady=10)
@@ -170,18 +183,16 @@ class UI_Front:
 
     def update_biblio_button_text(self):
         """
-        Update the text on the 'Afficher Bibliothèque' button to reflect the number of solutions in the library.
+        Met à jour le texte sur le bouton 'Afficher Bibliothèque' pour refléter le nombre de solutions dans la bibliothèque.
         """
         num_solutions = len(self.biblio.liste_solutions)
         button_text = f"Afficher Bibliothèque ({num_solutions} solution(s))"
         self.biblio_solutions_button.config(text=button_text)
-        self.root.after(5000, self.update_biblio_button_text)  # Re-check every 5 seconds
-
-        
+        self.root.after(5000, self.update_biblio_button_text)  # Vérifier à nouveau toutes les 5 secondes
 
     def show_biblio_solutions(self):
         """
-        Open a new window displaying all solutions in the library with their weights.
+        Ouvre une nouvelle fenêtre affichant toutes les solutions dans la bibliothèque avec leurs poids.
         """
         biblio_window = tk.Toplevel(self.root)
         biblio_window.title("Solutions de la Bibliothèque")
@@ -199,7 +210,10 @@ class UI_Front:
 
     def create_apk_dropdown(self, parent):
         """
-        Create the dropdown menu for selecting APKs.
+        Crée le menu déroulant pour sélectionner les APKs.
+
+        Args:
+            parent: Le cadre parent dans lequel le menu déroulant sera placé.
         """
         dropdown_frame = tk.Frame(parent, bg="white")
         dropdown_frame.pack(side=tk.RIGHT, pady=10)
@@ -216,26 +230,29 @@ class UI_Front:
 
     def populate_folders(self):
         """
-        Populate the folder dropdown menu with folders in the APK directory and select the first one by default.
+        Remplit le menu déroulant avec les dossiers dans le répertoire APK et sélectionne le premier par défaut.
         """
-        apk_dir = "apk"  # Assuming APK folders are in a directory named "apk"
+        apk_dir = "apk"  # Supposons que les dossiers APK sont dans un répertoire nommé "apk"
         folders = [d for d in os.listdir(apk_dir) if os.path.isdir(os.path.join(apk_dir, d))]
         self.folder_menu['values'] = folders
 
         if folders:
             self.folder_menu.current(0)
-            self.update_apk_folder(None)  # Set the default folder
+            self.update_apk_folder(None)  # Définir le dossier par défaut
 
     def update_apk_folder(self, event):
         """
-        Update the APK folder in the CasquesManager when a folder is selected from the dropdown menu.
+        Met à jour le dossier APK dans CasquesManager lorsque l'utilisateur sélectionne un dossier dans le menu déroulant.
+
+        Args:
+            event: L'événement déclenché par la sélection du dossier dans le menu déroulant.
         """
         selected_folder = self.selected_folder.get()
         self.app.casques.set_apk_folder(selected_folder)
 
     def afficher_casques(self):
         """
-        Display the list of casques.
+        Affiche la liste des casques dans l'interface utilisateur.
         """
         try:
             # Obtenez la liste des casques actuels
@@ -268,9 +285,17 @@ class UI_Front:
         except Exception as e:
             self.app.handle_exception("Erreur lors de l'affichage des casques", e)
 
-
-
     def create_casque_row(self, index, casque):
+        """
+        Crée une ligne dans la table pour afficher les informations d'un casque.
+
+        Args:
+            index (int): L'index du casque dans la liste.
+            casque: L'objet Casque contenant les informations à afficher.
+
+        Returns:
+            item_frame: Le cadre contenant les widgets pour la ligne du casque.
+        """
         item_frame = tk.Frame(self.scrollable_frame, bg="white")
         item_frame.pack(fill="x")
 
@@ -347,16 +372,18 @@ class UI_Front:
 
         return item_frame
 
-
-
     def update_casque_row(self, index, casque):
         """
-        Update the information for a casque in the table.
+        Met à jour les informations pour un casque dans la table.
+
+        Args:
+            index (int): L'index du casque dans la liste.
+            casque: L'objet Casque contenant les informations mises à jour.
         """
         item_frame = self.widget_cache[casque.numero]
         widgets = item_frame.winfo_children()
 
-        # Update numéro, modèle, version_apk, JSON status, solutions count
+        # Mettre à jour le numéro, le modèle, la version APK, le statut JSON, le nombre de solutions
         battery_text = f"{casque.battery_level}%"
         widgets[0].config(text=battery_text)
 
@@ -364,7 +391,7 @@ class UI_Front:
         widgets[2].config(text=casque.name)
         widgets[3].config(text=casque.modele)
 
-        # Update version_frame children
+        # Mettre à jour les enfants de version_frame
         version_frame = widgets[4]
         version_widgets = version_frame.winfo_children()
 
@@ -373,7 +400,7 @@ class UI_Front:
         apk_color = "dark orange" if apk_text == "✗" else "black"
         version_widgets[2].config(text=apk_text, fg=apk_color)  # version_apk label
 
-        # Update Wi-Fi status
+        # Mettre à jour le statut Wi-Fi
         is_connected, ssid = casque.is_wifi_connected()
         wifi_status = f"{ssid}" if is_connected else "Please connect to Wifi"
         wifi_color = "black" if is_connected else "orange"
@@ -401,20 +428,24 @@ class UI_Front:
         info_suppl = "App PPV1 Installée" if casque.old_apk_installed else ""
         widgets[13].config(text=info_suppl)  # info supplémentaire
 
-
-
     def update_progress_bars(self):
         """
-        Periodically update the progress bars based on the download_progress attribute of each casque.
+        Met à jour périodiquement les barres de progression en fonction de l'attribut download_progress de chaque casque.
         """
         for casque in self.app.casques.get_liste_casque():
             if casque.numero in self.progress_bars:
                 self.progress_bars[casque.numero].set(casque.download_progress)
-        self.root.after(1000, self.update_progress_bars)  # Re-check every second
+        self.root.after(1000, self.update_progress_bars)  # Re-vérifier chaque seconde
 
     def create_progress_bar(self, item_frame):
         """
-        Create a progress bar for the specified item frame.
+        Crée une barre de progression pour le cadre spécifié.
+
+        Args:
+            item_frame: Le cadre dans lequel la barre de progression sera créée.
+
+        Returns:
+            progress_var: Une variable de contrôle pour la barre de progression.
         """
         progress_var = tk.DoubleVar()
         progress_bar = ttk.Progressbar(item_frame, orient="horizontal", length=100, mode="determinate", variable=progress_var)
@@ -422,6 +453,12 @@ class UI_Front:
         return progress_var
 
     def log_debug(self, message):
+        """
+        Insère un message de débogage dans la zone de texte de débogage.
+
+        Args:
+            message (str): Le message à afficher.
+        """
         if self.app.running:
             self.root.after(0, self._log_debug, message)
         else:
@@ -429,36 +466,45 @@ class UI_Front:
 
     def _log_debug(self, message):
         """
-        Insert a debug message into the debug text area.
+        Insère un message de débogage dans la zone de texte de débogage.
+
+        Args:
+            message (str): Le message à afficher.
         """
         self.debug_text.insert(tk.END, message + "\n")
         self.debug_text.see(tk.END)
 
     def write(self, message):
         """
-        Write a message to the debug text area (used for redirecting stdout).
+        Écrit un message dans la zone de texte de débogage (utilisé pour rediriger stdout).
+
+        Args:
+            message (str): Le message à écrire.
         """
         self.log_debug(message)
 
     def flush(self):
         """
-        Flush method required for redirecting stdout.
+        Méthode flush requise pour rediriger stdout.
         """
         pass  # Nécessaire pour rediriger stdout
 
     def update_connection_status(self):
         """
-        Update the connection status indicator.
+        Met à jour l'indicateur de statut de connexion.
         """
         connected = self.check_connection()
         status_text = "Connection PPV2 ●" if connected else "Erreur connection PPV2 ●"
         color = "green" if connected else "red"
         self.connection_status_label.config(text=status_text, fg=color)
-        self.root.after(5000, self.update_connection_status)  # Re-check every 5 seconds
+        self.root.after(5000, self.update_connection_status)  # Vérifier à nouveau toutes les 5 secondes
 
     def check_connection(self):
         """
-        Check the connection to the website.
+        Vérifie la connexion au site web.
+
+        Returns:
+            bool: True si la connexion est réussie, sinon False.
         """
         try:
             conn = http.client.HTTPSConnection("plateforme-beta.reverto.fr", timeout=5)

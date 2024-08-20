@@ -3,15 +3,35 @@ import traceback
 
 class Marque:
     def __init__(self):
+        """
+        Initialise un objet Marque avec des attributs pour le nom, la version de l'APK, et le chemin de l'APK.
+        """
         self.nom = ""
         self.version_apk = ""
         self.APK_path = ""
 
-    def setNom(self, nom: str,apk_folder):
+    def setNom(self, nom: str, apk_folder):
+        """
+        Définit le nom de la marque et sélectionne l'application appropriée en fonction du dossier APK.
+
+        Args:
+            nom (str): Le nom de la marque.
+            apk_folder (str): Le dossier contenant les fichiers APK.
+        """
         self.nom = nom
         self.choixApp(apk_folder)
 
-    def choixApp(self,apk_folder):
+    def choixApp(self, apk_folder):
+        """
+        Sélectionne l'APK correspondant au nom de la marque dans le dossier spécifié.
+
+        Args:
+            apk_folder (str): Le dossier contenant les fichiers APK.
+
+        Exceptions:
+            FileNotFoundError: Si le répertoire ou les fichiers ne sont pas trouvés.
+            Exception: Pour toute autre erreur lors de la sélection de l'APK.
+        """
         try:
             apk_names = []
             apk_directory = "./APK/" + apk_folder
@@ -30,7 +50,6 @@ class Marque:
                     self.version_apk = apk_name
                     self.APK_path = os.path.join(apk_directory, apk_name)
                     break
-
         
         except FileNotFoundError as e:
             print(f"Erreur: Répertoire ou fichier non trouvé. Détails: {e}")

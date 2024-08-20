@@ -16,11 +16,14 @@ from biblioManager import BiblioManager
 class Casque:
 
     def __init__(self):
+        """
+        Initialise un objet Casque avec les attributs nécessaires pour gérer un casque VR.
+        """
         self.device = str
         self.numero = ""
         self.marque = Marque()
         self.modele = ""
-        self.battery_level : int
+        self.battery_level: int
         self.version_apk = ""
         self.JSON_path = "NULL"
         self.JSON_size = -1
@@ -36,13 +39,19 @@ class Casque:
 
         self.biblio = BiblioManager()
 
-
-    
     #-----------------------------------------------------
     # INSTANCIATION INFO ET VERIFICATION
     #-----------------------------------------------------
 
     def refresh_casque(self, device, apk_folder):
+        """
+        Rafraîchit les informations du casque, telles que le numéro de série, la marque,
+        le modèle, le niveau de batterie, et les versions APK installées.
+
+        Args:
+            device: L'objet représentant le casque.
+            apk_folder (str): Le chemin vers le dossier des APK.
+        """
         with self.refresh_lock:
             self.device = device
             
@@ -54,7 +63,7 @@ class Casque:
                 self.numero = "Inconnu"
             adbtools.wake_up_device(self.config.adb_exe_path, self.numero) 
             try:
-                self.marque.setNom(self.device.shell("getprop ro.product.manufacturer").strip(),apk_folder)
+                self.marque.setNom(self.device.shell("getprop ro.product.manufacturer").strip(), apk_folder)
             except Exception as e:
                 print(f"{self.name} {self.numero}: Erreur lors de l'obtention de la marque: {e}")
                 traceback.print_exc()
@@ -67,14 +76,14 @@ class Casque:
                 traceback.print_exc()
                 self.modele = "Inconnu"
 
-            self.battery_level = adbtools.check_battery_level(self.config.adb_exe_path,self.numero)
+            self.battery_level = adbtools.check_battery_level(self.config.adb_exe_path, self.numero)
             
             self.version_apk = self.get_installed_apk_version()
             # Vérifier si l'ancienne APK est installée
             self.old_apk_installed = self.check_old_apk_installed()
             
-            # verifie que le fichier JSON ai une taille différent et que le fichier existe bien MAIS MARCHE PAS !!!!!!!!!
-            if((self.JSON_path != self.check_json_file()) or ( self.JSON_size != self.get_json_file_size() )):
+            # Vérifie que le fichier JSON a une taille différente et que le fichier existe bien
+            if (self.JSON_path != self.check_json_file()) or (self.JSON_size != self.get_json_file_size()):
                 
                 self.JSON_path = self.check_json_file()
                 self.JSON_size = self.get_json_file_size()
@@ -82,12 +91,20 @@ class Casque:
                 self.solutions_casque = self.load_datas_from_json()
 
     def reset_JSON(self):
+        """
+        Réinitialise les informations du JSON, telles que le nom, le code, et l'association d'entreprise.
+        """
         self.name = ""
         self.code = ""
         self.entreprise_association = ""
 
     def load_datas_from_json(self):
-        #infos remis à jour avant d'etre completé (remis à jour seulement en cas de changement de JSON (taille ou présence)
+        """
+        Charge les données depuis le fichier JSON stocké sur le casque.
+
+        Returns:
+            list: Une liste d'objets SolutionCasque représentant les solutions disponibles sur le casque.
+        """
         solutions_casque = []
         self.reset_JSON()
         if self.JSON_path != "Fichier JSON inexistant" and self.JSON_path != "NULL":
@@ -95,7 +112,7 @@ class Casque:
                 # Lire le contenu du fichier JSON encodé en base 64 sur le casque
                 encoded_output = subprocess.check_output(["adb", "-s", self.numero, "shell", "cat", self.JSON_path], stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode('utf-8')
                 if encoded_output.strip() == "":
-                    raise ValueError("{self.name} {self.numero}: Le fichier JSON est vide")
+                    raise ValueError(f"{self.name} {self.numero}: Le fichier JSON est vide")
 
                 # Décoder le contenu du fichier JSON de la base 64
                 decoded_output = base64.b64decode(encoded_output).decode('utf-8')
@@ -116,7 +133,6 @@ class Casque:
                 # Créer des objets Solution à partir des données JSON
                 for solution_data in json_data.get('versions', []):
                     solution_casque = SolutionCasque().from_json_opti(solution_data, self.numero, self.config.upload_casque_path)
-                    #solution_casque.size = solution_casque.get_sol_size(self.config.upload_casque_path)
                     solutions_casque.append(solution_casque)
             except Exception as e:
                 print(f"{self.name} {self.numero}: Erreur lors du chargement du fichier JSON : {e}")
@@ -126,7 +142,7 @@ class Casque:
     def check_old_apk_installed(self):
         """
         Vérifie si l'ancienne APK est installée sur le casque.
-        
+
         Returns:
             bool: True si l'ancienne APK est installée, False sinon.
         """
@@ -143,6 +159,9 @@ class Casque:
     def get_json_file_size(self):
         """
         Retourne la taille du fichier JSON en octets en utilisant ADB.
+
+        Returns:
+            int: La taille du fichier JSON en octets, ou 0 en cas d'erreur.
         """
         if self.JSON_path != "Fichier JSON inexistant":
             command = [self.config.adb_exe_path, "-s", self.numero, "shell", "stat", "-c%s", self.JSON_path]
@@ -154,6 +173,12 @@ class Casque:
         return 0
     
     def get_installed_apk_version(self):
+        """
+        Retourne la version de l'APK installée sur le casque.
+
+        Returns:
+            str: La version de l'APK installée, ou "X" si aucune version n'est trouvée.
+        """
         with self.lock:
             try:
                 result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "dumpsys", "package", self.config.package_name],
@@ -173,13 +198,19 @@ class Casque:
 
     
     def getEntreprise(self):
+        """
+        Retourne l'entreprise associée à la solution.
+
+        Returns:
+            str: Le nom de l'entreprise associée.
+        """
         return self.entreprise_association
     
     def is_solution_in_library(self, solution):
         """
         Vérifie si une solution est déjà dans la bibliothèque.
-        
-        Parameters:
+
+        Args:
             solution (Solution): La solution à vérifier.
                 
         Returns:
@@ -188,7 +219,12 @@ class Casque:
         return self.biblio.is_sol_in_library(solution)
     
     def check_json_file(self):
-        
+        """
+        Vérifie si le fichier JSON existe sur le casque et retourne son chemin.
+
+        Returns:
+            str: Le chemin du fichier JSON, ou "Fichier JSON inexistant" si le fichier est absent.
+        """
         with self.lock:
             try:
                 output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", self.config.json_file_path], stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8")
@@ -202,7 +238,7 @@ class Casque:
                 self.JSON_path = "Fichier JSON inexistant"
                 return self.JSON_path
 
-    def getListSolInstall(self) : 
+    def getListSolInstall(self):
         """
         Retourne une liste des solutions installées sur le casque.
 
@@ -216,6 +252,9 @@ class Casque:
         return installed_solutions
 
     def refresh_JSON(self):
+        """
+        Rafraîchit le JSON sur le casque en réinitialisant les données et en redémarrant l'application si nécessaire.
+        """
         self.reset_JSON()
         adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
         
@@ -229,32 +268,30 @@ class Casque:
         else:
             print(f"{self.name} {self.numero}: L'application n'est pas installée sur le casque {self.numero}.")
 
-    
     #-----------------------------------------------------
     # PUSH ET PULL SOLUTION
     #-----------------------------------------------------
 
-    def push_solutions(self) : 
+    def push_solutions(self):
         """
-        Retourne une liste des solutions installées sur le casque.
-
-        Returns:
-            list: Liste des solutions installées.
+        Transfère les solutions disponibles dans la bibliothèque vers le casque.
         """
         
         print(f"{self.name} {self.numero}: push_solutions")
         for solution in self.solutions_casque:
-            if not solution.sol_install_on_casque :
-                #print(f" -> Solution not on casque : solution.nom")
-                # Vérifier si la solution qui est sur le casque est dans la bibliothèque, 
-                # Si la sol est bien dans la biblio alors la fonction renvoie l'objet qui se trouve dans la biblio
+            if not solution.sol_install_on_casque:
                 solution_from_bibli = self.biblio.is_sol_in_library(solution)
-                if solution_from_bibli != False :
-                    #print(f" -> Push solution !")
-                    self.push_solution_with_progress(solution,solution_from_bibli)
-        
+                if solution_from_bibli != False:
+                    self.push_solution_with_progress(solution, solution_from_bibli)
 
-    def push_solution_with_progress(self,solution_json_casque, solution_biblio):
+    def push_solution_with_progress(self, solution_json_casque, solution_biblio):
+        """
+        Transfère une solution spécifique du PC vers le casque avec un suivi de la progression.
+
+        Args:
+            solution_json_casque (SolutionCasque): L'objet SolutionCasque à transférer.
+            solution_biblio (SolutionBiblio): L'objet SolutionBiblio correspondant dans la bibliothèque.
+        """
         safe_solution_name = self.config.safe_string(solution_json_casque.nom)
         print(f"{self.name} {self.numero}: {safe_solution_name}")
         solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
@@ -265,16 +302,14 @@ class Casque:
             subdirs = ["image", "image360", "sound", "srt", "video"]
             
             total_size = solution_biblio.size
-            # Calculate  size
             copied_size = 0
+
             def progress_callback(copied_bytes):
                 nonlocal copied_size
                 copied_size += copied_bytes
-                progress = copied_size / total_size *100
-                #print (f"téléversement en cours : {copied_size}/{total_size}")
+                progress = copied_size / total_size * 100
                 print(f"{self.name} {self.numero}: Progress: {progress:.2f}%")
                 self.download_progress = progress  # Mise à jour de la progression du téléchargement
-
 
             for subdir in subdirs:
                 source_dir = os.path.join(solution_dir, subdir)
@@ -286,8 +321,8 @@ class Casque:
                         local_file_path = os.path.join(source_dir, os.path.basename(media_file)).replace("'\'", "/")
                         
                         try:
-                            self.copy_media_file(local_file_path, self.config.upload_casque_path + media_file , solution_json_casque.nom, "push")
-                            progress_callback(os.path.getsize(local_file_path)) # mesure taille du fichier envoyé et incrément du poid envoyé
+                            self.copy_media_file(local_file_path, self.config.upload_casque_path + media_file, solution_json_casque.nom, "push")
+                            progress_callback(os.path.getsize(local_file_path))  # Mesure de la taille du fichier envoyé et mise à jour du poids envoyé
                         except Exception as e:
                             print(f"{self.name} {self.numero}: Erreur lors du téléversement du fichier {local_file_path} pour {solution_json_casque.nom} : {e}")
                             return
@@ -296,16 +331,14 @@ class Casque:
             print(f"{self.name} {self.numero}: Solution {solution_json_casque.nom} copiée avec succès dans le casque.")
         else:
             self._log_message(f"{self.name} {self.numero}: Solution directory does not exist for '{solution_json_casque.nom}' in the library")
-    
 
     def push_solution(self, solution):
         """
-        Copie les fichiers média de la solution dans le casque.
+        Copie les fichiers média d'une solution spécifique du PC vers le casque.
 
         Args:
-            solution (Solution): L'objet Solution pour lequel créer le répertoire.
+            solution (Solution): L'objet Solution à transférer.
         """
-
         safe_solution_name = self.config.safe_string(solution.nom)
 
         solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
@@ -322,7 +355,7 @@ class Casque:
                         local_file_path = os.path.join(source_dir, os.path.basename(media_file)).replace("'\'", "/")
                         
                         try:
-                            self.copy_media_file(local_file_path, self.config.upload_casque_path + media_file , solution.nom, "push")
+                            self.copy_media_file(local_file_path, self.config.upload_casque_path + media_file, solution.nom, "push")
                         except Exception as e:
                             print(f"{self.name} {self.numero}: Erreur lors du téléversement du fichier {local_file_path} pour {solution.nom} : {e}")
                             return
@@ -332,16 +365,14 @@ class Casque:
         else:
             self._log_message(f"{self.name} {self.numero}: Solution directory does not exist for '{solution.nom}' in the library")
 
-
     def pull_solutions(self):
         """
-        Reconstitue les répertoires des solutions installées sur le casque.
+        Reconstitue les répertoires des solutions installées sur le casque en les transférant vers le PC.
         """
         for solution in self.solutions_casque:
             print(f"{self.name} {self.numero}: Checking solution: {solution.nom}")
             if solution.sol_install_on_casque:
                 print(f"{self.name} {self.numero}:  -> Solution is installed on casque: {solution.nom}")
-                # Vérifier si la solution qui est sur le casque est dans la bibliothèque
                 if not self.is_solution_in_library(solution):
                     print(f"{self.name} {self.numero}:  -> Solution not in library, pulling solution: {solution.nom}")
                     self.pull_solution_sans_progress(solution)
@@ -353,10 +384,10 @@ class Casque:
 
     def pull_solution_sans_progress(self, solution):
         """
-        Crée un répertoire pour une solution et copie les fichiers média depuis le casque.
+        Transfère les fichiers média d'une solution spécifique du casque vers le PC sans suivi de la progression.
 
         Args:
-            solution (Solution): L'objet Solution pour lequel créer le répertoire.
+            solution (Solution): L'objet Solution à transférer.
         """
         try:
             safe_solution_name = self.config.safe_string(solution.nom)
@@ -377,7 +408,7 @@ class Casque:
                     print(f"Media files in {subdir}: {media_files}")
 
                     for media_file in media_files:
-                        try :
+                        try:
                             print(f"Copying media file: {media_file} to {target_dir}")
                             self.copy_media_file(self.config.upload_casque_path + media_file, target_dir, solution.nom, "pull")
                         except Exception as e:
@@ -392,10 +423,10 @@ class Casque:
 
     def pull_solution(self, solution):
         """
-        Crée un répertoire pour une solution et copie les fichiers média depuis le casque.
+        Transfère les fichiers média d'une solution spécifique du casque vers le PC avec suivi de la progression.
 
         Args:
-            solution (Solution): L'objet Solution pour lequel créer le répertoire.
+            solution (Solution): L'objet Solution à transférer.
         """
         try:
             safe_solution_name = self.config.safe_string(solution.nom)
@@ -432,8 +463,6 @@ class Casque:
                         try:
                             progress_callback(os.path.getsize(self.config.upload_casque_path + media_file))  # Mise à jour de la taille copiée
                             self.copy_media_file(self.config.upload_casque_path + media_file, target_dir, solution.nom, "pull")
-                            
-
                         except Exception as e:
                             print(f"Erreur lors de la copie du fichier {self.config.upload_casque_path + media_file} pour {solution.nom} : {e}")
                             continue  # Passer au fichier suivant en cas d'erreur
@@ -445,8 +474,16 @@ class Casque:
             print(f"Error occurred while pulling solution {solution.nom}: {e}")
             traceback.print_exc()
 
-
     def calculate_total_files_and_size(self, solution_dir):
+        """
+        Calcule le nombre total de fichiers et la taille totale d'une solution dans un répertoire spécifique.
+
+        Args:
+            solution_dir (str): Le chemin vers le répertoire de la solution.
+
+        Returns:
+            tuple: Un tuple contenant le nombre total de fichiers et la taille totale en octets.
+        """
         total_files = 0
         total_size = 0
         subdirs = ["image", "image360", "sound", "srt", "video"]
@@ -464,96 +501,105 @@ class Casque:
 
     def copy_media_file(self, source_dir, target_dir, solution_name, direction):
         """
-        Copie un fichier vers le répertoire cible.
+        Copie un fichier média entre le casque et le PC.
 
         Args:
-            source_dir (str): Le chemin du fichier média sur le casque.
-            target_dir (str): Le répertoire cible local.
+            source_dir (str): Le chemin du fichier source sur le casque.
+            target_dir (str): Le chemin du fichier cible sur le PC.
             solution_name (str): Le nom de la solution associée.
-            direction (str): pull or push
+            direction (str): Direction du transfert, "push" pour transférer du PC vers le casque, "pull" pour l'inverse.
         """
-        
-        #print(f"Solution source  : {source_dir} target : {target_dir}.")
         try:
-            result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, direction , source_dir, target_dir], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+            result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, direction, source_dir, target_dir], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
         except subprocess.CalledProcessError as e:
             print(f"{self.name} {self.numero}: Erreur lors du téléversement du fichier {source_dir} pour {solution_name} : {e}")
 
-    
     #-----------------------------------------------------
     # APK 
     #-----------------------------------------------------
     
     def install_APK(self):
-        # Nombre maximum de tentatives
+        """
+        Installe une APK sur le casque, en réessayant plusieurs fois en cas d'échec.
+
+        Note:
+            Cette méthode tente d'installer une APK jusqu'à trois fois en cas d'échec.
+        """
         max_attempts = 3
         attempt = 0
 
         while attempt < max_attempts:
             try:
-                # Tentative d'installation de l'APK
                 adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
                 subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
                 print(f"{self.name} {self.numero}: Installation de l'APK réussie.")
                 
-                # Octroyer les permissions nécessaires et démarrer l'application
                 adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
                 adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
                 adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
-                # Si tout s'est bien passé, sortir de la boucle
-                break
+                break  # Sortir de la boucle si l'installation réussit
             
             except subprocess.CalledProcessError as e:
                 attempt += 1
-                #print(f"Tentative {attempt} sur {max_attempts} échouée pour l'installation de l'APK sur {self.numero}.")
 
                 if attempt < max_attempts:
-                    #print(f"Essai de désinstaller l'ancienne version et réessayer.")
                     self.uninstall_APK()
                 else:
-                    #print(f"Échec de l'installation de l'APK après {max_attempts} tentatives. Abandon de l'installation.")
                     return
 
-        # Si l'installation a réussi après un nombre limité de tentatives
         if attempt < max_attempts:
             print(f"{self.name} {self.numero}: L'APK a été installée avec succès.")
         else:
             print(f"{self.name} {self.numero}: Impossible d'installer l'APK après {max_attempts} tentatives.")
 
-
-
     def uninstall_APK(self):
-        #print("----->>>> Désinstallation de l'APK")
-        if (self.version_apk != 'X') :
+        """
+        Désinstalle l'APK du casque si elle est présente.
+        """
+        if self.version_apk != 'X':
             try:
                 subprocess.run([self.config.adb_exe_path, "-s", self.numero, "uninstall", self.config.package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
-                print( "{self.name} {self.numero}: Désinstallation de l'APK réussie." )
+                print(f"{self.name} {self.numero}: Désinstallation de l'APK réussie.")
             except subprocess.CalledProcessError as e:
                 if "Unknown package" in str(e):
                     print(f"{self.name} {self.numero}: L'application n'était pas installée.")
-    
                 else:
                     print(f"{self.name} {self.numero}: Une erreur est survenue lors de la désinstallation de l'APK : {e}")
-        else :
-            print(f"{self.name} {self.numero}: L'application est déjà desinstallée.")
+        else:
+            print(f"{self.name} {self.numero}: L'application est déjà désinstallée.")
 
     def open_apk(self):
-        if (self.version_apk != 'X') :
+        """
+        Ouvre l'application installée sur le casque.
+        """
+        if self.version_apk != 'X':
             adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
-        else :
-            print(f"{self.name} {self.numero}: L'application est desinstallée vous ne pouvez pas l'ouvrir.")
+            print(f"{self.name} {self.numero}: Ouverture de l'application.")
+        else:
+            print(f"{self.name} {self.numero}: L'application est désinstallée, vous ne pouvez pas l'ouvrir.")
 
     def close_apk(self):
-        if (self.version_apk != 'X') :
+        """
+        Ferme l'application installée sur le casque.
+        """
+        if self.version_apk != 'X':
             adbtools.stop_application(self.config.adb_exe_path, self.numero, self.config.package_name)
-        else :
-            print(f"{self.name} {self.numero}: L'application est desinstallée vous ne pouvez pas la fermer.")
+            print(f"{self.name} {self.numero}: Fermeture de l'application.")
+        else:
+            print(f"{self.name} {self.numero}: L'application est désinstallée, vous ne pouvez pas la fermer.")
 
     #-----------------------------------------------------
     # CONFIGURATION WIFI
     #-----------------------------------------------------
 
     def is_wifi_connected(self):
+        """
+        Vérifie si le casque est connecté à un réseau Wi-Fi.
+
+        Returns:
+            tuple: Un tuple contenant un booléen indiquant si le casque est connecté,
+            et le SSID du réseau connecté ou une indication d'erreur.
+        """
         try:
             wifi_status_output = subprocess.check_output(
                 [self.config.adb_exe_path, "-s", self.numero, "shell", "dumpsys", "wifi"],
@@ -565,9 +611,8 @@ class Casque:
                 if wifi_info and "SSID: " in wifi_info:
                     ssid_info = wifi_info.split("SSID: ")[1].split(",")[0].strip()
                     if ssid_info == "<unknown ssid>":
-                        #print("Device not connected.")
-                        return False, "not connected"           
-                    else :
+                        return False, "not connected"
+                    else:
                         return True, ssid_info
            
         except subprocess.CalledProcessError as e:

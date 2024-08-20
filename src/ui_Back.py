@@ -14,24 +14,34 @@ from casquesManager import CasquesManager
 
 class UI_Back:
     def __init__(self, app):
+        """
+        Initialise l'interface arrière pour gérer les interactions en arrière-plan avec les casques, la bibliothèque, et la configuration.
+
+        Args:
+            app: L'application principale à laquelle cette interface est liée.
+        """
         self.app = app
         self.casques = CasquesManager()
         self.biblio = BiblioManager()
         self.config = Config()
 
     def installer_apks_et_solutions(self):
+        """
+        Lance l'installation des APKs et des solutions sur chaque casque dans un thread séparé.
+        """
         try:
             for casque in self.casques.liste_casques:
                 Thread(target=self.installer_apks_et_solution, args=(casque,)).start()
         except Exception as e:
             self.app.handle_exception("Erreur lors de l'installation des APKs et des solutions", e)
 
-
-
-
-    from threading import Thread
-
     def installer_apks_et_solution(self, casque):
+        """
+        Installe l'APK et les solutions sur un casque spécifique, et lance le processus de vérification du fichier JSON.
+
+        Args:
+            casque: L'objet Casque sur lequel installer l'APK et les solutions.
+        """
         try:
             # 1. Obtenir la version actuelle de l'APK installée
             current_version = casque.version_apk
@@ -52,20 +62,23 @@ class UI_Back:
             self.app.handle_exception("Erreur lors de l'installation des APKs et des solutions", e)
 
     def wait_for_json_and_push_solutions(self, casque):
+        """
+        Attend que le fichier JSON soit disponible sur le casque et téléverse les solutions une fois le fichier trouvé.
+
+        Args:
+            casque: L'objet Casque sur lequel attendre le fichier JSON et téléverser les solutions.
+        """
         try:
             # 3.1 Attendre que le fichier JSON soit disponible, avec un maximum de 3 essais
-            #print(f"Attente du fichier JSON pour le casque {casque.numero}...")
             max_attempts = 3
             attempt = 0
             time.sleep(10)
             while attempt < max_attempts:
-                time.sleep(15)  # Attendre 10 secondes avant de vérifier à nouveau
+                time.sleep(15)  # Attendre 15 secondes avant de vérifier à nouveau
                 self.refresh_json(casque)  # Rafraîchir le JSON
                 if casque.JSON_path != 'Fichier JSON inexistant':
-                    #print(f"Fichier JSON trouvé : {casque.JSON_path}")
                     break
                 attempt += 1
-                #print(f"Tentative {attempt}/{max_attempts} pour trouver le fichier JSON.")
 
             # Si après 3 tentatives le fichier JSON est toujours inexistant
             if casque.JSON_path == 'Fichier JSON inexistant':
@@ -78,10 +91,13 @@ class UI_Back:
         except Exception as e:
             self.app.handle_exception("Erreur lors de l'attente du fichier JSON ou du téléversement des solutions", e)
 
-
-
     def open_solution_manager(self, casque):
-        # Renommer la fenêtre
+        """
+        Ouvre une fenêtre de gestion des solutions pour afficher les solutions installées sur un casque spécifique.
+
+        Args:
+            casque: L'objet Casque pour lequel ouvrir le gestionnaire de solutions.
+        """
         solution_window = tk.Toplevel(self.app.ui_front.root)
         solution_window.title(f"Licence associée au casque {casque.numero}")
 
@@ -91,17 +107,13 @@ class UI_Back:
 
         for solution in casque.solutions_casque:
             in_library = casque.is_solution_in_library(solution)  # Stocker le résultat
-            #print(f"Résultat de is_solution_in_library: {in_library}")
 
             if solution.sol_install_on_casque:
                 solution_list.insert(tk.END, f"{solution.nom} ({solution.version})\n", "install_on_casque")
             elif in_library:
                 solution_list.insert(tk.END, f"{solution.nom} ({solution.version})\n", "in_library")
-                #print(f"in library")
             else:
-                #print(f"casque.is_solution_in_library(solution): {in_library}")
                 solution_list.insert(tk.END, f"{solution.nom} ({solution.version})\n")
-                #print(f"not in library")
                 
         # Configurer la couleur du texte pour les solutions installées sur le casque
         solution_list.tag_config("install_on_casque", foreground="green")
@@ -123,8 +135,13 @@ class UI_Back:
         close_button = tk.Button(solution_window, text="Fermer", command=solution_window.destroy)
         close_button.pack(pady=10)
 
-
     def track_devices(self, stop_event):
+        """
+        Suit l'état des casques connectés et met à jour la liste des casques dans l'interface utilisateur tant que l'événement stop_event n'est pas déclenché.
+
+        Args:
+            stop_event: Un événement pour arrêter le suivi des appareils.
+        """
         while not stop_event.is_set():
             try:
                 self.casques.refresh_casques()
@@ -138,8 +155,10 @@ class UI_Back:
                 else:
                     break
 
-
     def download_banque_solutions(self):
+        """
+        Télécharge le dossier 'Banque de solutions' vers un emplacement choisi par l'utilisateur.
+        """
         try:
             destination = filedialog.askdirectory()
             if destination:
@@ -149,24 +168,64 @@ class UI_Back:
             self.app.handle_exception("Erreur lors du téléchargement de la banque de solutions", e)
 
     def install_apk(self, casque):
+        """
+        Installe l'APK sur un casque spécifique dans un thread séparé.
+
+        Args:
+            casque: L'objet Casque sur lequel installer l'APK.
+        """
         Thread(target=casque.install_APK).start()
 
     def uninstall_apk(self, casque):
+        """
+        Désinstalle l'APK d'un casque spécifique dans un thread séparé.
+
+        Args:
+            casque: L'objet Casque sur lequel désinstaller l'APK.
+        """
         Thread(target=casque.uninstall_APK).start()
 
     def start_apk(self, casque):
+        """
+        Démarre l'APK sur un casque spécifique dans un thread séparé.
+
+        Args:
+            casque: L'objet Casque sur lequel démarrer l'APK.
+        """
         Thread(target=casque.open_apk()).start()
-        
+
     def close_apk(self, casque):
+        """
+        Ferme l'APK sur un casque spécifique dans un thread séparé.
+
+        Args:
+            casque: L'objet Casque sur lequel fermer l'APK.
+        """
         Thread(target=casque.close_apk()).start()
-        
+
     def push_solutions(self, casque):
+        """
+        Téléverse les solutions sur un casque spécifique dans un thread séparé.
+
+        Args:
+            casque: L'objet Casque sur lequel téléverser les solutions.
+        """
         Thread(target=casque.push_solutions).start()
 
     def pull_solutions(self, casque):
+        """
+        Récupère les solutions depuis un casque spécifique dans un thread séparé.
+
+        Args:
+            casque: L'objet Casque depuis lequel récupérer les solutions.
+        """
         Thread(target=casque.pull_solutions).start()
 
-    def refresh_json(self,casque):
-        Thread(target=casque.refresh_JSON).start()
+    def refresh_json(self, casque):
+        """
+        Rafraîchit le fichier JSON sur un casque spécifique dans un thread séparé.
 
-        
+        Args:
+            casque: L'objet Casque pour lequel rafraîchir le fichier JSON.
+        """
+        Thread(target=casque.refresh_JSON).start()

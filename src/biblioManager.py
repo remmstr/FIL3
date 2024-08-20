@@ -1,4 +1,3 @@
-
 import traceback
 from config import Config
 from singletonMeta import SingletonMeta
@@ -8,11 +7,18 @@ import os
 class BiblioManager(metaclass=SingletonMeta):
 
     def __init__(self):
+        """
+        Initialise le gestionnaire de bibliothèque en chargeant la configuration
+        et en récupérant la liste des solutions disponibles dans la bibliothèque.
+        """
         self.config = Config()
         self.liste_solutions = []
         self.get_sols_bibli()
 
     def print(self):
+        """
+        Imprime les informations de chaque solution dans la bibliothèque.
+        """
         for i, sol in enumerate(self.liste_solutions, 1):
             print(f"\nSOlutions #{i}:")
             sol.print()
@@ -20,9 +26,13 @@ class BiblioManager(metaclass=SingletonMeta):
 
     def get_sols_bibli(self):
         """
-        Récupère toutes les solutions disponibles dans la bibliothèque des solutions et remplit les objets solutions avec les noms des fichiers de médias.
+        Récupère toutes les solutions disponibles dans la bibliothèque des solutions et
+        remplit les objets solutions avec les noms des fichiers de médias.
+
+        Returns:
+            list: La liste des solutions disponibles dans la bibliothèque.
         """
-        self.liste_solutions.clear()  # Clear the list before refreshing
+        self.liste_solutions.clear()  # Vide la liste avant de la rafraîchir
         solution_base_dir = self.config.Banque_de_solution_path
 
         # Parcours de chaque dossier de solution dans la bibliothèque
@@ -39,7 +49,8 @@ class BiblioManager(metaclass=SingletonMeta):
 
     def get_sol_bibli(self, solution_name, solution_dir):
         """
-        Récupère une solution unique depuis la bibliothèque des solutions, remplit l'objet solution avec les noms des fichiers de médias, et calcule sa taille totale.
+        Récupère une solution unique depuis la bibliothèque des solutions, remplit l'objet solution
+        avec les noms des fichiers de médias, et calcule sa taille totale.
 
         Args:
             solution_name (str): Le nom de la solution.
@@ -98,12 +109,11 @@ class BiblioManager(metaclass=SingletonMeta):
                 if existing_solution:
                     # Vérifier si la taille a changé
                     current_size = existing_solution.get_sol_size()
-                    #print(f"current_size {current_size} != existing_solution.size {existing_solution.size} ")
                     if existing_solution.size != existing_solution.get_sol_size():
                         existing_solution.size = existing_solution.get_sol_size()
                     updated_solutions.append(existing_solution)
                 else:
-                    # Solution nonexistante, la crée
+                    # Solution inexistante, la crée
                     print(f"Ajout d'une nouvelle solution : {solution_name}")
                     nouvelle_solution = self.get_sol_bibli(solution_name, solution_path_folder)
                     if nouvelle_solution is not None:
@@ -111,14 +121,22 @@ class BiblioManager(metaclass=SingletonMeta):
 
         # Mettre à jour la liste des solutions avec les nouvelles et mises à jour solutions
         self.liste_solutions = updated_solutions
-        #self.print_solutions_with_size()
+
         # Supprimer les solutions qui n'existent plus
         self.liste_solutions = [sol for sol in self.liste_solutions if sol.nom in name_sols_in_folder]
 
 
     def is_sol_in_library(self, solution):
+        """
+        Vérifie si une solution est déjà présente dans la bibliothèque.
+
+        Args:
+            solution (Solution): La solution à vérifier.
+
+        Returns:
+            SolutionBiblio: La solution correspondante dans la bibliothèque si elle existe, sinon False.
+        """
         for sol_in_biblio in self.liste_solutions:
-            #print(f"sol_in_biblio.nom : {sol_in_biblio.nom} == solution.nom : {self.config.safe_string(solution.nom)}" )
             if sol_in_biblio.nom == self.config.safe_string(solution.nom):
                 # Pour plus tard, il faudra vérifier davantage de choses que le nom, comme la version et le poids
                 return sol_in_biblio
