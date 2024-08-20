@@ -22,22 +22,63 @@ class UI_Back:
     def installer_apks_et_solutions(self):
         try:
             for casque in self.casques.liste_casques:
-                        Thread(target=self.installer_apks_et_solution(casque)).start()
+                Thread(target=self.installer_apks_et_solution, args=(casque,)).start()
         except Exception as e:
             self.app.handle_exception("Erreur lors de l'installation des APKs et des solutions", e)
 
 
 
-    def installer_apks_et_solution(self,casque):
+
+    from threading import Thread
+
+    def installer_apks_et_solution(self, casque):
         try:
-            self.install_apk(casque)
-            print(f"casque.JSON_path : {casque.JSON_path}")
-            while(casque.JSON_path == 'X') :
-                print(f"casque.JSON_path : {casque.JSON_path}")
-                time.sleep(1)
-            self.push_solutions(casque)
+            # 1. Obtenir la version actuelle de l'APK installée
+            current_version = casque.version_apk
+            selected_version = self.app.ui_front.selected_folder.get()  # Récupérer la version sélectionnée via le menu déroulant
+
+            # 2. Comparer la version actuelle avec la version sélectionnée
+            if current_version != selected_version:
+                print(f"{casque.name} {casque.numero}: Installation nécessaire {current_version} -> {selected_version}")
+                self.install_apk(casque)
+            else:
+                print(f"{casque.name} {casque.numero}: Aucune installation nécessaire. Version actuelle {current_version}")
+
+            # 3. Lancer la vérification du fichier JSON dans un thread séparé
+            thread = Thread(target=self.wait_for_json_and_push_solutions, args=(casque,))
+            thread.start()
+
         except Exception as e:
-            self.app.handle_exception("Erreur lors del'installation des APKs et des solutions", e)
+            self.app.handle_exception("Erreur lors de l'installation des APKs et des solutions", e)
+
+    def wait_for_json_and_push_solutions(self, casque):
+        try:
+            # 3.1 Attendre que le fichier JSON soit disponible, avec un maximum de 3 essais
+            #print(f"Attente du fichier JSON pour le casque {casque.numero}...")
+            max_attempts = 3
+            attempt = 0
+            time.sleep(10)
+            while attempt < max_attempts:
+                time.sleep(15)  # Attendre 10 secondes avant de vérifier à nouveau
+                self.refresh_json(casque)  # Rafraîchir le JSON
+                if casque.JSON_path != 'Fichier JSON inexistant':
+                    #print(f"Fichier JSON trouvé : {casque.JSON_path}")
+                    break
+                attempt += 1
+                #print(f"Tentative {attempt}/{max_attempts} pour trouver le fichier JSON.")
+
+            # Si après 3 tentatives le fichier JSON est toujours inexistant
+            if casque.JSON_path == 'Fichier JSON inexistant':
+                raise FileNotFoundError(f"{casque.name} {casque.numero}: Fichier JSON introuvable pour le casque {casque.numero} après {max_attempts} tentatives.")
+
+            # 4. Téléverser les solutions
+            self.push_solutions(casque)
+            print(f"Solutions téléversées sur le casque {casque.numero}.")
+
+        except Exception as e:
+            self.app.handle_exception("Erreur lors de l'attente du fichier JSON ou du téléversement des solutions", e)
+
+
 
     def open_solution_manager(self, casque):
         # Renommer la fenêtre
@@ -50,17 +91,17 @@ class UI_Back:
 
         for solution in casque.solutions_casque:
             in_library = casque.is_solution_in_library(solution)  # Stocker le résultat
-            print(f"Résultat de is_solution_in_library: {in_library}")
+            #print(f"Résultat de is_solution_in_library: {in_library}")
 
             if solution.sol_install_on_casque:
                 solution_list.insert(tk.END, f"{solution.nom} ({solution.version})\n", "install_on_casque")
             elif in_library:
                 solution_list.insert(tk.END, f"{solution.nom} ({solution.version})\n", "in_library")
-                print(f"in library")
+                #print(f"in library")
             else:
-                print(f"casque.is_solution_in_library(solution): {in_library}")
+                #print(f"casque.is_solution_in_library(solution): {in_library}")
                 solution_list.insert(tk.END, f"{solution.nom} ({solution.version})\n")
-                print(f"not in library")
+                #print(f"not in library")
                 
         # Configurer la couleur du texte pour les solutions installées sur le casque
         solution_list.tag_config("install_on_casque", foreground="green")
@@ -86,14 +127,17 @@ class UI_Back:
     def track_devices(self, stop_event):
         while not stop_event.is_set():
             try:
-                while(1) :
-                    self.casques.refresh_casques()
-                    self.biblio.refresh_biblio()
-                    if self.app.running:  # Vérifiez si l'application est toujours en cours d'exécution
-                        self.app.ui_front.afficher_casques()
-                    time.sleep(2.5)
+                self.casques.refresh_casques()
+                self.biblio.refresh_biblio()
+                if self.app.running:  # Vérifiez si l'application est toujours en cours d'exécution
+                    self.app.ui_front.afficher_casques()
+                time.sleep(2.5)
             except Exception as e:
-                self.app.handle_exception("Erreur lors de l'actualisation des casques", e)
+                if self.app.running:
+                    self.app.handle_exception("Erreur lors de l'actualisation des casques", e)
+                else:
+                    break
+
 
     def download_banque_solutions(self):
         try:
@@ -111,10 +155,10 @@ class UI_Back:
         Thread(target=casque.uninstall_APK).start()
 
     def start_apk(self, casque):
-        Thread(target=adbtools.start_application(self.config.adb_exe_path, casque.numero, self.config.package_name)).start()
+        Thread(target=casque.open_apk()).start()
         
     def close_apk(self, casque):
-        Thread(target=adbtools.stop_application(self.config.adb_exe_path, casque.numero, self.config.package_name)).start()
+        Thread(target=casque.close_apk()).start()
         
     def push_solutions(self, casque):
         Thread(target=casque.push_solutions).start()

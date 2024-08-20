@@ -136,7 +136,6 @@ class UI_Front:
         header = tk.Frame(self.scrollable_frame, bg="white")
         header.pack(fill="x")
 
-        tk.Label(header, text="#", width=3, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Batt", width=4, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="ID", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Name", width=7, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
@@ -145,11 +144,11 @@ class UI_Front:
         tk.Label(header, text="Wi-Fi", width=15, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="JSON", width=7, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Code", width=5, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Entreprise", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Entreprise", width=21, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Solution associé", width=18, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Solution installé", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Barre de téléchar.", width=14, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Info supplémentaire", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Solution installé", width=19, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Barre de téléch.", width=12, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="+ d'infos", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
 
     def create_solution_buttons(self):
         """
@@ -275,9 +274,8 @@ class UI_Front:
         item_frame = tk.Frame(self.scrollable_frame, bg="white")
         item_frame.pack(fill="x")
 
-        tk.Label(item_frame, text=index, width=3, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         battery_text = f"{casque.battery_level}%"
-        tk.Label(item_frame, text=battery_text, width=7, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=battery_text, width=4, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         tk.Label(item_frame, text=casque.numero, width=20, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.name, width=7, anchor="center", bg="white", fg="blue", font=("Helvetica", 10)).pack(side="left")
@@ -289,7 +287,12 @@ class UI_Front:
         install_button.pack(side="left", padx=0)
         uninstall_button = tk.Button(version_frame, text="✗", width=1, fg="red", command=lambda c=casque: self.app.ui_back.uninstall_apk(c), bg="white")
         uninstall_button.pack(side="left", padx=0)
-        tk.Label(version_frame, text=casque.version_apk, width=4, anchor="center", bg="white",  font=("Helvetica", 10)).pack(side="left", padx=(5, 5))
+
+        # Vérifiez s'il y a une APK installée et définissez la couleur du texte
+        apk_text = casque.version_apk if casque.version_apk else "✗"
+        apk_color = "dark orange" if apk_text == "✗" else "black"
+        tk.Label(version_frame, text=apk_text, width=4, anchor="center", bg="white", fg=apk_color, font=("Helvetica", 10)).pack(side="left", padx=(5, 5))
+
         open_button = tk.Button(version_frame, text="open", width=4, fg="green", command=lambda c=casque: self.app.ui_back.start_apk(c), bg="white")
         open_button.pack(side="left", padx=0)
         close_button = tk.Button(version_frame, text="✗", width=1, fg="red", command=lambda c=casque: self.app.ui_back.close_apk(c), bg="white")
@@ -297,22 +300,19 @@ class UI_Front:
 
         # Vérifier l'état du Wi-Fi
         is_connected, ssid = casque.is_wifi_connected()
-        if is_connected:
-            wifi_status = f"{ssid}"
-            wifi_color = "black"  # Couleur normale si connecté
-        else:
-            wifi_status = "Please Connect to Wifi"
-            wifi_color = "orange"  # Couleur orange si non connecté
+        wifi_status = f"{ssid}" if is_connected else "Please Connect to Wifi"
+        wifi_color = "black" if is_connected else "orange"
         tk.Label(item_frame, text=wifi_status, width=16, anchor="center", bg="white", fg=wifi_color, font=("Helvetica", 10)).pack(side="left")
+        
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
         
         json_frame = tk.Frame(item_frame, bg="white")
         json_frame.pack(side="left", fill="x")
         tk.Label(json_frame, text=json_status, width=2, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
         refresh_button = tk.Button(json_frame, text="⟳", width=2, fg="blue", command=lambda c=casque: self.app.ui_back.refresh_json(c), bg="white")
-        refresh_button.pack(side="left", padx=6)
+        refresh_button.pack(side="left", padx=7)
 
-        tk.Label(item_frame, text=casque.code, width=5, anchor="center", bg="white", fg="blue", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=casque.code, width=4, anchor="center", bg="white", fg="blue", font=("Helvetica", 10)).pack(side="left")
         tk.Label(item_frame, text=casque.getEntreprise(), width=25, anchor="center", bg="white", fg="blue", font=("Helvetica", 10)).pack(side="left")
 
         solutions_casque_text = f"{len(casque.solutions_casque)} solution(s)"
@@ -336,16 +336,18 @@ class UI_Front:
 
         # Ajouter la barre de progression
         progress_var = tk.DoubleVar()
-        progress_bar = ttk.Progressbar(item_frame, orient="horizontal", length=100, mode="determinate", variable=progress_var)
-        progress_bar.pack(side="left", padx=15)
+        progress_bar = ttk.Progressbar(item_frame, orient="horizontal", length=82, mode="determinate", variable=progress_var)
+        progress_bar.pack(side="left", padx=2)
         self.progress_bars[casque.numero] = progress_var
         self.progress_bars[casque.numero].set(casque.download_progress)
 
         # Ajouter les informations supplémentaires
         info_suppl = "PPV1 Installée" if casque.old_apk_installed else ""
-        tk.Label(item_frame, text=info_suppl, width=20, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(item_frame, text=info_suppl, width=15, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
 
         return item_frame
+
+
 
     def update_casque_row(self, index, casque):
         """
@@ -354,51 +356,52 @@ class UI_Front:
         item_frame = self.widget_cache[casque.numero]
         widgets = item_frame.winfo_children()
 
-        # Update index, numéro, modèle, version_apk, JSON status, solutions count
-        widgets[0].config(text=index)
+        # Update numéro, modèle, version_apk, JSON status, solutions count
         battery_text = f"{casque.battery_level}%"
-        widgets[1].config(text=battery_text)
+        widgets[0].config(text=battery_text)
 
-        widgets[2].config(text=casque.numero)
-        widgets[3].config(text=casque.name)
-        widgets[4].config(text=casque.modele)
+        widgets[1].config(text=casque.numero)
+        widgets[2].config(text=casque.name)
+        widgets[3].config(text=casque.modele)
 
         # Update version_frame children
-        version_frame = widgets[5]
+        version_frame = widgets[4]
         version_widgets = version_frame.winfo_children()
-        version_widgets[2].config(text=casque.version_apk)  # version_apk label
+
+        # Définir la couleur en fonction de la présence de l'APK
+        apk_text = casque.version_apk if casque.version_apk else "✗"
+        apk_color = "dark orange" if apk_text == "✗" else "black"
+        version_widgets[2].config(text=apk_text, fg=apk_color)  # version_apk label
 
         # Update Wi-Fi status
         is_connected, ssid = casque.is_wifi_connected()
-        if is_connected:
-            wifi_status = f"{ssid}"
-            wifi_color = "black"  # Couleur normale si connecté
-        else:
-            wifi_status = "Please connect to Wifi"
-            wifi_color = "orange"  # Couleur orange si non connecté
-        widgets[6].config(text=wifi_status, fg=wifi_color)  # Wi-Fi status
+        wifi_status = f"{ssid}" if is_connected else "Please connect to Wifi"
+        wifi_color = "black" if is_connected else "orange"
+        widgets[5].config(text=wifi_status, fg=wifi_color)  # Wi-Fi status
 
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
         
-        json_frame = widgets[7]
+        json_frame = widgets[6]
         json_widgets = json_frame.winfo_children()
         json_widgets[0].config(text=json_status)  # JSON status
 
-        widgets[8].config(text=casque.code)  # code
-        widgets[9].config(text=casque.getEntreprise())  # entreprise
+        widgets[7].config(text=casque.code)  # code
+        widgets[8].config(text=casque.getEntreprise())  # entreprise
 
         solutions_casque_text = f"{len(casque.solutions_casque)} solution(s)"
-        widgets[10].config(text=solutions_casque_text)  # solutions count
+        widgets[9].config(text=solutions_casque_text)  # solutions count
 
         solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
-        widgets[12].config(text=solutions_install_text)  # solutions install count
+        widgets[11].config(text=solutions_install_text)  # solutions install count
 
         # Mettre à jour la barre de progression
         self.progress_bars[casque.numero].set(casque.download_progress)
 
         # Mettre à jour les informations supplémentaires
         info_suppl = "App PPV1 Installée" if casque.old_apk_installed else ""
-        widgets[14].config(text=info_suppl)  # info supplémentaire
+        widgets[13].config(text=info_suppl)  # info supplémentaire
+
+
 
     def update_progress_bars(self):
         """

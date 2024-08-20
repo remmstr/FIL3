@@ -36,10 +36,16 @@ class FIL_interface:
 
     def start(self):
         try:
+            self.ui_front.root.protocol("WM_DELETE_WINDOW", self.on_closing)
             self.ui_front.root.mainloop()
         finally:
             self.stop_event.set()  # Indiquer aux threads de s'arrêter
             self.tracking_thread.join()  # Attendre la fin des threads
+
+    def on_closing(self):
+        self.running = False
+        self.ui_front.root.destroy()
+
 
     def log_debug(self, message):
         if self.running:

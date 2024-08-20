@@ -42,14 +42,17 @@ def grant_permissions(adb_exe_path, numero, package_name):
                 subprocess.run(full_command, check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
                 # print(f"Permission accordée avec succès : {permission}")
             except subprocess.CalledProcessError as e:
-                print(f"Erreur lors de l'accord de la permission {permission} : {e}")
+                pass
+                #print(f"Erreur lors de l'accord de la permission {permission} : {e}")
         else:
-            print(f"La permission {permission} est déjà accordée.")
+        #    print(f"La permission {permission} est déjà accordée.")
+            pass
 
 def is_device_awake(adb_exe_path, numero):
     try:
         command = [adb_exe_path, "-s", numero, "shell", "dumpsys power | grep 'Display Power'"]
         output = subprocess.check_output(command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode('utf-8')
+        pass
         if 'state=ON' in output:
             return True
     except subprocess.CalledProcessError as e:
