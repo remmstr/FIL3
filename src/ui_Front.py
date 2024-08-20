@@ -314,8 +314,8 @@ class UI_Front:
         uninstall_button.pack(side="left", padx=0)
 
         # Vérifiez s'il y a une APK installée et définissez la couleur du texte
-        apk_text = casque.version_apk if casque.version_apk else "✗"
-        apk_color = "dark orange" if apk_text == "✗" else "black"
+        apk_text = casque.version_apk
+        apk_color = "orange" if apk_text == "X" else "black"
         tk.Label(version_frame, text=apk_text, width=4, anchor="center", bg="white", fg=apk_color, font=("Helvetica", 10)).pack(side="left", padx=(5, 5))
 
         open_button = tk.Button(version_frame, text="open", width=4, fg="green", command=lambda c=casque: self.app.ui_back.start_apk(c), bg="white")
@@ -325,15 +325,18 @@ class UI_Front:
 
         # Vérifier l'état du Wi-Fi
         is_connected, ssid = casque.is_wifi_connected()
-        wifi_status = f"{ssid}" if is_connected else "Please Connect to Wifi"
+        wifi_status = f"{ssid}" if is_connected else "Please Connect Wifi"
         wifi_color = "black" if is_connected else "orange"
         tk.Label(item_frame, text=wifi_status, width=16, anchor="center", bg="white", fg=wifi_color, font=("Helvetica", 10)).pack(side="left")
         
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
         
+        # Définir la couleur de l'indicateur JSON en fonction de l'état de l'APK
+        json_color = "orange" if apk_color == "black" and json_status == "X" else "black"
+
         json_frame = tk.Frame(item_frame, bg="white")
         json_frame.pack(side="left", fill="x")
-        tk.Label(json_frame, text=json_status, width=2, anchor="center", bg="white", font=("Helvetica", 10)).pack(side="left")
+        tk.Label(json_frame, text=json_status, width=2, anchor="center", bg="white", fg=json_color, font=("Helvetica", 10)).pack(side="left")
         refresh_button = tk.Button(json_frame, text="⟳", width=2, fg="blue", command=lambda c=casque: self.app.ui_back.refresh_json(c), bg="white")
         refresh_button.pack(side="left", padx=7)
 
@@ -372,6 +375,7 @@ class UI_Front:
 
         return item_frame
 
+
     def update_casque_row(self, index, casque):
         """
         Met à jour les informations pour un casque dans la table.
@@ -396,8 +400,8 @@ class UI_Front:
         version_widgets = version_frame.winfo_children()
 
         # Définir la couleur en fonction de la présence de l'APK
-        apk_text = casque.version_apk if casque.version_apk else "✗"
-        apk_color = "dark orange" if apk_text == "✗" else "black"
+        apk_text = casque.version_apk
+        apk_color = "orange" if casque.get_installed_apk_version() == "X" else "black"
         version_widgets[2].config(text=apk_text, fg=apk_color)  # version_apk label
 
         # Mettre à jour le statut Wi-Fi
@@ -407,10 +411,13 @@ class UI_Front:
         widgets[5].config(text=wifi_status, fg=wifi_color)  # Wi-Fi status
 
         json_status = "✓" if casque.JSON_path != "Fichier JSON inexistant" else "X"
-        
+
+        # Définir la couleur de l'indicateur JSON en fonction de l'état de l'APK
+        json_color = "orange" if apk_color == "black" and json_status == "X" else "black"
+
         json_frame = widgets[6]
         json_widgets = json_frame.winfo_children()
-        json_widgets[0].config(text=json_status)  # JSON status
+        json_widgets[0].config(text=json_status, fg=json_color)  # JSON status
 
         widgets[7].config(text=casque.code)  # code
         widgets[8].config(text=casque.getEntreprise())  # entreprise
@@ -427,6 +434,7 @@ class UI_Front:
         # Mettre à jour les informations supplémentaires
         info_suppl = "App PPV1 Installée" if casque.old_apk_installed else ""
         widgets[13].config(text=info_suppl)  # info supplémentaire
+
 
     def update_progress_bars(self):
         """
