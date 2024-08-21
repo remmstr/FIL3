@@ -151,15 +151,15 @@ class UI_Front:
 
         tk.Label(header, text="Batt", width=4, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="ID", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Name", width=7, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Name", width=7, anchor="center", bg="white", fg="blue", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Modèle", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="APK", width=20, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Wi-Fi", width=15, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="JSON", width=7, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Code", width=5, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Entreprise", width=21, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Solution associé", width=18, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
-        tk.Label(header, text="Solution installé", width=19, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Code", width=5, anchor="center", bg="white",fg="blue", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Entreprise", width=21, anchor="center", bg="white",fg="blue", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Solution associé", width=18, anchor="center", bg="white",fg="blue", font=("Helvetica", 10, "bold")).pack(side="left")
+        tk.Label(header, text="Solution installé", width=19, anchor="center", bg="white",fg="blue", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="Barre de téléch.", width=12, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
         tk.Label(header, text="+ d'infos", width=10, anchor="center", bg="white", font=("Helvetica", 10, "bold")).pack(side="left")
 
@@ -308,7 +308,7 @@ class UI_Front:
 
         version_frame = tk.Frame(item_frame, bg="white")
         version_frame.pack(side="left", fill="x")
-        install_button = tk.Button(version_frame, text="install", width=4, fg="green", command=lambda c=casque: self.app.ui_back.install_apk(c), bg="white")
+        install_button = tk.Button(version_frame, text="install", width=4, fg="black", command=lambda c=casque: self.app.ui_back.install_apk(c), bg="white")
         install_button.pack(side="left", padx=0)
         uninstall_button = tk.Button(version_frame, text="✗", width=1, fg="red", command=lambda c=casque: self.app.ui_back.uninstall_apk(c), bg="white")
         uninstall_button.pack(side="left", padx=0)
@@ -318,7 +318,7 @@ class UI_Front:
         apk_color = "orange" if apk_text == "X" else "black"
         tk.Label(version_frame, text=apk_text, width=4, anchor="center", bg="white", fg=apk_color, font=("Helvetica", 10)).pack(side="left", padx=(5, 5))
 
-        open_button = tk.Button(version_frame, text="open", width=4, fg="green", command=lambda c=casque: self.app.ui_back.start_apk(c), bg="white")
+        open_button = tk.Button(version_frame, text="open", width=4, fg="black", command=lambda c=casque: self.app.ui_back.start_apk(c), bg="white")
         open_button.pack(side="left", padx=0)
         close_button = tk.Button(version_frame, text="✗", width=1, fg="red", command=lambda c=casque: self.app.ui_back.close_apk(c), bg="white")
         close_button.pack(side="left", padx=2)
@@ -346,13 +346,13 @@ class UI_Front:
         solutions_casque_text = f"{len(casque.solutions_casque)} solution(s)"
         tk.Label(item_frame, text=solutions_casque_text, width=9, anchor="w", bg="white", fg="blue", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
 
-        install_solutions_button = tk.Button(item_frame, text="--> Push", width=0, fg="green", command=lambda c=casque: self.app.ui_back.push_solutions(c), bg="white")
+        install_solutions_button = tk.Button(item_frame, text="--> Push", width=0, fg="black", command=lambda c=casque: self.app.ui_back.push_solutions(c), bg="white")
         install_solutions_button.pack(side="left", padx=0)
 
         solutions_install_text = f"{len(casque.getListSolInstall())} solution(s)"
         tk.Label(item_frame, text=solutions_install_text, width=9, anchor="w", bg="white", fg="blue", font=("Helvetica", 10)).pack(side="left", padx=(5, 0))
         
-        pull_button = tk.Button(item_frame, text="Pull", width=3, fg="green", command=lambda c=casque: self.app.ui_back.pull_solutions(c), bg="white")
+        pull_button = tk.Button(item_frame, text="Pull", width=3, fg="black", command=lambda c=casque: self.app.ui_back.pull_solutions(c), bg="white")
         pull_button.pack(side="left", padx=0)
 
         gestion_image = Image.open(self.config.img_path_icon_setting)
@@ -502,7 +502,7 @@ class UI_Front:
         Met à jour l'indicateur de statut de connexion.
         """
         connected = self.check_connection()
-        status_text = "Connection PPV2 ●" if connected else "Erreur connection PPV2 ●"
+        status_text = "Connection PPV2 ●" if connected else "Succès connexion plateforme Web ●"
         color = "green" if connected else "red"
         self.connection_status_label.config(text=status_text, fg=color)
         self.root.after(5000, self.update_connection_status)  # Vérifier à nouveau toutes les 5 secondes
