@@ -370,17 +370,19 @@ class Casque:
         Reconstitue les répertoires des solutions installées sur le casque en les transférant vers le PC.
         """
         for solution in self.solutions_casque:
-            print(f"{self.name} {self.numero}: Checking solution: {solution.nom}")
+            #print(f"{self.name} {self.numero}: Checking solution: {solution.nom}")
             if solution.sol_install_on_casque:
-                print(f"{self.name} {self.numero}:  -> Solution is installed on casque: {solution.nom}")
+                #print(f"{self.name} {self.numero}:  -> Solution is installed on casque: {solution.nom}")
                 if not self.is_solution_in_library(solution):
-                    print(f"{self.name} {self.numero}:  -> Solution not in library, pulling solution: {solution.nom}")
+                    #print(f"{self.name} {self.numero}:  -> Solution not in library, pulling solution: {solution.nom}")
                     self.pull_solution_sans_progress(solution)
                     self.biblio.refresh_biblio()
                 else:
-                    print(f"{self.name} {self.numero}:  -> Solution already in library: {solution.nom}")
+                    #print(f"{self.name} {self.numero}:  -> Solution already in library: {solution.nom}")
+                    pass
             else:
-                print(f"{self.name} {self.numero}:  -> Solution not installed on casque: {solution.nom}")
+                #print(f"{self.name} {self.numero}:  -> Solution not installed on casque: {solution.nom}")
+                pass
 
     def pull_solution_sans_progress(self, solution):
         """
@@ -548,7 +550,7 @@ class Casque:
                     return
 
         if attempt < max_attempts:
-            print(f"{self.name} {self.numero}: L'APK a été installée avec succès.")
+            pass
         else:
             print(f"{self.name} {self.numero}: Impossible d'installer l'APK après {max_attempts} tentatives.")
 

@@ -55,6 +55,7 @@ class CasquesManager(metaclass=SingletonMeta):
         new_casques = []
 
         for device in devices:
+            numero = None  # Initialisation avec une valeur par défaut
             try:
                 # Obtenir le numéro de série du device
                 numero = device.get_serial_no().strip()
@@ -70,11 +71,15 @@ class CasquesManager(metaclass=SingletonMeta):
                     nouveau_casque.refresh_casque(device, self.apk_folder)
                     new_casques.append(nouveau_casque)
             except Exception as e:
-                print(f"Erreur lors de l'ajout du casque {device} (numéro de série: {numero}) : {e}")
-                #print(traceback.format_exc())
+                if numero:
+                    print(f"Erreur lors de l'ajout du casque {device} (numéro de série: {numero}) : {e}")
+                else:
+                    print(f"Erreur lors de l'ajout du casque {device} : {e}")
+                # print(traceback.format_exc())
 
         # Remplacer la liste des casques par la nouvelle liste mise à jour
         self.liste_casques = new_casques
+
 
     def is_device_online(self, device):
         """
