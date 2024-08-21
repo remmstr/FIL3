@@ -283,6 +283,8 @@ class Casque:
                 solution_from_bibli = self.biblio.is_sol_in_library(solution)
                 if solution_from_bibli != False:
                     self.push_solution_with_progress(solution, solution_from_bibli)
+                else:
+                    print(f"{self.name} {self.numero}: Push impossible car n'est pas disponible dans la bibliothèque, veuillez le télécharger manuellement dans le casque via l'apk{solution}")
 
     def push_solution_with_progress(self, solution_json_casque, solution_biblio):
         """
@@ -527,32 +529,36 @@ class Casque:
         Note:
             Cette méthode tente d'installer une APK jusqu'à trois fois en cas d'échec.
         """
-        max_attempts = 3
-        attempt = 0
-        
-        while attempt < max_attempts:
-            try:
-                adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
-                subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
-                print(f"{self.name} {self.numero}: Installation de l'APK réussie.")
-                
-                adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
-                adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
-                adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
-                break  # Sortir de la boucle si l'installation réussit
+        if self.version_apk != "X" :
+            max_attempts = 3
+            attempt = 0
             
-            except subprocess.CalledProcessError as e:
-                attempt += 1
+            while attempt < max_attempts:
+                try:
+                    adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
+                    subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+                    print(f"{self.name} {self.numero}: Installation de l'APK réussie.")
+                    
+                    adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
+                    adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
+                    adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
+                    break  # Sortir de la boucle si l'installation réussit
+                
+                except subprocess.CalledProcessError as e:
+                    attempt += 1
 
-                if attempt < max_attempts:
-                    self.uninstall_APK()
-                else:
-                    return
+                    if attempt < max_attempts:
+                        print(f"{self.name} {self.numero}: Difficulté a l'installation, suppression de l'ancienne application avant d'essayer d'installer de nouveau, essai n° {attempt}")
+                        self.uninstall_APK()
+                    else:
+                        return
 
-        if attempt < max_attempts:
-            pass
+            if attempt < max_attempts:
+                pass
+            else:
+                print(f"{self.name} {self.numero}: Impossible d'installer l'APK")
         else:
-            print(f"{self.name} {self.numero}: Impossible d'installer l'APK après {max_attempts} tentatives.")
+            print(f"{self.name} {self.numero}: Aucune APK disponible -> Veuillez ajouter une version d'apk dans le dossier du même nom pour installer une application")
 
     def uninstall_APK(self):
         """

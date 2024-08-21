@@ -48,37 +48,35 @@ class CasquesManager(metaclass=SingletonMeta):
             traceback.print_exc()
             return
 
-        # Création d'un dictionnaire temporaire pour les casques actuels
         current_casques = {casque.numero: casque for casque in self.liste_casques}
-
-        # Liste temporaire pour les nouveaux casques
         new_casques = []
 
         for device in devices:
-            numero = None  # Initialisation avec une valeur par défaut
             try:
-                # Obtenir le numéro de série du device
                 numero = device.get_serial_no().strip()
 
                 if numero in current_casques:
-                    # Si le casque existe déjà, on le met à jour
                     existing_casque = current_casques[numero]
                     existing_casque.refresh_casque(device, self.apk_folder)
                     new_casques.append(existing_casque)
                 else:
-                    # Sinon, on crée un nouveau casque
                     nouveau_casque = Casque()
                     nouveau_casque.refresh_casque(device, self.apk_folder)
                     new_casques.append(nouveau_casque)
-            except Exception as e:
-                if numero:
-                    print(f"Erreur lors de l'ajout du casque {device} (numéro de série: {numero}) : {e}")
+            except RuntimeError as e:
+                # Gestion spécifique pour les erreurs de connexion ou d'autorisation
+                if "device unauthorized" in str(e) or "device offline" in str(e):
+                    message = f"Erreur: le casque avec numéro de série {device.serial} est non autorisé ou hors ligne. Veuillez le rebrancher et vérifier les autorisations."
+                    self.ui.handle_exception(message, e)  # Utilisation de la méthode handle_exception
                 else:
-                    print(f"Erreur lors de l'ajout du casque {device} : {e}")
-                # print(traceback.format_exc())
+                    message = f"Erreur lors de l'ajout du casque {device.serial}"
+                    self.ui.handle_exception(message, e)
+            except Exception as e:
+                message = f"Erreur inconnue lors de l'ajout du casque {device.serial}"
+                self.ui.handle_exception(message, e)
 
-        # Remplacer la liste des casques par la nouvelle liste mise à jour
         self.liste_casques = new_casques
+
 
 
     def is_device_online(self, device):
