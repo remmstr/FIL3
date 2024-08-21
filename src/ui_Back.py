@@ -155,18 +155,6 @@ class UI_Back:
                 else:
                     break
 
-    def download_banque_solutions(self):
-        """
-        Télécharge le dossier 'Banque de solutions' vers un emplacement choisi par l'utilisateur.
-        """
-        try:
-            destination = filedialog.askdirectory()
-            if destination:
-                shutil.copytree(self.app.config.Banque_de_solution_path, os.path.join(destination, "Banque_de_solutions"))
-                self.app.log_debug("Téléchargement du dossier Banque de solutions terminé.")
-        except Exception as e:
-            self.app.handle_exception("Erreur lors du téléchargement de la banque de solutions", e)
-
     def install_apk(self, casque):
         """
         Installe l'APK sur un casque spécifique dans un thread séparé.

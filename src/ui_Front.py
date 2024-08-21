@@ -170,9 +170,6 @@ class UI_Front:
         buttons_frame = tk.Frame(self.root, bg="white")
         buttons_frame.pack(side=tk.TOP, pady=10)
 
-        self.banque_solutions_button = tk.Button(buttons_frame, text="Télécharger Biblio", command=self.app.ui_back.download_banque_solutions, bg="white")
-        self.banque_solutions_button.pack(side=tk.LEFT, padx=5)
-
         # Récupérer le nombre de solutions dans la bibliothèque
         num_solutions = len(self.biblio.liste_solutions)
         
@@ -502,7 +499,7 @@ class UI_Front:
         Met à jour l'indicateur de statut de connexion.
         """
         connected = self.check_connection()
-        status_text = "Connection PPV2 ●" if connected else "Succès connexion plateforme Web ●"
+        status_text = "Succès connexion plateforme Web ●" if connected else "Echec connexion plateforme Web ●"
         color = "green" if connected else "red"
         self.connection_status_label.config(text=status_text, fg=color)
         self.root.after(5000, self.update_connection_status)  # Vérifier à nouveau toutes les 5 secondes
