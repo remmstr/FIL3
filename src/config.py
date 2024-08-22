@@ -32,14 +32,13 @@ class Config(metaclass=SingletonMeta):
         self.package_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto"
         self.local_archivage_path = self.config_path("./Archivage")
         self.upload_casque_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/Downloaded"
-        self.upload_path = self.config_path("./Banque_de_solutions/upload")
-        self.Banque_de_solution_path = "./Banque_de_solutions"
+        self.Bibliothèque_de_solution_path = "./Bibliothèque_de_solution"
         self.APK_path = self.config_path("./APK")
         self.img_path = self.config_path("resources/images")
         self.img_path_menu = self.config_path("resources/images/image.png")
         self.img_path_icon_setting = self.config_path("resources/images/parametres.png")
 
-        self.ensure_directory_exists(self.Banque_de_solution_path)
+        self.ensure_directory_exists(self.Bibliothèque_de_solution_path)
         self.ensure_directory_exists(self.APK_path)
 
     def safe_string(self, nom):

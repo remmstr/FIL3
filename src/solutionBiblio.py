@@ -24,7 +24,7 @@ class SolutionBiblio(Solution):
         for subdir, media_files in zip(subdirs, media_directories):
             for file in media_files:
                 # Construire le chemin complet du fichier en incluant le sous-dossier
-                file_path = os.path.join(self.config.Banque_de_solution_path, self.config.safe_string(self.nom), subdir, file)
+                file_path = os.path.join(self.config.Bibliothèque_de_solution_path, self.config.safe_string(self.nom), subdir, file)
                 if os.path.exists(file_path):
                     total_size += os.path.getsize(file_path)
                 else:

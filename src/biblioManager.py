@@ -33,7 +33,7 @@ class BiblioManager(metaclass=SingletonMeta):
             list: La liste des solutions disponibles dans la bibliothèque.
         """
         self.liste_solutions.clear()  # Vide la liste avant de la rafraîchir
-        solution_base_dir = self.config.Banque_de_solution_path
+        solution_base_dir = self.config.Bibliothèque_de_solution_path
 
         # Parcours de chaque dossier de solution dans la bibliothèque
         for solution_name in os.listdir(solution_base_dir):
@@ -95,7 +95,7 @@ class BiblioManager(metaclass=SingletonMeta):
         Rafraîchit la liste des solutions dans la bibliothèque si un ajout ou une suppression est détecté.
         """
         # Lire tous les éléments dans le dossier bibliothèque
-        solution_base_path = self.config.Banque_de_solution_path
+        solution_base_path = self.config.Bibliothèque_de_solution_path
         name_sols_in_folder = set(os.listdir(solution_base_path))
 
         # Mettre à jour les solutions existantes et ajouter de nouvelles solutions

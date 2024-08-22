@@ -276,15 +276,30 @@ class Casque:
         """
         Transfère les solutions disponibles dans la bibliothèque vers le casque.
         """
-        
+        if not self.solutions_casque:
+            print(f"{self.name} {self.numero}: Aucune solution n'est associée au casque, rien n'est à push (téléverser) sur le casque.")
+            return
+
+        if not self.JSON_path or self.JSON_path == "Fichier JSON inexistant":
+            print(f"{self.name} {self.numero}: Aucun fichier JSON détecté, cela est nécessaire. Veuillez vérifier la connexion du casque ou cliquer sur le bouton 'Rafraîchir fichier JSON'.")
+            return
+
+        solutions_pushed = False
+
         print(f"{self.name} {self.numero}: push_solutions")
         for solution in self.solutions_casque:
             if not solution.sol_install_on_casque:
                 solution_from_bibli = self.biblio.is_sol_in_library(solution)
-                if solution_from_bibli != False:
+                if solution_from_bibli:
                     self.push_solution_with_progress(solution, solution_from_bibli)
+                    solutions_pushed = True
                 else:
-                    print(f"{self.name} {self.numero}: Push impossible car n'est pas disponible dans la bibliothèque, veuillez le télécharger manuellement dans le casque via l'apk{solution}")
+                    print(f"{self.name} {self.numero}: Push impossible car la solution '{solution.nom}' n'est pas disponible dans la bibliothèque, veuillez la télécharger manuellement sur le casque via l'APK.")
+
+        if not solutions_pushed:
+            print(f"{self.name} {self.numero}: Toutes les solutions sont déjà installées ou ne sont pas disponibles dans la bibliothèque.")
+
+
 
     def push_solution_with_progress(self, solution_json_casque, solution_biblio):
         """
@@ -296,7 +311,7 @@ class Casque:
         """
         safe_solution_name = self.config.safe_string(solution_json_casque.nom)
         print(f"{self.name} {self.numero}: {safe_solution_name}")
-        solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
+        solution_dir = os.path.join(self.config.Bibliothèque_de_solution_path, safe_solution_name)
         print(f"{self.name} {self.numero}: solution_dir {solution_dir}")
 
         print(solution_biblio.size)
@@ -343,7 +358,7 @@ class Casque:
         """
         safe_solution_name = self.config.safe_string(solution.nom)
 
-        solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
+        solution_dir = os.path.join(self.config.Bibliothèque_de_solution_path, safe_solution_name)
 
         if os.path.exists(solution_dir):
             subdirs = ["image", "image360", "sound", "srt", "video"]
@@ -371,20 +386,21 @@ class Casque:
         """
         Reconstitue les répertoires des solutions installées sur le casque en les transférant vers le PC.
         """
+        solutions_to_pull = 0
+
         for solution in self.solutions_casque:
-            #print(f"{self.name} {self.numero}: Checking solution: {solution.nom}")
+            # Vérifie si la solution est installée sur le casque
             if solution.sol_install_on_casque:
-                #print(f"{self.name} {self.numero}:  -> Solution is installed on casque: {solution.nom}")
+                # Si la solution n'est pas encore dans la bibliothèque, la "pull"
                 if not self.is_solution_in_library(solution):
-                    #print(f"{self.name} {self.numero}:  -> Solution not in library, pulling solution: {solution.nom}")
                     self.pull_solution_sans_progress(solution)
                     self.biblio.refresh_biblio()
-                else:
-                    #print(f"{self.name} {self.numero}:  -> Solution already in library: {solution.nom}")
-                    pass
-            else:
-                #print(f"{self.name} {self.numero}:  -> Solution not installed on casque: {solution.nom}")
-                pass
+                    solutions_to_pull += 1
+
+        # Si aucune solution n'a été "pullée", afficher un message
+        if solutions_to_pull == 0:
+            print(f"{self.name} {self.numero}: Aucune solution à 'pull'(prélever) du casque à la bibliothque, car pas de solution téléchargé dans le casque.")
+
 
     def pull_solution_sans_progress(self, solution):
         """
@@ -395,7 +411,7 @@ class Casque:
         """
         try:
             safe_solution_name = self.config.safe_string(solution.nom)
-            solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
+            solution_dir = os.path.join(self.config.Bibliothèque_de_solution_path, safe_solution_name)
             print(f"{self.name} {self.numero}: Creating directory for solution: {solution_dir}")
 
             if not os.path.exists(solution_dir):
@@ -409,7 +425,7 @@ class Casque:
                     print(f"Subdirectory created: {target_dir}")
 
                     media_files = getattr(solution, subdir, [])
-                    print(f"Media files in {subdir}: {media_files}")
+                    #print(f"Media files in {subdir}: {media_files}")
 
                     for media_file in media_files:
                         try:
@@ -434,7 +450,7 @@ class Casque:
         """
         try:
             safe_solution_name = self.config.safe_string(solution.nom)
-            solution_dir = os.path.join(self.config.Banque_de_solution_path, safe_solution_name)
+            solution_dir = os.path.join(self.config.Bibliothèque_de_solution_path, safe_solution_name)
             print(f"{self.name} {self.numero}: Creating directory for solution: {solution_dir}")
 
             if not os.path.exists(solution_dir):
@@ -529,7 +545,7 @@ class Casque:
         Note:
             Cette méthode tente d'installer une APK jusqu'à trois fois en cas d'échec.
         """
-        if self.version_apk != "X" :
+        if self.marque.version_apk != "" :
             max_attempts = 3
             attempt = 0
             
@@ -537,7 +553,7 @@ class Casque:
                 try:
                     adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
                     subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
-                    print(f"{self.name} {self.numero}: Installation de l'APK réussie.")
+                    print(f"{self.name} {self.numero}: Installation de l'APK {self.marque.version_apk} réussie.")
                     
                     adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
                     adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
