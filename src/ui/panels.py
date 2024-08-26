@@ -9,7 +9,7 @@ from customtkinter import (
 
 # Internal modules
 from core.logger import ApplicationLog, CTkLoggingHandler
-from ui.widgets import PanelTemplate, TextStream, ButtonHeader, TabButton
+from ui.widgets import PanelTemplate,TextStream, ButtonHeader, TabButton
 
 #~~~~~ PANELS ~~~~~#
 
@@ -59,9 +59,8 @@ class GestionDesCasques(PanelTemplate):
         self.content_frame = CTkFrame(self)
         self.content_frame.pack(expand=True, fill="both", padx=10, pady=10)
 
-        # Exemple d'ajout d'un label pour indiquer une section
-        self.label_example = CTkLabel(self.content_frame, text="Informations sur les casques", font=("Helvetica", 16))
-        self.label_example.pack(pady=(10, 5))
+        self.selectbox = CTkOptionMenu(self.header.button_frame, values=['Log1', 'Log2', 'Log3'])
+        self.selectbox.pack(anchor='e', side='left', padx=4)
 
         # Cadre pour la liste des casques
         self.casques_frame = CTkFrame(self.content_frame)
@@ -76,19 +75,7 @@ class GestionDesCasques(PanelTemplate):
         self.add_casque("Casque 3", "Modèle C", "60%")
         self.add_casque("Casque 1", "Modèle A", "100%")
         self.add_casque("Casque 2", "Modèle B", "80%")
-        self.add_casque("Casque 3", "Modèle C", "60%")
-        self.add_casque("Casque 1", "Modèle A", "100%")
-        self.add_casque("Casque 2", "Modèle B", "80%")
-        self.add_casque("Casque 3", "Modèle C", "60%")
-        self.add_casque("Casque 1", "Modèle A", "100%")
-        self.add_casque("Casque 2", "Modèle B", "80%")
-        self.add_casque("Casque 3", "Modèle C", "60%")
-        self.add_casque("Casque 1", "Modèle A", "100%")
-        self.add_casque("Casque 2", "Modèle B", "80%")
-        self.add_casque("Casque 3", "Modèle C", "60%")
-        self.add_casque("Casque 1", "Modèle A", "100%")
-        self.add_casque("Casque 2", "Modèle B", "80%")
-        self.add_casque("Casque 3", "Modèle C", "60%")
+
         
 
     def add_casque(self, name, model, battery):

@@ -184,6 +184,7 @@ class PanelTemplate(CTkFrame):
         self.header = PanelHeader(self, title=title, fg_color=self._fg_color)
         self.header.pack(anchor='nw', fill='x', side='top', padx=10, pady=8)
 
+
 class PanelHeader(CTkFrame):
     """
     Create a header for a panel.
@@ -588,26 +589,37 @@ class CasqueWidget(CTkFrame):
     """
     def __init__(self, parent, name, model, battery, **kwargs):
         super().__init__(parent, **kwargs)
-        self.configure(fg_color="#D6D9DC", corner_radius=10)  # Configure the appearance
+        self.configure(fg_color="#9AA7B8", corner_radius=10)  # Configure the appearance
 
-        # Affichage des informations du casque
-        self.name_label = CTkLabel(self, text=name, width=150, anchor="w")
-        self.name_label.pack(side="left", padx=10, pady=5)
+        # Création d'un cadre pour les titres de colonnes
+        titles_frame = CTkFrame(self, fg_color="#E0E0E0")
+        titles_frame.pack(fill="x", padx=10, pady=5)
 
-        self.model_label = CTkLabel(self, text=model, width=100, anchor="w")
-        self.model_label.pack(side="left", padx=10, pady=5)
+        # Ajout des titres de colonnes
+        CTkLabel(titles_frame, text="Batterie", width=60, anchor="w", font=("Helvetica", 10, "bold")).pack(side="left", padx=10)
+        CTkLabel(titles_frame, text="APK", width=100, anchor="w", font=("Helvetica", 10, "bold")).pack(side="left", padx=10)
+        CTkLabel(titles_frame, text="Solution Associée", width=150, anchor="w", font=("Helvetica", 10, "bold")).pack(side="left", padx=10)
+        CTkLabel(titles_frame, text="Code", width=100, anchor="w", font=("Helvetica", 10, "bold")).pack(side="left", padx=10)
+        CTkLabel(titles_frame, text="+ d'info", width=100, anchor="w", font=("Helvetica", 10, "bold")).pack(side="left", padx=10)
 
-        self.battery_label = CTkLabel(self, text=f"Batterie: {battery}", width=60, anchor="w")
-        self.battery_label.pack(side="left", padx=10, pady=5)
+        # Affichage des informations du casque sous les titres
+        data_frame = CTkFrame(self, fg_color="#FFFFFF")
+        data_frame.pack(fill="x", padx=10, pady=5)
+
+        CTkLabel(data_frame, text=f"Batterie: {battery}", width=60, anchor="w").pack(side="left", padx=10, pady=5)
+        CTkLabel(data_frame, text=f"APK", width=100, anchor="w").pack(side="left", padx=10, pady=5)
+        CTkLabel(data_frame, text=f"Solution Associée", width=150, anchor="w").pack(side="left", padx=10, pady=5)
+        CTkLabel(data_frame, text=f"Code", width=100, anchor="w").pack(side="left", padx=10, pady=5)
+        CTkLabel(data_frame, text=f"+ d'info", width=100, anchor="w").pack(side="left", padx=10, pady=5)
 
         # Boutons pour interagir avec le casque
-        self.open_button = CTkButton(self, text="Ouvrir", command=self.open_casque, width=80)
+        self.open_button = CTkButton(data_frame, text="Ouvrir", command=self.open_casque, width=80)
         self.open_button.pack(side="left", padx=5)
 
-        self.close_button = CTkButton(self, text="Fermer", command=self.close_casque, width=80)
+        self.close_button = CTkButton(data_frame, text="Fermer", command=self.close_casque, width=80)
         self.close_button.pack(side="left", padx=5)
 
-        self.refresh_button = CTkButton(self, text="Rafraîchir", command=self.refresh_casque, width=80)
+        self.refresh_button = CTkButton(data_frame, text="Rafraîchir", command=self.refresh_casque, width=80)
         self.refresh_button.pack(side="left", padx=5)
 
     def open_casque(self):
@@ -618,3 +630,23 @@ class CasqueWidget(CTkFrame):
 
     def refresh_casque(self):
         print(f"Rafraîchissement du {self.name_label.cget('text')}")
+
+    def update_casque(self, casque):
+        """
+        Met à jour les informations d'une ligne de casque existante.
+
+        Args:
+            casque: L'objet Casque contenant les informations mises à jour.
+        """
+        item_frame = self.widget_cache[casque.numero]
+        widgets = item_frame.winfo_children()
+
+        # Mettre à jour les informations comme dans votre code original...
+        battery_text = f"{casque.battery_level}%"
+        widgets[0].config(text=battery_text)
+
+        # Mettre à jour la barre de progression
+        self.progress_bars[casque.numero].set(casque.download_progress)
+
+
+

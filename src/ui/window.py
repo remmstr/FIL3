@@ -48,7 +48,7 @@ class MainWindow(CTk):
         self.main_frame.pack(anchor='nw', expand=True, fill='both', side='left', padx=6, pady=8)
 
         # Set the layouts and tabs
-        self.layout_home = GestionDesCasques(self.main_frame, '')
+        self.layout_home = GestionDesCasques(self.main_frame, 'Liste des casques')
         self.sidebar.add_tab(self.layout_home, name='Gestion des casques', icon='home')
 
         self.layout_console = LogConsole(self.main_frame, 'Logs') # Calling the widget to link it to the main_frame
