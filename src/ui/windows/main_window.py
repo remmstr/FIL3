@@ -1,26 +1,41 @@
 # Built-in modules
 import logging
 from typing import Tuple
-from tkinter import PhotoImage
 
 # Requirements modules
 from customtkinter import (
     CTk,
-    CTkFrame,
-    CTkLabel,
-    CTkProgressBar
+    CTkFrame
 )
 
 # Internal modules
-from core.config            import ApplicationInfo
-from ui.widgets             import Sidebar, PopupWindow
-from ui.panels              import LogConsole
-from ui.panels              import GestionDesCasques
+from core.config import WindowSettings
+from ui.widgets import Sidebar
+from ui.panels import LogConsole
 
-#~~~~~ MAIN ~~~~~#
 
 class MainWindow(CTk):
+    """
+    Main window of the application
+    
+    Examples
+    --------
+    For launching the GUI, we need to start the main loop of Tkinter. This is done directly within this class:
+    >>> app = MainWindow()
+    >>> app.mainloop()
+
+    This is needed before opening child windows, as Tkinter can't work on UI object without the main loop.
+    """
+
     def __init__(self, win_size: Tuple[int, int] = (1366, 768)):
+        """
+        Initialize the main window
+
+        Parameters
+        ----------
+        win_size : `Tuple[int, int]`, optional
+            Set the window size, by default is `(1333, 768)`
+        """
         # Set instance logger
         self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
         self.log.info('Initializing main window')
@@ -30,13 +45,21 @@ class MainWindow(CTk):
 
         # Initialize inherited class
         super().__init__()
-        self.title(ApplicationInfo.title)
+        self.title(WindowSettings.title)
         self.geometry(f'+{self.center_coordinates[0]}+{self.center_coordinates[1]}') # Center the window to the screen
-        self.minsize(win_size[0], win_size[1])
-        #self.iconphoto(False, PhotoImage(file=str(ApplicationInfo.icon))) # Use this to set the icon on the taskbar of the OS.
-        
-        # Set control bindings when app is exiting
+        self.minsize(self.win_size[0], self.win_size[1])
+
+        # Set the main icons of the application
+        if WindowSettings.win_icon is not None:
+            self.iconbitmap(WindowSettings.win_icon)
+        if WindowSettings.taskbar_icon is not None:
+            from tkinter import PhotoImage
+            self.iconphoto(True, PhotoImage(file=WindowSettings.taskbar_icon))
+
+        # Change protocol when window is closed
         self.protocol('WM_DELETE_WINDOW', self.quit)
+
+        # Add Ctrl+Q bind to close app
         self.bind('<Control-q>', self.quit)
 
         # Set the sidebar for the tabs
@@ -48,16 +71,16 @@ class MainWindow(CTk):
         self.main_frame.pack(anchor='nw', expand=True, fill='both', side='left', padx=6, pady=8)
 
         # Set the layouts and tabs
-        self.layout_home = GestionDesCasques(self.main_frame, 'Liste des casques')
-        self.sidebar.add_tab(self.layout_home, name='Gestion des casques', icon='home')
-
         self.layout_console = LogConsole(self.main_frame, 'Logs') # Calling the widget to link it to the main_frame
-        self.sidebar.add_tab(self.layout_console, name='Logs', icon='terminal', default=True) # Using the add_tab function to load it into the sidebar, and voilà!
+        self.sidebar.add_tab(self.layout_console, tab_name='Logs', icon_name='terminal', default=True) # Using the add_tab function to load it into the sidebar, and voilà!
 
         self.layout_setting = CTkFrame(self.main_frame, fg_color=('#CCD7E0', '#313B47'))
-        self.sidebar.add_tab(self.layout_setting, name='Settings', icon='settings')
+        self.sidebar.add_tab(self.layout_setting, tab_name='Settings', icon_name='settings')
 
-    def quit(self, *args):
+    def quit(self):
+        """
+        Custom function when the app is closed.
+        """
         self.destroy()
 
     @property
@@ -66,7 +89,6 @@ class MainWindow(CTk):
         Return the coordinates `[x, y]` for centering the window on the screen.
         For tkinter, we use the top-left position for setting the window.
         """
-
         pos_topleft = [
             int(round((self.screensize[0]/2) - (self.win_size[0]/2), 1)),
             int(round((self.screensize[1]/2) - (self.win_size[1]/2), 1)),
@@ -76,25 +98,7 @@ class MainWindow(CTk):
 
     @property
     def screensize(self):
-        """Return the resolution size `[x, y]` of the screen."""
+        """
+        Return the resolution size `[x, y]` of the screen.
+        """
         return [self.winfo_screenwidth(), self.winfo_screenheight()]
-
-#~~~~~ POP-UP ~~~~~#
-
-class LoadingPopup(PopupWindow):
-    """
-    Simple little window that show a loading bar.
-    Just a little boilerplate, nothing finished.
-    """
-
-    def __init__(self, text: str, *args, **kw):
-        # Initialize inherited class
-        super().__init__(text, (256, 128), *args, **kw)
-        self.text = text
-
-        self.header = CTkLabel(self, text=text)
-        self.header.pack(pady=20)
-
-        self.progress = CTkProgressBar(self, orient="horizontal", length=100, mode="indeterminate")
-        self.progress.pack(pady=10)
-        self.progress.start()

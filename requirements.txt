@@ -1,10 +1,11 @@
-# requirements.txt
-
+altgraph==0.17.4
 bcrypt==4.1.1
 customtkinter==5.2.1
 darkdetect==0.8.0
 fonttools==4.45.1
+macholib==1.16.3
 packaging==23.2
 Pillow==10.1.0
+pyinstaller==6.10.0
+pyinstaller-hooks-contrib==2024.8
 tkinter-tooltip==3.1.0
-

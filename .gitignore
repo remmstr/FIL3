@@ -1,8 +1,12 @@
+# Special cases
+src/device
+
 # MacOS file system
 .DS_Store
 
 # Visual Studio Code files
-*.vs-code
+release/
+*.vscode
 *.code-workspace
 
 # Byte-compiled / optimized / DLL files
@@ -37,7 +41,6 @@ MANIFEST
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
-*.spec
 
 # Installer logs
 pip-log.txt

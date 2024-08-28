@@ -70,17 +70,13 @@ class GestionDesCasques(PanelTemplate):
         self.add_casque("Casque 1", "Modèle A", "100%")
         self.add_casque("Casque 2", "Modèle B", "80%")
         self.add_casque("Casque 3", "Modèle C", "60%")
-        self.add_casque("Casque 1", "Modèle A", "100%")
-        self.add_casque("Casque 2", "Modèle B", "80%")
-        self.add_casque("Casque 3", "Modèle C", "60%")
-        self.add_casque("Casque 1", "Modèle A", "100%")
-        self.add_casque("Casque 2", "Modèle B", "80%")
 
-        
+        # Créer une instance de CasqueWidget avec les informations du casque
+        casque_widget = CasqueWidget(self.casques_frame, name, model, battery)
 
-    def add_casque(self, name, model, battery):
+    def add_casque(self, casque_widget, casque):
         """
         Ajoute un widget de casque dans la liste des casques.
         """
-        casque_widget = CasqueWidget(self.casques_frame, name, model, battery)
+
         casque_widget.pack(fill="x", pady=5)

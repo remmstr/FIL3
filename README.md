@@ -18,20 +18,20 @@ source venv/bin/activate
 ```
 Sur Windows :
 ```sh
-venv\Scripts\activate
+.\venv\Scripts\activate
 ```
 
 #### 3. Installer les dépendances
 Installez les dépendances requises à partir du fichier requirements.txt :
 
 ```sh
-pip install -r config/requirements.txt
+pip install -r requirements.txt
 ```
 
 #### 4. Exécuter le projet
 Une fois les dépendances installées, vous pouvez exécuter le projet comme suit :
 ```sh
-python src/FIL_interface.py
+./src/__main__.py  
 ```
 Si il y a une erreur sur le lancement du serveur adb (sur mac), cela peut être du à une absence d'autorisation
 ```sh
@@ -51,7 +51,7 @@ deactivate
 
 ## Création du fichier exécutable sur mac et windows
 ```sh
-python -m PyInstaller config/FIL3.spec
+python -m PyInstaller FIL3.spec
 ```
 
 ## Diagramme de classes
