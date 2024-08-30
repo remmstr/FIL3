@@ -118,3 +118,4 @@ class ButtonHeader(CTkButton):
         # Set the tooltip if the parameter is used
         if tooltip is not None:
             ToolTip(self, msg=tooltip)
+

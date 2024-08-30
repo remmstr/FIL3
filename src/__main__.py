@@ -38,7 +38,7 @@ def main():
     # Loading ressources
     FontLibrary("res/fonts")
     IconLibrary("res/icons")
-    # ImageLibrary("res/images")
+    ImageLibrary("res/images")
 
     # Launch the application
     app_window = MainWindow()
