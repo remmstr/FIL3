@@ -71,6 +71,7 @@ class PanelHeader(CTkFrame):
         # Set the title of the header
         self.title = CTkLabel(self, text=title, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 18), anchor='w')
         self.title.pack(anchor='w', expand=True, side='left', fill='x', padx=2)
+        
 
         # Set the frame for holding the different buttons
         self.widgets_frame = CTkFrame(self, height=1, fg_color='transparent')

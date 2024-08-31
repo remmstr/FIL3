@@ -116,10 +116,8 @@ class TableOfCasques(CTkFrame):
         self.tabs[tab_name].pack(anchor='ne', side='top', expand=True, fill='x', padx=6, pady=3)
 
 
-    
 
-
-class Line(CTkLabel):
+class Line(CTkFrame):
     """
     Custom button for the tabs in the sidebar
     """
@@ -145,7 +143,7 @@ class Line(CTkLabel):
         # Initialize inherited class
         super().__init__(parent)
         self.configure(
-            text=tab_name,
+            #text=tab_name,
             #font=FontLibrary.get_font_tkinter('Inter 18pt', 'SemiBold', 14),
             #image=IconLibrary.get_icon_tkinter(icon_name, size=(20, 20)),
             #fg_color='transparent',
@@ -153,8 +151,67 @@ class Line(CTkLabel):
             #border_width=0,
             #border_spacing=6,
             #width=24,
-            anchor='w'
+            #anchor='w'
         )
+
+        # Adding header
+
+        
+        self.a = CTkFrame(self, height=1, fg_color='transparent')
+        self.a.pack(anchor='w', side='left')
+        self.title = CTkLabel(self.a, text=tab_name, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 18), anchor='w')
+        self.title.pack(anchor='w', expand=True, side='left', fill='x', padx=2)
+
+        self.widgets_frame = CTkFrame(self, height=1, fg_color='transparent')
+        self.widgets_frame.pack(anchor='w', side='left')
+        self.button_clear = ButtonLine(self.widgets_frame, tooltip='Clear console', icon_name='eraser')
+        self.button_clear.pack(anchor='e', side='left')
 
         # Initialize instance variable
         self.tab_name = tab_name
+
+
+
+
+class ButtonLine(CTkButton):
+    """
+    Template for a button that can be set in a panel header.\n
+    It's best to keep the same shape of button (text or icon only) for keeping a good layout.
+    """
+    def __init__(self, parent, text: str | None = None, tooltip: str | None = None, icon_name: str = 'home', icon_size: int = 16, **kwargs):
+        """
+        Create a new button.
+        To be set inside a PanelHeader.
+
+        Parameters
+        ----------
+        parent : `Any`
+            The parent widget to be set.
+        text : `str`, optional
+            Set the name of the button, by default is `None`.
+        tooltip : `str`, optional
+            Set the text helper that can be shown when hovering the button, by default is `None`.
+        icon_name : `str`, optional
+            Set the icon to display. Use the name of the file without the extension, by default is `home`.
+        icon_size : `int`, optional
+            Set the size of the icon, by default is `16`.
+        """
+        # Reduce the width of the widget to the icon size if there is no text. Else return the width
+        if text is None:
+            width = icon_size + 4
+        else:
+            width = kwargs.pop('width') | 140
+
+        # Initialize inherited class
+        super().__init__(
+            master=parent,
+            text=text,
+            image=IconLibrary.get_icon_tkinter(icon_name, size=(icon_size, icon_size)),
+            width=width,
+            **kwargs
+            )
+
+        # Set the tooltip if the parameter is used
+        if tooltip is not None:
+            ToolTip(self, msg=tooltip)
+

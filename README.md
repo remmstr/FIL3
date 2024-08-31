@@ -31,7 +31,7 @@ pip install -r requirements.txt
 #### 4. Exécuter le projet
 Une fois les dépendances installées, vous pouvez exécuter le projet comme suit :
 ```sh
-./src/__main__.py  
+python3 ./src/__main__.py  
 ```
 Si il y a une erreur sur le lancement du serveur adb (sur mac), cela peut être du à une absence d'autorisation
 ```sh
