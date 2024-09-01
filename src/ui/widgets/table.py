@@ -1,5 +1,5 @@
 # Internal modules
-from core.resource import FontLibrary, IconLibrary
+from core.resource import FontLibrary, IconLibrary, ImageLibrary
 
 # Requirements modules
 from tktooltip import ToolTip
@@ -102,7 +102,7 @@ class TableOfCasques(CTkFrame):
         # Set the title of the header
 
         self.tabs.update({tab_name: Line(self.menu, tab_name, icon_name)})
-        self.tabs[tab_name].pack(anchor='ne', side='top', expand=True, fill='x', padx=6, pady=3)
+        self.tabs[tab_name].pack(anchor='ne', side='top', expand=True, fill='x', padx=1, pady=1)
 
 
 
@@ -143,27 +143,32 @@ class Line(CTkFrame):
             #anchor='w'
         )
 
-        # Adding header
-        self.info_casque1 = CTkFrame(self, height=1, fg_color='transparent')
+        
+        #self.image_casque = CTkFrame(self, fg_color='transparent')
+        #self.image_casque.pack(anchor='w', side='left', padx=8)
+        #self.title = CTkLabel(self.image_casque, image='noname' )
+        #self.title.pack(anchor='w', expand=True, side='top', fill='x', padx=2)
+
+        self.info_casque1 = CTkFrame(self, fg_color='transparent')
         self.info_casque1.pack(anchor='w', side='left', padx=8)
-        self.title = CTkLabel(self.info_casque1, text="ID : dqfgscdvhjbdbzvqcegsv", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.title = CTkLabel(self.info_casque1, text="ID : dqfgscdvhjbdbzvqcegsv", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title.pack(anchor='w', expand=True, side='top', fill='x', padx=2)
-        self.title = CTkLabel(self.info_casque1, text="Pico PG2", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.title = CTkLabel(self.info_casque1, text="Pico PG2", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title.pack(anchor='w', expand=True, side='top', fill='x', padx=2)
 
-        self.title = CTkLabel(self.info_casque1, text="Batt: 90%   ", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.title = CTkLabel(self.info_casque1, text="Batt: 90%   ", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title.pack(anchor='w', side='left', padx=4)
-        self.title = CTkLabel(self.info_casque1, text="Wifi: Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.title = CTkLabel(self.info_casque1, text="Wifi: Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title.pack(anchor='w', side='right', padx=4)
 
         
-        self.info_casque3 = CTkFrame(self, height=1, fg_color='transparent')
+        self.info_casque3 = CTkFrame(self, fg_color='transparent')
         self.info_casque3.pack(anchor='w', side='left', padx=8)
         self.button_clear = ButtonLine(self.info_casque3, tooltip='install app', icon_name='upload')
         self.button_clear.pack(anchor='e', side='left')
         self.button_clear = ButtonLine(self.info_casque3, tooltip='uninstall app', icon_name='close')
         self.button_clear.pack(anchor='e', side='left')
-        self.title = CTkLabel(self.info_casque3, text="APK : 9.8.0", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.title = CTkLabel(self.info_casque3, text="APK : 9.8.0", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title.pack(anchor='w', expand=True, side='left', fill='y', padx=8)
         self.button_clear = ButtonLine(self.info_casque3, tooltip='close app', icon_name='close')
         self.button_clear.pack(anchor='w', side='right')
@@ -171,33 +176,34 @@ class Line(CTkFrame):
         self.button_clear.pack(anchor='w', side='right')
         
 
-        
-        
-
-        self.info_serveur_case = CTkFrame(self, height=1,width=1, fg_color='transparent',border_width=2)
-        self.info_serveur_case.pack(anchor='w', side='top', padx=8)
+        self.info_serveur_case = CTkFrame(self, fg_color='transparent',border_width=2)
+        self.info_serveur_case.pack(anchor='w', side='top', padx=8, ipady=4, pady=6, ipadx=2)
         self.info_serveur = CTkFrame(self.info_serveur_case, height=1,width=1, fg_color='transparent')
         self.info_serveur.pack(anchor='w', side='left', padx=8)
 
         self.button_clear = ButtonLine(self.info_serveur, text="Info serveur", tooltip='synchronosation_serveur', icon_name='refresh')
-        self.button_clear.pack(anchor='e', side='top')
-        self.title = CTkLabel(self.info_serveur, text="Code : 1234", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='w')
-        self.title.pack(anchor='w', side='bottom', fill='x', padx=2, ipady=0)
-        self.title = CTkLabel(self.info_serveur, text="Entreprise associés : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='w')
-        self.title.pack(anchor='w', side='bottom', fill='x', padx=2, ipady=0)
-        self.title = CTkLabel(self.info_serveur, text="Tokens associés : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='w')
-        self.title.pack(anchor='w', side='bottom', fill='x', padx=2, ipady=0)
+        self.button_clear.pack(anchor='w', side='top', pady=2)
+        
+        self.title = CTkLabel(self.info_serveur, text="Entreprise associés : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title.pack(anchor='w', side='bottom', fill='both', padx=2, ipady=0, pady=0)
+        self.title = CTkLabel(self.info_serveur, text="Tokens associés : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title.pack(anchor='n', side='bottom', fill='both', padx=2, ipady=0, pady=0)
 
-        self.info_serveur2 = CTkFrame(self.info_serveur_case, height=1,width=1, fg_color='transparent')
+        self.info_serveur2 = CTkFrame(self.info_serveur_case, fg_color='transparent')
         self.info_serveur2.pack(anchor='w', side='right', padx=8)
-        self.title = CTkLabel(self.info_serveur2, text="Solution", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
-        self.title.pack(anchor='w', expand=True, side='right', fill='x', padx=2, pady=0)
+        self.title = CTkLabel(self.info_serveur2, text="Code association : 1234", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='ne')
+        self.title.pack(anchor='ne', side='top', fill='both', padx=3, )
+        self.button_clear = ButtonLine(self.info_serveur2, tooltip='copier expéri. du casque dans la biblio', icon_name='pull')
+        self.button_clear.pack(anchor='n', side='right')
+        self.title = CTkLabel(self.info_serveur2, text="'n' expériences installées", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title.pack(anchor='n', expand=True, side='right', fill='x', padx=3, pady=0)
         self.button_clear = ButtonLine(self.info_serveur2, tooltip='push solutions disponible', icon_name='right')
-        self.button_clear.pack(anchor='w', side='right')
-        self.title = CTkLabel(self.info_serveur2, text="Solution téléversé", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
-        self.title.pack(anchor='w', expand=True, side='right', fill='x', padx=2, pady=0)
-        self.button_clear = ButtonLine(self.info_serveur2, tooltip='setting solution(s)', icon_name='settings')
-        self.button_clear.pack(anchor='w', side='right',padx=2)
+        self.button_clear.pack(anchor='n', side='right')
+        self.title = CTkLabel(self.info_serveur2, text="'n' expériennces disponible", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title.pack(anchor='n', expand=True, side='right', fill='x', padx=3, pady=0)
+        self.button_clear = ButtonLine(self.info_serveur2, tooltip='setting solution(s)', icon_name='visible')
+        self.button_clear.pack(anchor='n', side='right',padx=2)
+
 
         # Initialize instance variable
         self.tab_name = tab_name

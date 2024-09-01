@@ -4,11 +4,13 @@ from ui.utils import CTkLoggingHandler
 from ui.widgets.panel import ButtonHeader, PanelTemplate
 from ui.widgets.table import TableOfCasques
 from ui.panels import LogConsole
+from core.resource import FontLibrary, IconLibrary
 
 # Requirements modules
 from customtkinter import (
     CTkOptionMenu,
-    CTkFrame
+    CTkFrame,
+    CTkLabel
 )
 
 # Built-in modules
@@ -23,6 +25,12 @@ class Home(PanelTemplate):
             title=title,
             fg_color=('#CCD7E0', '#313B47')
         )
+
+        self.description_apk = CTkLabel(self.header.widgets_frame, text="Version de l'apk : ", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.description_apk.pack(anchor='n', expand=True, side='left', fill='x', padx=3)
+
+        self.selectbox_apk = CTkOptionMenu(self.header.widgets_frame, values=['Log1', 'Log2', 'Log3'])
+        self.selectbox_apk.pack(anchor='e', side='left', padx=4)
 
         self.main_frame = CTkFrame(self, fg_color=('#E7EBEF', '#293138'), corner_radius=4)
         self.main_frame.pack(anchor='nw', expand=True, fill='both', side='top', padx=6, pady=8)
