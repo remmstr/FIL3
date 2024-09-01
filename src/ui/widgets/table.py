@@ -6,6 +6,7 @@ from tktooltip import ToolTip
 from customtkinter import (
     CTkButton,
     CTkFrame,
+    CTkScrollableFrame,
     CTkLabel
     )
 
@@ -43,17 +44,16 @@ class TableOfCasques(CTkFrame):
         # Initialize instance variable
         self.tabs = {}
         self.selected = None
-
+        insertwidth=0 # To avoid seeing the caret in the textbox
 
         # Set the frame for the tab list of casques
-        self.menu = CTkFrame(self)
+        self.menu = CTkScrollableFrame(self)
         self.menu.configure(fg_color='transparent', corner_radius=0)
-        self.menu.pack(side='top', fill='both')
+        # Configuration de l'épaisseur de la scrollbar
+        self.menu._scrollbar.configure(width=32)  # Ajustez ici la largeur de la scrollbar
+        
+        self.menu.pack(expand=True, side='top', fill='both')
 
-        # Set the frame for the footer
-        self.footer = CTkFrame(self)
-        self.footer.configure(fg_color='transparent', corner_radius=0)
-        self.footer.pack(side='bottom', fill='both')
 
     def set_header(self, title: str | None = None, image_name: str | None = None):
         """
@@ -82,17 +82,6 @@ class TableOfCasques(CTkFrame):
             corner_radius=0
             )
 
-    def show_header(self):
-        """
-        Shows the header containing the brand
-        """
-        self.header.pack(side='top', fill='both')
-
-    def hide_header(self):
-        """
-        Hides the header containing the brand
-        """
-        self.header.pack_forget()
 
     def add_line(self, tab_name: str, icon_name: str, default: bool = False):
         """
@@ -155,17 +144,60 @@ class Line(CTkFrame):
         )
 
         # Adding header
+        self.info_casque1 = CTkFrame(self, height=1, fg_color='transparent')
+        self.info_casque1.pack(anchor='w', side='left', padx=8)
+        self.title = CTkLabel(self.info_casque1, text="ID : dqfgscdvhjbdbzvqcegsv", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.title.pack(anchor='w', expand=True, side='top', fill='x', padx=2)
+        self.title = CTkLabel(self.info_casque1, text="Pico PG2", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.title.pack(anchor='w', expand=True, side='top', fill='x', padx=2)
+
+        self.title = CTkLabel(self.info_casque1, text="Batt: 90%   ", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.title.pack(anchor='w', side='left', padx=4)
+        self.title = CTkLabel(self.info_casque1, text="Wifi: Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.title.pack(anchor='w', side='right', padx=4)
 
         
-        self.a = CTkFrame(self, height=1, fg_color='transparent')
-        self.a.pack(anchor='w', side='left')
-        self.title = CTkLabel(self.a, text=tab_name, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 18), anchor='w')
-        self.title.pack(anchor='w', expand=True, side='left', fill='x', padx=2)
-
-        self.widgets_frame = CTkFrame(self, height=1, fg_color='transparent')
-        self.widgets_frame.pack(anchor='w', side='left')
-        self.button_clear = ButtonLine(self.widgets_frame, tooltip='Clear console', icon_name='eraser')
+        self.info_casque3 = CTkFrame(self, height=1, fg_color='transparent')
+        self.info_casque3.pack(anchor='w', side='left', padx=8)
+        self.button_clear = ButtonLine(self.info_casque3, tooltip='install app', icon_name='upload')
         self.button_clear.pack(anchor='e', side='left')
+        self.button_clear = ButtonLine(self.info_casque3, tooltip='uninstall app', icon_name='close')
+        self.button_clear.pack(anchor='e', side='left')
+        self.title = CTkLabel(self.info_casque3, text="APK : 9.8.0", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.title.pack(anchor='w', expand=True, side='left', fill='y', padx=8)
+        self.button_clear = ButtonLine(self.info_casque3, tooltip='close app', icon_name='close')
+        self.button_clear.pack(anchor='w', side='right')
+        self.button_clear = ButtonLine(self.info_casque3, tooltip='open', icon_name='visible')
+        self.button_clear.pack(anchor='w', side='right')
+        
+
+        
+        
+
+        self.info_serveur_case = CTkFrame(self, height=1,width=1, fg_color='transparent',border_width=2)
+        self.info_serveur_case.pack(anchor='w', side='top', padx=8)
+        self.info_serveur = CTkFrame(self.info_serveur_case, height=1,width=1, fg_color='transparent')
+        self.info_serveur.pack(anchor='w', side='left', padx=8)
+
+        self.button_clear = ButtonLine(self.info_serveur, text="Info serveur", tooltip='synchronosation_serveur', icon_name='refresh')
+        self.button_clear.pack(anchor='e', side='top')
+        self.title = CTkLabel(self.info_serveur, text="Code : 1234", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='w')
+        self.title.pack(anchor='w', side='bottom', fill='x', padx=2, ipady=0)
+        self.title = CTkLabel(self.info_serveur, text="Entreprise associés : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='w')
+        self.title.pack(anchor='w', side='bottom', fill='x', padx=2, ipady=0)
+        self.title = CTkLabel(self.info_serveur, text="Tokens associés : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='w')
+        self.title.pack(anchor='w', side='bottom', fill='x', padx=2, ipady=0)
+
+        self.info_serveur2 = CTkFrame(self.info_serveur_case, height=1,width=1, fg_color='transparent')
+        self.info_serveur2.pack(anchor='w', side='right', padx=8)
+        self.title = CTkLabel(self.info_serveur2, text="Solution", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.title.pack(anchor='w', expand=True, side='right', fill='x', padx=2, pady=0)
+        self.button_clear = ButtonLine(self.info_serveur2, tooltip='push solutions disponible', icon_name='right')
+        self.button_clear.pack(anchor='w', side='right')
+        self.title = CTkLabel(self.info_serveur2, text="Solution téléversé", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.title.pack(anchor='w', expand=True, side='right', fill='x', padx=2, pady=0)
+        self.button_clear = ButtonLine(self.info_serveur2, tooltip='setting solution(s)', icon_name='settings')
+        self.button_clear.pack(anchor='w', side='right',padx=2)
 
         # Initialize instance variable
         self.tab_name = tab_name
@@ -200,7 +232,7 @@ class ButtonLine(CTkButton):
         if text is None:
             width = icon_size + 4
         else:
-            width = kwargs.pop('width') | 140
+            width = kwargs.pop('width', 140) 
 
         # Initialize inherited class
         super().__init__(

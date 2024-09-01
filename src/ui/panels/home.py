@@ -29,7 +29,7 @@ class Home(PanelTemplate):
 
         # Set the Table for the list of casques
         self.TableOfCasques = TableOfCasques(self.main_frame)
-        self.TableOfCasques.pack(anchor='nw', side='top', fill='both', padx=4, pady=8)
+        self.TableOfCasques.pack( expand=True, side='top', fill='both', padx=4, pady=8)
 
         # Create a separate frame for the console at the bottom
         self.console_frame = CTkFrame(self.main_frame, fg_color=('#E7EBEF', '#293138'), corner_radius=4)
