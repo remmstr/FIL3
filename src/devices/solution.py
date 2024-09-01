@@ -1,3 +1,6 @@
+# Built-in modules
+import logging
+
 class Solution:
     """
     ATTENTION : dans les objets solutionCasque le nom de l'attribut n'est pas passé par la fonction safe, 
@@ -25,6 +28,8 @@ class Solution:
         self.srt = []
         self.video = []
 
+        self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
+
     def size(self):
         pass
 
@@ -33,40 +38,40 @@ class Solution:
         """
         Affiche les détails principaux de la solution.
         """
-        print(f"Solution: {self.nom}")
-        print(f"  Version: {self.version}")
-        print(f"  Size: {self.size}")
+        self.log.info(f"Solution: {self.nom}")
+        self.log.info(f"  Version: {self.version}")
+        self.log.info(f"  Size: {self.size}")
         
     def print(self):
         """
         Affiche les détails complet de la solution .
         """
-        print(f"Solution: {self.nom}")
-        print(f"  Version: {self.version}")
-        print(f"  Size: {self.size}")
+        self.log.info(f"Solution: {self.nom}")
+        self.log.info(f"  Version: {self.version}")
+        self.log.info(f"  Size: {self.size}")
 
         
-        print("  Images:")
+        self.log.info("  Images:")
         for img in self.image:
-            print(f"    - {img}")
-        print()
+            self.log.info(f"    - {img}")
+        self.log.info()
         
-        print("  Images360:")
+        self.log.info("  Images360:")
         for img360 in self.image360:
-            print(f"    - {img360}")
-        print()
+            self.log.info(f"    - {img360}")
+        self.log.info()
         
-        print("  Sounds:")
+        self.log.info("  Sounds:")
         for snd in self.sound:
-            print(f"    - {snd}")
-        print()
+            self.log.info(f"    - {snd}")
+        self.log.info()
         
-        print("  Subtitles:")
+        self.log.info("  Subtitles:")
         for subtitle in self.srt:
-            print(f"    - {subtitle}")
-        print()
+            self.log.info(f"    - {subtitle}")
+        self.log.info()
         
-        print("  Videos:")
+        self.log.info("  Videos:")
         for vid in self.video:
-            print(f"    - {vid}")
-        print()
+            self.log.info(f"    - {vid}")
+        self.log.info()

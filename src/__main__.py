@@ -34,7 +34,7 @@ def main():
         taskbar_icon='release/linux/appicon.png',
         theme_file="res/theme.json"
     )
-
+    
     # Loading ressources
     FontLibrary("res/fonts")
     IconLibrary("res/icons")

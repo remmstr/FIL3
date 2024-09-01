@@ -1,6 +1,9 @@
 import os
 import traceback
 
+# Built-in modules
+import logging
+
 class Marque:
     def __init__(self):
         """
@@ -9,6 +12,8 @@ class Marque:
         self.nom = ""
         self.version_apk = ""
         self.APK_path = ""
+
+        self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
 
     def setNom(self, nom: str, apk_folder):
         """
@@ -39,7 +44,7 @@ class Marque:
             
             # Vérifier si le répertoire existe
             if not os.path.exists(apk_directory):
-                print(f"Le répertoire {apk_directory} n'existe pas.")
+                self.log.info(f"Le répertoire {apk_directory} n'existe pas.")
                 return
 
             for file_name in os.listdir(apk_directory):
@@ -53,7 +58,7 @@ class Marque:
                     break
 
         except FileNotFoundError as e:
-            print(f"Erreur: Répertoire ou fichier non trouvé. Détails: {e}")
+            self.log.info(f"Erreur: Répertoire ou fichier non trouvé. Détails: {e}")
         except Exception as e:
-            print(f"Erreur inattendue lors de la sélection de l'APK : {e}")
+            self.log.info(f"Erreur inattendue lors de la sélection de l'APK : {e}")
             traceback.print_exc()

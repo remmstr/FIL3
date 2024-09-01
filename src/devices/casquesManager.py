@@ -6,6 +6,9 @@ from .adbtools import Adbtools
 from .config import Config
 from .singletonMeta import SingletonMeta
 
+# Built-in modules
+import logging
+
 class CasquesManager(metaclass=SingletonMeta):
 
     def __init__(self):
@@ -19,6 +22,7 @@ class CasquesManager(metaclass=SingletonMeta):
         self.liste_casques = []
         self.client = AdbClient(host="127.0.0.1", port=5037)
         self.refresh_casques()
+        self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
 
     def get_liste_casque(self):
         """
@@ -45,7 +49,7 @@ class CasquesManager(metaclass=SingletonMeta):
         try:
             devices = self.client.devices()
         except Exception as e:
-            print(f"Erreur lors de la récupération des appareils : {e}")
+            self.log.info(f"Erreur lors de la récupération des appareils : {e}")
             traceback.print_exc()
             return
 
@@ -101,7 +105,7 @@ class CasquesManager(metaclass=SingletonMeta):
         Affiche les informations de tous les casques gérés.
         """
         for i, casque in enumerate(self.liste_casques, 1):
-            print(f"\nCasque #{i}:")
+            self.log.info(f"\nCasque #{i}:")
             casque.print()
             print("-" * 20)
 
@@ -110,7 +114,7 @@ class CasquesManager(metaclass=SingletonMeta):
         Installe les APK sur tous les casques connectés.
         """
         for i, casque in enumerate(self.liste_casques, 1):
-            print(f"\nCasque #{i}:")
+            self.log.info(f"\nCasque #{i}:")
             casque.install_APK()
             print("-" * 20)
 
@@ -119,7 +123,7 @@ class CasquesManager(metaclass=SingletonMeta):
         Installe les solutions sur tous les casques connectés.
         """
         for i, casque in enumerate(self.liste_casques, 1):
-            print(f"\nCasque #{i}:")
+            self.log.info(f"\nCasque #{i}:")
             casque.add_solution()
             print("-" * 20)
 
@@ -128,7 +132,7 @@ class CasquesManager(metaclass=SingletonMeta):
         Archive les données de tous les casques connectés.
         """
         for i, casque in enumerate(self.liste_casques, 1):
-            print(f"\nCasque #{i}:")
+            self.log.info(f"\nCasque #{i}:")
             casque.archivage_casque()
             print("-" * 20)
 
@@ -137,6 +141,6 @@ class CasquesManager(metaclass=SingletonMeta):
         Partage la configuration Wi-Fi avec tous les casques connectés.
         """
         for i, casque in enumerate(self.liste_casques, 1):
-            print(f"\nCasque #{i}:")
+            self.log.info(f"\nCasque #{i}:")
             casque.share_wifi_to_casque()
             print("-" * 20)

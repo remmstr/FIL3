@@ -5,10 +5,16 @@ import traceback
 import re
 from .singletonMeta import SingletonMeta
 
+# Built-in modules
+import logging
+
 class Config(metaclass=SingletonMeta):
     def __init__(self):
         """Initialise la configuration en définissant les chemins nécessaires."""
+        self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
+
         self.init_paths()
+
 
     def init_paths(self):
         """Initialise les chemins en fonction du système d'exploitation et crée les répertoires requis."""
@@ -23,8 +29,8 @@ class Config(metaclass=SingletonMeta):
         else:
             raise RuntimeError("Unsupported OS")
 
-        print(f"ADB Path: {self.adb_exe_path}")
-        print(f"Platform Tools Path: {self.platform_tools_path}")
+        self.log.info(f"ADB Path: {self.adb_exe_path}")
+        self.log.info(f"Platform Tools Path: {self.platform_tools_path}")
 
         self.json_file_path = "/sdcard/Android/data/com.VRAI_Studio.Reverto/files/hardware.json"
         self.package_name = "com.VRAI_Studio.Reverto"
@@ -85,7 +91,7 @@ class Config(metaclass=SingletonMeta):
         """
         if not os.path.exists(path):
             os.makedirs(path)
-            print(f"Le répertoire {path} a été créé.")
+            self.log.info(f"Le répertoire {path} a été créé.")
 
     def get_apk_version(self, brand_name):
         """
@@ -113,9 +119,9 @@ class Config(metaclass=SingletonMeta):
             return "✗"  # Aucun APK trouvé
 
         except FileNotFoundError as e:
-            print(f"Erreur: Répertoire ou fichier non trouvé. Détails: {e}")
+            self.log.info(f"Erreur: Répertoire ou fichier non trouvé. Détails: {e}")
             return "✗"
         except Exception as e:
-            print(f"Erreur inattendue lors de la sélection de l'APK : {e}")
+            self.log.info(f"Erreur inattendue lors de la sélection de l'APK : {e}")
             traceback.print_exc()
             return "✗"

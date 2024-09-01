@@ -4,10 +4,16 @@ import os
 from .solution import Solution
 from .config import Config
 
+# Built-in modules
+import logging
+
 class SolutionCasque(Solution):
 
     def __init__(self):
         super().__init__()
+
+        self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
+
         self.sol_install_on_casque = False
         self.config = Config()
 
@@ -94,8 +100,8 @@ class SolutionCasque(Solution):
         end_time = time.time()
         execution_time = end_time - start_time
 
-        print(f"VERIFICATION FICHIERS EXISTANTS en {execution_time:.2f}s :")
-        print(f"EXPERIENCE : {self.nom}, INTALL: {self.sol_install_on_casque},{self.size} octets")
+        self.log.info(f"VERIFICATION FICHIERS EXISTANTS en {execution_time:.2f}s :")
+        self.log.info(f"EXPERIENCE : {self.nom}, INTALL: {self.sol_install_on_casque},{self.size} octets")
 
         return self
 
@@ -115,7 +121,7 @@ class SolutionCasque(Solution):
                 try:
                     output = subprocess.check_output(check_file_command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8")
                     if first_file not in output:
-                        print("fichier non trouvé")
+                        self.log.info("fichier non trouvé")
                         return False
                 except subprocess.CalledProcessError:
                     return False
@@ -137,7 +143,7 @@ class SolutionCasque(Solution):
         try:
             output = subprocess.check_output(check_file_command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8")
             if file_path not in output:
-                print(f"Fichier non trouvé : {file_path}")
+                self.log.info(f"Fichier non trouvé : {file_path}")
                 return False
             else:
                 # Extraire la taille du fichier de la sortie de la commande `ls -l`
@@ -145,10 +151,10 @@ class SolutionCasque(Solution):
                     file_size = int(output.split()[4])
                     return file_size
                 except (IndexError, ValueError) as e:
-                    print(f"Erreur lors de la lecture de la taille du fichier {file_path}: {e}")
+                    self.log.info(f"Erreur lors de la lecture de la taille du fichier {file_path}: {e}")
                     return False
         except subprocess.CalledProcessError as e:
-            #print(f"Erreur lors de la vérification du fichier : {file_path}")
+            #self.log.info(f"Erreur lors de la vérification du fichier : {file_path}")
             # Je ne print pas ici car si le fichier n'est pas trouvé on ne souhaite pas affiché une erreur puisque c'est une simple vérification
             return False
 
@@ -227,11 +233,11 @@ class SolutionCasque(Solution):
                             file_size = int(parts[4])
                             total_size += file_size
                         except ValueError:
-                            print(f"Erreur lors de la lecture de la taille du fichier : {line}")
+                            self.log.info(f"Erreur lors de la lecture de la taille du fichier : {line}")
                             return 0  # Return 0 if there's an error reading any file size
             except subprocess.CalledProcessError as e:
-                # print(f"Erreur lors de la vérification du fichier : {file_path}")
-                # Je ne print pas ici car si le fichier n'est pas trouvé on ne souhaite pas affiché une erreur puisque c'est une simple vérification
+                # self.log.info(f"Erreur lors de la vérification du fichier : {file_path}")
+                # Je ne self.log.info pas ici car si le fichier n'est pas trouvé on ne souhaite pas affiché une erreur puisque c'est une simple vérification
                 return 0  # Return 0 if any batch fails
 
         return total_size

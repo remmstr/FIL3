@@ -13,6 +13,9 @@ from .config import Config
 from .adbtools import Adbtools
 from .biblioManager import BiblioManager
 
+# Built-in modules
+import logging
+
 class Casque:
 
     def __init__(self):
@@ -32,6 +35,8 @@ class Casque:
         self.name = ""
         self.entreprise_association = ""
         self.download_progress = 0
+
+        self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
 
         self.adbtools = Adbtools()
         self.config = Config()
@@ -59,21 +64,21 @@ class Casque:
             try:
                 self.numero = self.device.get_serial_no().strip()
             except Exception as e:
-                print(f"{self.name} {self.numero}: Erreur lors de l'obtention du numéro de série : {e}")
+                self.log.info(f"{self.name} {self.numero}: Erreur lors de l'obtention du numéro de série : {e}")
                 traceback.print_exc()
                 self.numero = "Inconnu"
             self.adbtools.wake_up_device(self.config.adb_exe_path, self.numero) 
             try:
                 self.marque.setNom(self.device.shell("getprop ro.product.manufacturer").strip(), apk_folder)
             except Exception as e:
-                print(f"{self.name} {self.numero}: Erreur lors de l'obtention de la marque: {e}")
+                self.log.info(f"{self.name} {self.numero}: Erreur lors de l'obtention de la marque: {e}")
                 traceback.print_exc()
                 self.marque.setNom("Inconnu")
 
             try:
                 self.modele = self.device.shell("getprop ro.product.model").strip()
             except Exception as e:
-                print(f"{self.name} {self.numero}: Erreur lors de l'obtention du modèle: {e}")
+                self.log.info(f"{self.name} {self.numero}: Erreur lors de l'obtention du modèle: {e}")
                 traceback.print_exc()
                 self.modele = "Inconnu"
 
@@ -136,7 +141,7 @@ class Casque:
                     solution_casque = SolutionCasque().from_json_opti(solution_data, self.numero, self.config.upload_casque_path)
                     solutions_casque.append(solution_casque)
             except Exception as e:
-                print(f"{self.name} {self.numero}: Erreur lors du chargement du fichier JSON : {e}")
+                self.log.info(f"{self.name} {self.numero}: Erreur lors du chargement du fichier JSON : {e}")
                 traceback.print_exc()
         return solutions_casque
 
@@ -154,7 +159,7 @@ class Casque:
             if self.config.package_old_name_PPV1 in output:
                 return True
         except subprocess.CalledProcessError as e:
-            print(f"{self.name} {self.numero}: Erreur lors de la vérification de l'ancienne APK : {e}")
+            self.log.info(f"{self.name} {self.numero}: Erreur lors de la vérification de l'ancienne APK : {e}")
         return False
     
     def get_json_file_size(self):
@@ -170,7 +175,7 @@ class Casque:
                 output = subprocess.check_output(command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8").strip()
                 return int(output)
             except subprocess.CalledProcessError as e:
-                print(f"{self.name} {self.numero}: Erreur lors de la récupération de la taille du fichier JSON : {e}")
+                self.log.info(f"{self.name} {self.numero}: Erreur lors de la récupération de la taille du fichier JSON : {e}")
         return 0
     
     def get_installed_apk_version(self):
@@ -193,8 +198,8 @@ class Casque:
                 else:
                     return "X"
             except subprocess.CalledProcessError as e:
-                print(f"{self.name} {self.numero}: Une erreur est survenue lors de l'obtention de la version de l'APK : {e}")
-                print(e.stderr.decode("utf-8"))
+                self.log.info(f"{self.name} {self.numero}: Une erreur est survenue lors de l'obtention de la version de l'APK : {e}")
+                self.log.info(e.stderr.decode("utf-8"))
                 return None
 
     
@@ -267,7 +272,7 @@ class Casque:
         if self.version_apk and self.version_apk != "X":
             self.adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
         else:
-            print(f"{self.name} {self.numero}: L'application n'est pas installée sur le casque {self.numero}.")
+            self.log.info(f"{self.name} {self.numero}: L'application n'est pas installée sur le casque {self.numero}.")
 
     #-----------------------------------------------------
     # PUSH ET PULL SOLUTION
@@ -278,16 +283,16 @@ class Casque:
         Transfère les solutions disponibles dans la bibliothèque vers le casque.
         """
         if not self.solutions_casque:
-            print(f"{self.name} {self.numero}: Aucune solution n'est associée au casque, rien n'est à push (téléverser) sur le casque.")
+            self.log.info(f"{self.name} {self.numero}: Aucune solution n'est associée au casque, rien n'est à push (téléverser) sur le casque.")
             return
 
         if not self.JSON_path or self.JSON_path == "Fichier JSON inexistant":
-            print(f"{self.name} {self.numero}: Aucun fichier JSON détecté, cela est nécessaire. Veuillez vérifier la connexion du casque ou cliquer sur le bouton 'Rafraîchir fichier JSON'.")
+            self.log.info(f"{self.name} {self.numero}: Aucun fichier JSON détecté, cela est nécessaire. Veuillez vérifier la connexion du casque ou cliquer sur le bouton 'Rafraîchir fichier JSON'.")
             return
 
         solutions_pushed = False
 
-        print(f"{self.name} {self.numero}: push_solutions")
+        self.log.info(f"{self.name} {self.numero}: push_solutions")
         for solution in self.solutions_casque:
             if not solution.sol_install_on_casque:
                 solution_from_bibli = self.biblio.is_sol_in_library(solution)
@@ -295,10 +300,10 @@ class Casque:
                     self.push_solution_with_progress(solution, solution_from_bibli)
                     solutions_pushed = True
                 else:
-                    print(f"{self.name} {self.numero}: Push impossible car la solution '{solution.nom}' n'est pas disponible dans la bibliothèque, veuillez la télécharger manuellement sur le casque via l'APK.")
+                    self.log.info(f"{self.name} {self.numero}: Push impossible car la solution '{solution.nom}' n'est pas disponible dans la bibliothèque, veuillez la télécharger manuellement sur le casque via l'APK.")
 
         if not solutions_pushed:
-            print(f"{self.name} {self.numero}: Toutes les solutions sont déjà installées ou ne sont pas disponibles dans la bibliothèque.")
+            self.log.info(f"{self.name} {self.numero}: Toutes les solutions sont déjà installées ou ne sont pas disponibles dans la bibliothèque.")
 
 
 
@@ -311,11 +316,11 @@ class Casque:
             solution_biblio (SolutionBiblio): L'objet SolutionBiblio correspondant dans la bibliothèque.
         """
         safe_solution_name = self.config.safe_string(solution_json_casque.nom)
-        print(f"{self.name} {self.numero}: {safe_solution_name}")
+        self.log.info(f"{self.name} {self.numero}: {safe_solution_name}")
         solution_dir = os.path.join(self.config.Bibliothèque_de_solution_path, safe_solution_name)
-        print(f"{self.name} {self.numero}: solution_dir {solution_dir}")
+        self.log.info(f"{self.name} {self.numero}: solution_dir {solution_dir}")
 
-        print(solution_biblio.size)
+        self.log.info(solution_biblio.size)
         if os.path.exists(solution_dir):
             subdirs = ["image", "image360", "sound", "srt", "video"]
             
@@ -326,7 +331,7 @@ class Casque:
                 nonlocal copied_size
                 copied_size += copied_bytes
                 progress = copied_size / total_size * 100
-                print(f"{self.name} {self.numero}: Progress: {progress:.2f}%")
+                self.log.info(f"{self.name} {self.numero}: Progress: {progress:.2f}%")
                 self.download_progress = progress  # Mise à jour de la progression du téléchargement
 
             for subdir in subdirs:
@@ -342,11 +347,11 @@ class Casque:
                             self.copy_media_file(local_file_path, self.config.upload_casque_path + media_file, solution_json_casque.nom, "push")
                             progress_callback(os.path.getsize(local_file_path))  # Mesure de la taille du fichier envoyé et mise à jour du poids envoyé
                         except Exception as e:
-                            print(f"{self.name} {self.numero}: Erreur lors du téléversement du fichier {local_file_path} pour {solution_json_casque.nom} : {e}")
+                            self.log.info(f"{self.name} {self.numero}: Erreur lors du téléversement du fichier {local_file_path} pour {solution_json_casque.nom} : {e}")
                             return
 
             solution_json_casque.sol_install_on_casque = True
-            print(f"{self.name} {self.numero}: Solution {solution_json_casque.nom} copiée avec succès dans le casque.")
+            self.log.info(f"{self.name} {self.numero}: Solution {solution_json_casque.nom} copiée avec succès dans le casque.")
         else:
             self._log_message(f"{self.name} {self.numero}: Solution directory does not exist for '{solution_json_casque.nom}' in the library")
 
@@ -375,11 +380,11 @@ class Casque:
                         try:
                             self.copy_media_file(local_file_path, self.config.upload_casque_path + media_file, solution.nom, "push")
                         except Exception as e:
-                            print(f"{self.name} {self.numero}: Erreur lors du téléversement du fichier {local_file_path} pour {solution.nom} : {e}")
+                            self.log.info(f"{self.name} {self.numero}: Erreur lors du téléversement du fichier {local_file_path} pour {solution.nom} : {e}")
                             return
 
             solution.sol_install_on_casque = True
-            print(f"{self.name} {self.numero}: Solution {solution.nom} copiée avec succès dans le casque.")
+            self.log.info(f"{self.name} {self.numero}: Solution {solution.nom} copiée avec succès dans le casque.")
         else:
             self._log_message(f"{self.name} {self.numero}: Solution directory does not exist for '{solution.nom}' in the library")
 
@@ -400,7 +405,7 @@ class Casque:
 
         # Si aucune solution n'a été "pullée", afficher un message
         if solutions_to_pull == 0:
-            print(f"{self.name} {self.numero}: Aucune solution à 'pull'(prélever) du casque à la bibliothque, car pas de solution téléchargé dans le casque.")
+            self.log.info(f"{self.name} {self.numero}: Aucune solution à 'pull'(prélever) du casque à la bibliothque, car pas de solution téléchargé dans le casque.")
 
 
     def pull_solution_sans_progress(self, solution):
@@ -413,33 +418,33 @@ class Casque:
         try:
             safe_solution_name = self.config.safe_string(solution.nom)
             solution_dir = os.path.join(self.config.Bibliothèque_de_solution_path, safe_solution_name)
-            print(f"{self.name} {self.numero}: Creating directory for solution: {solution_dir}")
+            self.log.info(f"{self.name} {self.numero}: Creating directory for solution: {solution_dir}")
 
             if not os.path.exists(solution_dir):
                 os.makedirs(solution_dir)
-                print(f"Directory created: {solution_dir}")
+                self.log.info(f"Directory created: {solution_dir}")
 
                 subdirs = ["image", "image360", "sound", "srt", "video"]
                 for subdir in subdirs:
                     target_dir = os.path.join(solution_dir, subdir)
                     os.makedirs(target_dir, exist_ok=True)
-                    print(f"Subdirectory created: {target_dir}")
+                    self.log.info(f"Subdirectory created: {target_dir}")
 
                     media_files = getattr(solution, subdir, [])
-                    #print(f"Media files in {subdir}: {media_files}")
+                    #self.log.info(f"Media files in {subdir}: {media_files}")
 
                     for media_file in media_files:
                         try:
-                            print(f"Copying media file: {media_file} to {target_dir}")
+                            self.log.info(f"Copying media file: {media_file} to {target_dir}")
                             self.copy_media_file(self.config.upload_casque_path + media_file, target_dir, solution.nom, "pull")
                         except Exception as e:
-                            print(f"Erreur lors de la copie du fichier {self.config.upload_casque_path + media_file} pour {solution.nom} : {e}")
+                            self.log.info(f"Erreur lors de la copie du fichier {self.config.upload_casque_path + media_file} pour {solution.nom} : {e}")
                             continue  # Passer au fichier suivant en cas d'erreur
-                print(f"Solution {solution.nom} reconstruite avec succès dans {solution_dir}.")
+                self.log.info(f"Solution {solution.nom} reconstruite avec succès dans {solution_dir}.")
             else:
-                print(f"Directory already exists, skipping: {solution_dir}")
+                self.log.info(f"Directory already exists, skipping: {solution_dir}")
         except Exception as e:
-            print(f"Error occurred while pulling solution {solution.nom}: {e}")
+            self.log.info(f"Error occurred while pulling solution {solution.nom}: {e}")
             traceback.print_exc()
 
     def pull_solution(self, solution):
@@ -452,11 +457,11 @@ class Casque:
         try:
             safe_solution_name = self.config.safe_string(solution.nom)
             solution_dir = os.path.join(self.config.Bibliothèque_de_solution_path, safe_solution_name)
-            print(f"{self.name} {self.numero}: Creating directory for solution: {solution_dir}")
+            self.log.info(f"{self.name} {self.numero}: Creating directory for solution: {solution_dir}")
 
             if not os.path.exists(solution_dir):
                 os.makedirs(solution_dir)
-                print(f"Directory created: {solution_dir}")
+                self.log.info(f"Directory created: {solution_dir}")
 
                 subdirs = ["image", "image360", "sound", "srt", "video"]
                 
@@ -468,31 +473,31 @@ class Casque:
                     nonlocal copied_size
                     copied_size += copied_bytes
                     progress = copied_size / total_size * 100
-                    print(f"Progress: {progress:.2f}%")
+                    self.log.info(f"Progress: {progress:.2f}%")
                     self.download_progress = progress  # Mise à jour de la progression du téléchargement
 
                 for subdir in subdirs:
                     target_dir = os.path.join(solution_dir, subdir)
                     os.makedirs(target_dir, exist_ok=True)
-                    print(f"Subdirectory created: {target_dir}")
+                    self.log.info(f"Subdirectory created: {target_dir}")
 
                     media_files = getattr(solution, subdir, [])
-                    print(f"Media files in {subdir}: {media_files}")
+                    self.log.info(f"Media files in {subdir}: {media_files}")
 
                     for media_file in media_files:
-                        print(f"Copying media file: {self.config.upload_casque_path + media_file} to {target_dir}")
+                        self.log.info(f"Copying media file: {self.config.upload_casque_path + media_file} to {target_dir}")
                         try:
                             progress_callback(os.path.getsize(self.config.upload_casque_path + media_file))  # Mise à jour de la taille copiée
                             self.copy_media_file(self.config.upload_casque_path + media_file, target_dir, solution.nom, "pull")
                         except Exception as e:
-                            print(f"Erreur lors de la copie du fichier {self.config.upload_casque_path + media_file} pour {solution.nom} : {e}")
+                            self.log.info(f"Erreur lors de la copie du fichier {self.config.upload_casque_path + media_file} pour {solution.nom} : {e}")
                             continue  # Passer au fichier suivant en cas d'erreur
 
-                print(f"Solution {solution.nom} reconstruite avec succès dans {solution_dir}.")
+                self.log.info(f"Solution {solution.nom} reconstruite avec succès dans {solution_dir}.")
             else:
-                print(f"Directory already exists, skipping: {solution_dir}")
+                self.log.info(f"Directory already exists, skipping: {solution_dir}")
         except Exception as e:
-            print(f"Error occurred while pulling solution {solution.nom}: {e}")
+            self.log.info(f"Error occurred while pulling solution {solution.nom}: {e}")
             traceback.print_exc()
 
     def calculate_total_files_and_size(self, solution_dir):
@@ -533,7 +538,7 @@ class Casque:
         try:
             result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, direction, source_dir, target_dir], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
         except subprocess.CalledProcessError as e:
-            print(f"{self.name} {self.numero}: Erreur lors du téléversement du fichier {source_dir} pour {solution_name} : {e}")
+            self.log.info(f"{self.name} {self.numero}: Erreur lors du téléversement du fichier {source_dir} pour {solution_name} : {e}")
 
     #-----------------------------------------------------
     # APK 
@@ -554,7 +559,7 @@ class Casque:
                 try:
                     self.adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
                     subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
-                    print(f"{self.name} {self.numero}: Installation de l'APK {self.marque.version_apk} réussie.")
+                    self.log.info(f"{self.name} {self.numero}: Installation de l'APK {self.marque.version_apk} réussie.")
                     
                     self.adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
                     self.adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
@@ -565,7 +570,7 @@ class Casque:
                     attempt += 1
 
                     if attempt < max_attempts:
-                        print(f"{self.name} {self.numero}: Difficulté a l'installation, suppression de l'ancienne application avant d'essayer d'installer de nouveau, essai n° {attempt}")
+                        self.log.info(f"{self.name} {self.numero}: Difficulté a l'installation, suppression de l'ancienne application avant d'essayer d'installer de nouveau, essai n° {attempt}")
                         self.uninstall_APK()
                     else:
                         return
@@ -573,9 +578,9 @@ class Casque:
             if attempt < max_attempts:
                 pass
             else:
-                print(f"{self.name} {self.numero}: Impossible d'installer l'APK")
+                self.log.info(f"{self.name} {self.numero}: Impossible d'installer l'APK")
         else:
-            print(f"{self.name} {self.numero}: Aucune APK disponible -> Veuillez ajouter une version d'apk dans le dossier du même nom pour installer une application")
+            self.log.info(f"{self.name} {self.numero}: Aucune APK disponible -> Veuillez ajouter une version d'apk dans le dossier du même nom pour installer une application")
 
     def uninstall_APK(self):
         """
@@ -584,14 +589,14 @@ class Casque:
         if self.version_apk != 'X':
             try:
                 subprocess.run([self.config.adb_exe_path, "-s", self.numero, "uninstall", self.config.package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
-                print(f"{self.name} {self.numero}: Désinstallation de l'APK réussie.")
+                self.log.info(f"{self.name} {self.numero}: Désinstallation de l'APK réussie.")
             except subprocess.CalledProcessError as e:
                 if "Unknown package" in str(e):
-                    print(f"{self.name} {self.numero}: L'application n'était pas installée.")
+                    self.log.info(f"{self.name} {self.numero}: L'application n'était pas installée.")
                 else:
-                    print(f"{self.name} {self.numero}: Une erreur est survenue lors de la désinstallation de l'APK : {e}")
+                    self.log.info(f"{self.name} {self.numero}: Une erreur est survenue lors de la désinstallation de l'APK : {e}")
         else:
-            print(f"{self.name} {self.numero}: L'application est déjà désinstallée.")
+            self.log.info(f"{self.name} {self.numero}: L'application est déjà désinstallée.")
 
     def open_apk(self):
         """
@@ -599,9 +604,9 @@ class Casque:
         """
         if self.version_apk != 'X':
             self.adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
-            print(f"{self.name} {self.numero}: Ouverture de l'application.")
+            self.log.info(f"{self.name} {self.numero}: Ouverture de l'application.")
         else:
-            print(f"{self.name} {self.numero}: L'application est désinstallée, vous ne pouvez pas l'ouvrir.")
+            self.log.info(f"{self.name} {self.numero}: L'application est désinstallée, vous ne pouvez pas l'ouvrir.")
 
     def close_apk(self):
         """
@@ -609,9 +614,9 @@ class Casque:
         """
         if self.version_apk != 'X':
             self.adbtools.stop_application(self.config.adb_exe_path, self.numero, self.config.package_name)
-            print(f"{self.name} {self.numero}: Fermeture de l'application.")
+            self.log.info(f"{self.name} {self.numero}: Fermeture de l'application.")
         else:
-            print(f"{self.name} {self.numero}: L'application est désinstallée, vous ne pouvez pas la fermer.")
+            self.log.info(f"{self.name} {self.numero}: L'application est désinstallée, vous ne pouvez pas la fermer.")
 
     #-----------------------------------------------------
     # CONFIGURATION WIFI
@@ -641,5 +646,5 @@ class Casque:
                         return True, ssid_info
            
         except subprocess.CalledProcessError as e:
-            print(f"{self.name} {self.numero}: Failed to check Wi-Fi status: {e}")
+            self.log.info(f"{self.name} {self.numero}: Failed to check Wi-Fi status: {e}")
             return False, "Erreur"

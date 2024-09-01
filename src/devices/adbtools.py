@@ -1,7 +1,14 @@
 import os
 import subprocess
 
+# Built-in modules
+import logging
+
 class Adbtools:
+
+    def __init__(self):
+
+        self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
 
     def check_file_exists(self,filepath):
         """
@@ -28,9 +35,10 @@ class Adbtools:
         """
         try:
             os.environ["PATH"] += os.pathsep + platform_tools_path
+            self.log.info(f"Demarrage du serveur adb {platform_tools_path}")
             subprocess.check_output(["adb", "start-server"], stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
         except Exception as e:
-            print(f"Erreur lors du démarrage du serveur ADB : {e}")
+            self.log.info(f"Erreur lors du démarrage du serveur ADB : {e}")
             return False
         return True
 
@@ -54,7 +62,7 @@ class Adbtools:
             output = subprocess.check_output(check_command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8")
             return f"grantedPermissions: {permission}" in output
         except subprocess.CalledProcessError as e:
-            print(f"Erreur lors de la vérification de la permission {permission} : {e}")
+            self.log.info(f"Erreur lors de la vérification de la permission {permission} : {e}")
             return False
 
     def grant_permissions(self,adb_exe_path, numero, package_name):
@@ -96,7 +104,7 @@ class Adbtools:
             if 'state=ON' in output:
                 return True
         except subprocess.CalledProcessError as e:
-            print(f"Erreur lors de la vérification de l'état de l'appareil : {e}")
+            self.log.info(f"Erreur lors de la vérification de l'état de l'appareil : {e}")
         return False
 
     def wake_up_device(self,adb_exe_path, numero):
@@ -112,7 +120,7 @@ class Adbtools:
             try:
                 subprocess.run(command, check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
             except subprocess.CalledProcessError as e:
-                print(f"Erreur lors de l'exécution de la commande POWER : {e}")
+                self.log.info(f"Erreur lors de l'exécution de la commande POWER : {e}")
 
     def start_application(self,adb_exe_path, numero, package_name):
         """
@@ -140,7 +148,7 @@ class Adbtools:
             ]
             subprocess.run(start_command, check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
         except subprocess.CalledProcessError as e:
-            print(f"Erreur lors de l'obtention ou du démarrage de l'activité principale : {e}")
+            self.log.info(f"Erreur lors de l'obtention ou du démarrage de l'activité principale : {e}")
 
     def stop_application(self,adb_exe_path, numero, package_name):
         """
@@ -155,7 +163,7 @@ class Adbtools:
             stop_command = [adb_exe_path, "-s", numero, "shell", "am", "force-stop", package_name]
             subprocess.run(stop_command, check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
         except subprocess.CalledProcessError as e:
-            print(f"Erreur lors de l'arrêt de l'application {package_name} : {e}")
+            self.log.info(f"Erreur lors de l'arrêt de l'application {package_name} : {e}")
 
     def is_application_running(self,adb_exe_path, numero, package_name):
         """
@@ -188,7 +196,7 @@ class Adbtools:
             password (str): Le mot de passe du réseau Wi-Fi.
         """
         if not ssid or not password:
-            print("SSID or password is missing, cannot configure WiFi.")
+            self.log.info("SSID or password is missing, cannot configure WiFi.")
             return
 
         try:
@@ -200,12 +208,12 @@ class Adbtools:
             result = subprocess.run([adb_exe_path] + set_network_command, text=True, capture_output=True, check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
             
             if "Broadcast completed: result=0" in result.stdout:
-                print("Broadcast was sent, but no changes were made. Output:", result.stdout)
+                self.log.info("Broadcast was sent, but no changes were made. Output:", result.stdout)
             else:
-                print("WiFi configuration applied successfully. Output:", result.stdout)
+                self.log.info("WiFi configuration applied successfully. Output:", result.stdout)
 
         except subprocess.CalledProcessError as e:
-            print(f"An error occurred while configuring WiFi on the casque: {e}\n{e.stderr.decode()}")
+            self.log.info(f"An error occurred while configuring WiFi on the casque: {e}\n{e.stderr.decode()}")
 
     def check_battery_level(self,adb_exe_path, device_serial):
         """
@@ -227,8 +235,8 @@ class Adbtools:
                     level = int(line.split(':')[1].strip())
                     return level
         except subprocess.CalledProcessError as e:
-            print(f"Erreur lors de la vérification du niveau de batterie : {e.output.decode('utf-8')}")
+            self.log.info(f"Erreur lors de la vérification du niveau de batterie : {e.output.decode('utf-8')}")
         except Exception as e:
-            print(f"Erreur inattendue lors de la vérification du niveau de batterie : {e}")
+            self.log.info(f"Erreur inattendue lors de la vérification du niveau de batterie : {e}")
 
         return -1

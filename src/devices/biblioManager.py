@@ -4,6 +4,9 @@ from .singletonMeta import SingletonMeta
 from .solutionBiblio import SolutionBiblio
 import os
 
+# Built-in modules
+import logging
+
 class BiblioManager(metaclass=SingletonMeta):
 
     def __init__(self):
@@ -11,6 +14,8 @@ class BiblioManager(metaclass=SingletonMeta):
         Initialise le gestionnaire de bibliothèque en chargeant la configuration
         et en récupérant la liste des solutions disponibles dans la bibliothèque.
         """
+        self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
+
         self.config = Config()
         self.liste_solutions = []
         self.get_sols_bibli()
@@ -86,7 +91,7 @@ class BiblioManager(metaclass=SingletonMeta):
             nouvelle_solution.size = totale_size  # Attribuer la taille totale à l'objet SolutionBiblio
             return nouvelle_solution
         except Exception as e:
-            print(f"Erreur lors de l'ajout de la solution {solution_name} : {e}")
+            self.log.info(f"Erreur lors de l'ajout de la solution {solution_name} : {e}")
             traceback.print_exc()
             return None
 
@@ -114,7 +119,7 @@ class BiblioManager(metaclass=SingletonMeta):
                     updated_solutions.append(existing_solution)
                 else:
                     # Solution inexistante, la crée
-                    print(f"Ajout d'une nouvelle solution : {solution_name}")
+                    self.log.info(f"Ajout d'une nouvelle solution : {solution_name}")
                     nouvelle_solution = self.get_sol_bibli(solution_name, solution_path_folder)
                     if nouvelle_solution is not None:
                         updated_solutions.append(nouvelle_solution)
@@ -149,9 +154,9 @@ class BiblioManager(metaclass=SingletonMeta):
         Affiche toutes les solutions disponibles dans la bibliothèque avec leurs tailles respectives.
         """
         if not self.liste_solutions:
-            print("Aucune solution disponible dans la bibliothèque.")
+            self.log.info("Aucune solution disponible dans la bibliothèque.")
             return
 
-        print("Liste des solutions et leurs tailles :")
+        self.log.info("Liste des solutions et leurs tailles :")
         for solution in self.liste_solutions:
-            print(f"Solution: {solution.nom}, Taille: {solution.size} octets")
+            self.log.info(f"Solution: {solution.nom}, Taille: {solution.size} octets")

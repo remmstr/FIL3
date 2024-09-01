@@ -2,6 +2,9 @@ import os
 from .solution import Solution
 from .config import Config
 
+# Built-in modules
+import logging
+
 class SolutionBiblio(Solution):
 
     def __init__(self):
@@ -9,7 +12,7 @@ class SolutionBiblio(Solution):
         self.config = Config()
         self.size = self.get_sol_size()
 
-
+        self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
         
 
     def get_sol_size(self):
@@ -28,7 +31,7 @@ class SolutionBiblio(Solution):
                 if os.path.exists(file_path):
                     total_size += os.path.getsize(file_path)
                 else:
-                    print(f"Fichier manquant: {file_path}")
+                    self.log.info(f"Fichier manquant: {file_path}")
 
         return total_size
     

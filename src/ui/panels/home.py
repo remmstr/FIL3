@@ -27,7 +27,7 @@ class Home(PanelTemplate):
             title=title,
             fg_color=('#CCD7E0', '#313B47')
         )
-
+        
         casques = CasquesManager()
 
         self.description_apk = CTkLabel(self.header.widgets_frame, text="Version de l'apk : ", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
