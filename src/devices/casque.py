@@ -7,11 +7,11 @@ import json
 import base64
 import time
 
-from marque import Marque
-from solutionCasque import SolutionCasque
-from config import Config
-import adbtools
-from biblioManager import BiblioManager
+from .marque import Marque
+from .solutionCasque import SolutionCasque
+from .config import Config
+from .adbtools import Adbtools
+from .biblioManager import BiblioManager
 
 class Casque:
 
@@ -33,6 +33,7 @@ class Casque:
         self.entreprise_association = ""
         self.download_progress = 0
 
+        self.adbtools = Adbtools()
         self.config = Config()
         self.lock = threading.Lock()
         self.refresh_lock = threading.Lock()
@@ -61,7 +62,7 @@ class Casque:
                 print(f"{self.name} {self.numero}: Erreur lors de l'obtention du numéro de série : {e}")
                 traceback.print_exc()
                 self.numero = "Inconnu"
-            adbtools.wake_up_device(self.config.adb_exe_path, self.numero) 
+            self.adbtools.wake_up_device(self.config.adb_exe_path, self.numero) 
             try:
                 self.marque.setNom(self.device.shell("getprop ro.product.manufacturer").strip(), apk_folder)
             except Exception as e:
@@ -76,7 +77,7 @@ class Casque:
                 traceback.print_exc()
                 self.modele = "Inconnu"
 
-            self.battery_level = adbtools.check_battery_level(self.config.adb_exe_path, self.numero)
+            self.battery_level = self.adbtools.check_battery_level(self.config.adb_exe_path, self.numero)
             
             self.version_apk = self.get_installed_apk_version()
             # Vérifier si l'ancienne APK est installée
@@ -256,15 +257,15 @@ class Casque:
         Rafraîchit le JSON sur le casque en réinitialisant les données et en redémarrant l'application si nécessaire.
         """
         self.reset_JSON()
-        adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
+        self.adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
         
         # Vérifier si l'application est en cours d'exécution, et si oui, l'arrêter
-        if adbtools.is_application_running(self.config.adb_exe_path, self.numero, self.config.package_name):
-            adbtools.stop_application(self.config.adb_exe_path, self.numero, self.config.package_name)
+        if self.adbtools.is_application_running(self.config.adb_exe_path, self.numero, self.config.package_name):
+            self.adbtools.stop_application(self.config.adb_exe_path, self.numero, self.config.package_name)
         
         # Vérifier si l'application est installée avant de la démarrer
         if self.version_apk and self.version_apk != "X":
-            adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
+            self.adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
         else:
             print(f"{self.name} {self.numero}: L'application n'est pas installée sur le casque {self.numero}.")
 
@@ -551,13 +552,13 @@ class Casque:
             
             while attempt < max_attempts:
                 try:
-                    adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
+                    self.adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
                     subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
                     print(f"{self.name} {self.numero}: Installation de l'APK {self.marque.version_apk} réussie.")
                     
-                    adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
-                    adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
-                    adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
+                    self.adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
+                    self.adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
+                    self.adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
                     break  # Sortir de la boucle si l'installation réussit
                 
                 except subprocess.CalledProcessError as e:
@@ -597,7 +598,7 @@ class Casque:
         Ouvre l'application installée sur le casque.
         """
         if self.version_apk != 'X':
-            adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
+            self.adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
             print(f"{self.name} {self.numero}: Ouverture de l'application.")
         else:
             print(f"{self.name} {self.numero}: L'application est désinstallée, vous ne pouvez pas l'ouvrir.")
@@ -607,7 +608,7 @@ class Casque:
         Ferme l'application installée sur le casque.
         """
         if self.version_apk != 'X':
-            adbtools.stop_application(self.config.adb_exe_path, self.numero, self.config.package_name)
+            self.adbtools.stop_application(self.config.adb_exe_path, self.numero, self.config.package_name)
             print(f"{self.name} {self.numero}: Fermeture de l'application.")
         else:
             print(f"{self.name} {self.numero}: L'application est désinstallée, vous ne pouvez pas la fermer.")

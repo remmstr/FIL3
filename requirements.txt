@@ -8,4 +8,6 @@ packaging==23.2
 Pillow==10.1.0
 pyinstaller==6.10.0
 pyinstaller-hooks-contrib==2024.8
+setuptools==74.0.0
 tkinter-tooltip==3.1.0
+pure-python-adb

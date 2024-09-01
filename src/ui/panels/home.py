@@ -6,6 +6,8 @@ from ui.widgets.table import TableOfCasques
 from ui.panels import LogConsole
 from core.resource import FontLibrary, IconLibrary
 
+from devices import CasquesManager
+
 # Requirements modules
 from customtkinter import (
     CTkOptionMenu,
@@ -26,6 +28,8 @@ class Home(PanelTemplate):
             fg_color=('#CCD7E0', '#313B47')
         )
 
+        casques = CasquesManager()
+
         self.description_apk = CTkLabel(self.header.widgets_frame, text="Version de l'apk : ", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
         self.description_apk.pack(anchor='n', expand=True, side='left', fill='x', padx=3)
 
@@ -36,7 +40,7 @@ class Home(PanelTemplate):
         self.main_frame.pack(anchor='nw', expand=True, fill='both', side='top', padx=6, pady=8)
 
         # Set the Table for the list of casques
-        self.TableOfCasques = TableOfCasques(self.main_frame)
+        self.TableOfCasques = TableOfCasques(self.main_frame, casques)
         self.TableOfCasques.pack( expand=True, side='top', fill='both', padx=4, pady=8)
 
         # Create a separate frame for the console at the bottom
@@ -47,6 +51,7 @@ class Home(PanelTemplate):
         self.console.pack(anchor='sw', expand=True, fill='both', padx=4, pady=8)
 
         # Add lines to TableOfCasques
+        '''
         self.TableOfCasques.add_line(tab_name='Casque 1', icon_name='biblio', default=True)
         self.TableOfCasques.add_line(tab_name='Casque 2', icon_name='biblio', default=True)
         self.TableOfCasques.add_line(tab_name='Casque 3', icon_name='biblio', default=True)
@@ -57,6 +62,7 @@ class Home(PanelTemplate):
         self.TableOfCasques.add_line(tab_name='Casque 8', icon_name='biblio', default=True)
         self.TableOfCasques.add_line(tab_name='Casque 9', icon_name='biblio', default=True)
         self.TableOfCasques.add_line(tab_name='Casque 10', icon_name='biblio', default=True)
+        '''
         """
         self.TableOfCasques.add_line(tab_name='Casque 11', icon_name='biblio', default=True)
         self.TableOfCasques.add_line(tab_name='Casque 12', icon_name='biblio', default=True)

@@ -1,7 +1,7 @@
 import traceback
-from config import Config
-from singletonMeta import SingletonMeta
-from solutionBiblio import SolutionBiblio
+from .config import Config
+from .singletonMeta import SingletonMeta
+from .solutionBiblio import SolutionBiblio
 import os
 
 class BiblioManager(metaclass=SingletonMeta):

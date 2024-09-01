@@ -1,8 +1,8 @@
 import subprocess
 import time
 import os
-from solution import Solution
-from config import Config
+from .solution import Solution
+from .config import Config
 
 class SolutionCasque(Solution):
 

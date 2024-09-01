@@ -1,5 +1,7 @@
 # Internal modules
 from core.resource import FontLibrary, IconLibrary, ImageLibrary
+from devices import CasquesManager
+from devices import Casque
 
 # Requirements modules
 from tktooltip import ToolTip
@@ -16,24 +18,15 @@ import logging
 
 class TableOfCasques(CTkFrame):
     """
-    Module that create the table of casques :
+    Module that creates the table of casques:
     - A header at the top that can hold an image OR a text
-    - A menu with a vertical list of tab
+    - A menu with a vertical list of tabs
     - A footer that is configurable
     """
 
-    def __init__(self, parent, title: str | None = None, image_name: str | None = None):
+    def __init__(self, parent, title: str | None = None, image_name: str | None = None, casques: CasquesManager = None):
         """
         Create a new Table widget
-
-        Parameters
-        ----------
-        parent : Any
-            The parent widget to be set
-        title : `str`, optional
-            Set the title to display, by default is None
-        image_name : `str`, optional
-            Set the image to display. Use the name of the file without the extension, by default is None
         """
         # Set instance logger
         self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
@@ -44,27 +37,21 @@ class TableOfCasques(CTkFrame):
         # Initialize instance variable
         self.tabs = {}
         self.selected = None
-        insertwidth=0 # To avoid seeing the caret in the textbox
 
         # Set the frame for the tab list of casques
         self.menu = CTkScrollableFrame(self)
         self.menu.configure(fg_color='transparent', corner_radius=0)
-        # Configuration de l'épaisseur de la scrollbar
-        self.menu._scrollbar.configure(width=32)  # Ajustez ici la largeur de la scrollbar
-        
+        self.menu._scrollbar.configure(width=32)  # Adjust scrollbar width
         self.menu.pack(expand=True, side='top', fill='both')
 
+        # Add each casque to the table
+        if casques:
+            for casque in casques:
+                self.add_linee(casque)
 
     def set_header(self, title: str | None = None, image_name: str | None = None):
         """
-        Set an image OR a title in the header (can't be both, the icon will be prioritized)
-
-        Parameters
-        ----------
-        title : `str`, optional
-            Set the title to display
-        icon : `str`, optional
-            Set the image to display. Use the name of the file without the extension, by default is None
+        Set an image OR a title in the header (can't be both; the icon will be prioritized)
         """
         if image_name is not None:
             txt = ''
@@ -80,9 +67,17 @@ class TableOfCasques(CTkFrame):
             fg_color='transparent',
             font=('', 20, 'bold'),
             corner_radius=0
-            )
+        )
 
+    def add_linee(self, casque: Casque):
+        """
+        Add a new tab to the sidebar for each casque
+        """
+        self.tabs.update({casque.device: Line(self.menu, casque)})
+        self.tabs[casque.device].pack(anchor='ne', side='top', expand=True, fill='x', padx=1, pady=1)
 
+    
+    '''
     def add_line(self, tab_name: str, icon_name: str, default: bool = False):
         """
         Add a new tab to the sidebar
@@ -100,10 +95,9 @@ class TableOfCasques(CTkFrame):
         """
 
         # Set the title of the header
-
         self.tabs.update({tab_name: Line(self.menu, tab_name, icon_name)})
         self.tabs[tab_name].pack(anchor='ne', side='top', expand=True, fill='x', padx=1, pady=1)
-
+    '''
 
 
 class Line(CTkFrame):
@@ -111,38 +105,15 @@ class Line(CTkFrame):
     Custom button for the tabs in the sidebar
     """
 
-    def __init__(self, parent, tab_name: str, icon_name: str):
+    def __init__(self, parent, casque: Casque):
         """
         Create a new tab for the sidebar
-
-        Parameters
-        ----------
-        parent : `Any`
-            The parent widget to be set
-        ctkObject : `Any`
-            Reference of the Tkinter object instance that should be controlled by the tab
-        tab_name : `str`
-            Set the title to display
-        icon_name : `str`
-            Set the image to display. Use the name of the file without the extension
         """
         # Set instance logger
         self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
 
         # Initialize inherited class
         super().__init__(parent)
-        self.configure(
-            #text=tab_name,
-            #font=FontLibrary.get_font_tkinter('Inter 18pt', 'SemiBold', 14),
-            #image=IconLibrary.get_icon_tkinter(icon_name, size=(20, 20)),
-            #fg_color='transparent',
-            #corner_radius=4,
-            #border_width=0,
-            #border_spacing=6,
-            #width=24,
-            #anchor='w'
-        )
-
         
         #self.image_casque = CTkFrame(self, fg_color='transparent')
         #self.image_casque.pack(anchor='w', side='left', padx=8)
@@ -151,7 +122,7 @@ class Line(CTkFrame):
 
         self.info_casque1 = CTkFrame(self, fg_color='transparent')
         self.info_casque1.pack(anchor='w', side='left', padx=8)
-        self.title = CTkLabel(self.info_casque1, text="ID : dqfgscdvhjbdbzvqcegsv", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title = CTkLabel(self.info_casque1, text="ID : {casque.device}", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title.pack(anchor='w', expand=True, side='top', fill='x', padx=2)
         self.title = CTkLabel(self.info_casque1, text="Pico PG2", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title.pack(anchor='w', expand=True, side='top', fill='x', padx=2)
@@ -206,7 +177,7 @@ class Line(CTkFrame):
 
 
         # Initialize instance variable
-        self.tab_name = tab_name
+        self.casque.device = casque.device
 
 
 

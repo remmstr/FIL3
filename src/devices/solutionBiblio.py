@@ -1,6 +1,6 @@
 import os
-from solution import Solution
-from config import Config
+from .solution import Solution
+from .config import Config
 
 class SolutionBiblio(Solution):
 

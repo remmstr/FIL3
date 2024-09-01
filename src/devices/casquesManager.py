@@ -1,10 +1,10 @@
-from casque import Casque
+from .casque import Casque
 import subprocess
 import traceback
 from ppadb.client import Client as AdbClient
-import adbtools
-from config import Config
-from singletonMeta import SingletonMeta
+from .adbtools import Adbtools
+from .config import Config
+from .singletonMeta import SingletonMeta
 
 class CasquesManager(metaclass=SingletonMeta):
 
@@ -14,7 +14,8 @@ class CasquesManager(metaclass=SingletonMeta):
         """
         self.apk_folder = ""
         self.config = Config()
-        adbtools.check_adb_connection(self.config.platform_tools_path)
+        self.adbtools = Adbtools()
+        self.adbtools.check_adb_connection(self.config.platform_tools_path)
         self.liste_casques = []
         self.client = AdbClient(host="127.0.0.1", port=5037)
         self.refresh_casques()

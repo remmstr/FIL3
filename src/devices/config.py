@@ -3,7 +3,7 @@ import sys
 import platform
 import traceback
 import re
-from singletonMeta import SingletonMeta
+from .singletonMeta import SingletonMeta
 
 class Config(metaclass=SingletonMeta):
     def __init__(self):
