@@ -2,6 +2,7 @@
 from core.resource import FontLibrary, IconLibrary, ImageLibrary
 from devices import CasquesManager
 from devices import Casque
+from threading import Thread
 
 # Requirements modules
 from tktooltip import ToolTip
@@ -24,7 +25,7 @@ class TableOfCasques(CTkFrame):
     - A footer that is configurable
     """
 
-    def __init__(self, parent, title: str | None = None, image_name: str | None = None, casques: CasquesManager = None):
+    def __init__(self, parent, title: str | None = None, image_name: str | None = None):
         """
         Create a new Table widget
         """
@@ -45,8 +46,9 @@ class TableOfCasques(CTkFrame):
         self.menu.pack(expand=True, side='top', fill='both')
 
         # Add each casque to the table
+        casques = CasquesManager()
         if casques:
-            for casque in casques:
+            for casque in casques.get_liste_casque():
                 self.add_linee(casque)
 
     def set_header(self, title: str | None = None, image_name: str | None = None):
@@ -100,6 +102,7 @@ class TableOfCasques(CTkFrame):
     '''
 
 
+
 class Line(CTkFrame):
     """
     Custom button for the tabs in the sidebar
@@ -114,6 +117,8 @@ class Line(CTkFrame):
 
         # Initialize inherited class
         super().__init__(parent)
+
+        self.casque = casque
         
         #self.image_casque = CTkFrame(self, fg_color='transparent')
         #self.image_casque.pack(anchor='w', side='left', padx=8)
@@ -122,28 +127,32 @@ class Line(CTkFrame):
 
         self.info_casque1 = CTkFrame(self, fg_color='transparent')
         self.info_casque1.pack(anchor='w', side='left', padx=8)
-        self.title = CTkLabel(self.info_casque1, text="ID : {casque.device}", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title = CTkLabel(self.info_casque1, text=f"ID : {casque.numero}", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title.pack(anchor='w', expand=True, side='top', fill='x', padx=2)
-        self.title = CTkLabel(self.info_casque1, text="Pico PG2", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title = CTkLabel(self.info_casque1, text=f"{casque.modele}", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title.pack(anchor='w', expand=True, side='top', fill='x', padx=2)
 
-        self.title = CTkLabel(self.info_casque1, text="Batt: 90%   ", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        # Vérifier l'état du Wi-Fi
+        is_connected, ssid = casque.is_wifi_connected()
+        wifi_status = f"{ssid}" if is_connected else "Please Connect Wifi"
+        wifi_color = "black" if is_connected else "orange"
+
+        self.title = CTkLabel(self.info_casque1, text=f"Batt: {casque.battery_level}   ", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title.pack(anchor='w', side='left', padx=4)
-        self.title = CTkLabel(self.info_casque1, text="Wifi: Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title = CTkLabel(self.info_casque1, text=f"Wifi: {wifi_status}", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title.pack(anchor='w', side='right', padx=4)
 
-        
         self.info_casque3 = CTkFrame(self, fg_color='transparent')
         self.info_casque3.pack(anchor='w', side='left', padx=8)
-        self.button_clear = ButtonLine(self.info_casque3, tooltip='install app', icon_name='upload')
+        self.button_clear = ButtonLine(self.info_casque3, tooltip='install app', icon_name='upload', command=lambda: self.install_apk(casque))
         self.button_clear.pack(anchor='e', side='left')
-        self.button_clear = ButtonLine(self.info_casque3, tooltip='uninstall app', icon_name='close')
+        self.button_clear = ButtonLine(self.info_casque3, tooltip='uninstall app', icon_name='close', command=lambda: self.uninstall_apk(casque))
         self.button_clear.pack(anchor='e', side='left')
-        self.title = CTkLabel(self.info_casque3, text="APK : 9.8.0", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title = CTkLabel(self.info_casque3, text=f"APK : {casque.version_apk}", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title.pack(anchor='w', expand=True, side='left', fill='y', padx=8)
-        self.button_clear = ButtonLine(self.info_casque3, tooltip='close app', icon_name='close')
+        self.button_clear = ButtonLine(self.info_casque3, tooltip='close app', icon_name='close', command=lambda: self.close_apk(casque))
         self.button_clear.pack(anchor='w', side='right')
-        self.button_clear = ButtonLine(self.info_casque3, tooltip='open', icon_name='visible')
+        self.button_clear = ButtonLine(self.info_casque3, tooltip='open', icon_name='visible', command=lambda: self.start_apk(casque))
         self.button_clear.pack(anchor='w', side='right')
         
 
@@ -152,7 +161,7 @@ class Line(CTkFrame):
         self.info_serveur = CTkFrame(self.info_serveur_case, height=1,width=1, fg_color='transparent')
         self.info_serveur.pack(anchor='w', side='left', padx=8)
 
-        self.button_clear = ButtonLine(self.info_serveur, text="Info serveur", tooltip='synchronosation_serveur', icon_name='refresh')
+        self.button_clear = ButtonLine(self.info_serveur, text="Info serveur", tooltip='synchronosation_serveur', icon_name='refresh', command=lambda: self.refresh_json(casque))
         self.button_clear.pack(anchor='w', side='top', pady=2)
         
         self.title = CTkLabel(self.info_serveur, text="Entreprise associés : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
@@ -162,22 +171,85 @@ class Line(CTkFrame):
 
         self.info_serveur2 = CTkFrame(self.info_serveur_case, fg_color='transparent')
         self.info_serveur2.pack(anchor='w', side='right', padx=8)
-        self.title = CTkLabel(self.info_serveur2, text="Code association : 1234", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='ne')
+        self.title = CTkLabel(self.info_serveur2, text=f"Code association : {casque.code}", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='ne')
         self.title.pack(anchor='ne', side='top', fill='both', padx=3, )
-        self.button_clear = ButtonLine(self.info_serveur2, tooltip='copier expéri. du casque dans la biblio', icon_name='pull')
+        self.button_clear = ButtonLine(self.info_serveur2, tooltip='copier expéri. du casque dans la biblio', icon_name='pull', command=lambda: self.pull_solutions(casque))
         self.button_clear.pack(anchor='n', side='right')
-        self.title = CTkLabel(self.info_serveur2, text="'n' expériences installées", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
-        self.title.pack(anchor='n', expand=True, side='right', fill='x', padx=3, pady=0)
-        self.button_clear = ButtonLine(self.info_serveur2, tooltip='push solutions disponible', icon_name='right')
+        self.title = CTkLabel(self.info_serveur2, text=f"[ {len(casque.getListSolInstall())} ] expériences installées", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title.pack(anchor='n', expand=True, side='right', fill='x', padx=4, pady=0)
+        self.button_clear = ButtonLine(self.info_serveur2, tooltip='push experi. disponible', icon_name='right', command=lambda: self.push_solutions(casque))
         self.button_clear.pack(anchor='n', side='right')
-        self.title = CTkLabel(self.info_serveur2, text="'n' expériennces disponible", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
-        self.title.pack(anchor='n', expand=True, side='right', fill='x', padx=3, pady=0)
-        self.button_clear = ButtonLine(self.info_serveur2, tooltip='setting solution(s)', icon_name='visible')
+        self.title = CTkLabel(self.info_serveur2, text=f"[ {len(casque.solutions_casque)} ] expériennces disponible", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title.pack(anchor='n', expand=True, side='right', fill='x', padx=4, pady=0)
+        self.button_clear = ButtonLine(self.info_serveur2, tooltip='Setting expériences(s)', icon_name='visible')
         self.button_clear.pack(anchor='n', side='right',padx=2)
 
 
         # Initialize instance variable
         self.casque.device = casque.device
+
+    def install_apk(self, casque):
+        """
+        Installe l'APK sur un casque spécifique dans un thread séparé.
+
+        Args:
+            casque: L'objet Casque sur lequel installer l'APK.
+        """
+        Thread(target=casque.install_APK).start()
+
+    def uninstall_apk(self, casque):
+        """
+        Désinstalle l'APK d'un casque spécifique dans un thread séparé.
+
+        Args:
+            casque: L'objet Casque sur lequel désinstaller l'APK.
+        """
+        Thread(target=casque.uninstall_APK).start()
+
+    def start_apk(self, casque):
+        """
+        Démarre l'APK sur un casque spécifique dans un thread séparé.
+
+        Args:
+            casque: L'objet Casque sur lequel démarrer l'APK.
+        """
+        Thread(target=casque.open_apk()).start()
+
+    def close_apk(self, casque):
+        """
+        Ferme l'APK sur un casque spécifique dans un thread séparé.
+
+        Args:
+            casque: L'objet Casque sur lequel fermer l'APK.
+        """
+        Thread(target=casque.close_apk()).start()
+
+    def push_solutions(self, casque):
+        """
+        Téléverse les solutions sur un casque spécifique dans un thread séparé.
+
+        Args:
+            casque: L'objet Casque sur lequel téléverser les solutions.
+        """
+        Thread(target=casque.push_solutions).start()
+
+    def pull_solutions(self, casque):
+        """
+        Récupère les solutions depuis un casque spécifique dans un thread séparé.
+
+        Args:
+            casque: L'objet Casque depuis lequel récupérer les solutions.
+        """
+        Thread(target=casque.pull_solutions).start()
+
+    def refresh_json(self, casque):
+        """
+        Rafraîchit le fichier JSON sur un casque spécifique dans un thread séparé.
+
+        Args:
+            casque: L'objet Casque pour lequel rafraîchir le fichier JSON.
+        """
+        Thread(target=casque.refresh_JSON).start()
 
 
 
