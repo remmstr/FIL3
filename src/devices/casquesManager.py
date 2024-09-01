@@ -68,13 +68,13 @@ class CasquesManager(metaclass=SingletonMeta):
                 # Gestion spécifique pour les erreurs de connexion ou d'autorisation
                 if "device unauthorized" in str(e) or "device offline" in str(e):
                     message = f"Erreur: le casque avec numéro de série {device.serial} est non autorisé ou hors ligne. Veuillez le rebrancher et vérifier les autorisations."
-                    self.ui.handle_exception(message, e)  # Utilisation de la méthode handle_exception
+                    #self.ui.handle_exception(message, e)  # Utilisation de la méthode handle_exception
                 else:
                     message = f"Erreur lors de l'ajout du casque {device.serial}"
-                    self.ui.handle_exception(message, e)
+                    #self.ui.handle_exception(message, e)
             except Exception as e:
                 message = f"Erreur inconnue lors de l'ajout du casque {device.serial}"
-                self.ui.handle_exception(message, e)
+                #self.ui.handle_exception(message, e)
 
         self.liste_casques = new_casques
 
