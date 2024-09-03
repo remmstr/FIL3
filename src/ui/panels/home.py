@@ -64,7 +64,7 @@ class Home(PanelTemplate):
         while(1):
             self.casques.refresh_casques()
             self.TableOfCasques.refresh_table()
-            time.sleep(2.5)
+            time.sleep(2)
 
 
 

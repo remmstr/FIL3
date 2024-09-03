@@ -54,24 +54,38 @@ class TableOfCasques(CTkFrame):
         """
         Refresh the table by updating existing lines or adding new ones if necessary.
         """
-        # Get the current list of casques
-        current_casques = {casque.device: casque for casque in self.casques.get_liste_casque()}
 
-        # Refresh existing lines or add new ones
+        # Obtenir la liste actuelle des casques
+        current_casques = self.casques.get_liste_casque()
+
+        # Rafraîchir les lignes existantes ou en ajouter de nouvelles
+        existing_casque_numbers = [line.casque.numero for line in self.lines]
+
+        # Rafraîchir les lignes existantes
         for line in self.lines:
-            if line.casque.device in current_casques:
-                # Refresh the line if the casque still exists
-                line.refresh_line(current_casques[line.casque.device])
-                del current_casques[line.casque.device]  # Remove from the list of casques to add
+            # Vérifier si le numéro du casque de la ligne existe toujours
+            matching_casque = next((casque for casque in current_casques if casque.numero == line.casque.numero), None)
+            if matching_casque:
+                #print(f"Refreshing line for casque: {line.casque.numero}")  # Debug print
+                line.refresh_line(matching_casque)  # Rafraîchir la ligne avec les nouvelles informations
+            else:
+                print(f"Casque {line.casque.numero} no longer exists, removing.")  # Debug print
+                line.destroy()  # Supprimer la ligne si le casque n'existe plus
+                self.lines.remove(line)
 
-        # Add new lines for remaining casques
-        for device, casque in current_casques.items():
-            self.add_line(casque)
+        # Ajouter de nouvelles lignes pour les casques restants qui ne sont pas encore affichés
+        for casque in current_casques:
+            if casque.numero not in existing_casque_numbers:
+                print(f"Adding new line for casque: {casque.numero}")  # Debug print
+                self.add_line(casque)
+
+
 
     def add_lines(self):
         """
         Add all lines to the table initially.
         """
+        print("Adding initial lines...")  # Debug print
         if self.casques:
             for casque in self.casques.get_liste_casque():
                 self.add_line(casque)
@@ -80,21 +94,20 @@ class TableOfCasques(CTkFrame):
         """
         Add a new line to the table for each casque.
         """
+        print(f"Creating line for casque: {casque.device}")  # Debug print
         line = Line(self.menu, casque)
         self.lines.append(line)
         line.pack(anchor='ne', side='top', expand=True, fill='x', padx=1, pady=1)
 
 
-#IL FAUT ASSOCIER UN CASQUE A UNE LIGNE ET ATTENTION APPELLE FONCTION DE CASQUE NUL A CHIER
-
 class Line(CTkFrame):
     """
-    Custom button for the tabs in the sidebar
+    Custom button for the tabs in the sidebar.
     """
 
     def __init__(self, parent, casque: Casque):
         """
-        Create a new tab for the sidebar
+        Create a new tab for the sidebar.
         """
         # Set instance logger
         self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
@@ -102,8 +115,11 @@ class Line(CTkFrame):
         # Initialize inherited class
         super().__init__(parent)
 
+        self.casque = casque  # Keep reference to the casque object
+
         # Initialize StringVars for dynamic data
         self.casque_id_var = tk.StringVar(value=f"ID : {casque.numero}")
+        self.casque_name_var = tk.StringVar(value=f"ID : {casque.name}")
         self.casque_model_var = tk.StringVar(value=f"{casque.modele}")
         self.casque_battery_var = tk.StringVar(value=f"Batt: {casque.battery_level}")
         is_connected, ssid = casque.is_wifi_connected()
@@ -121,6 +137,8 @@ class Line(CTkFrame):
         """
         Create widgets for the line using StringVar.
         """
+        print(f"Creating widgets for casque: {self.casque.device}")  # Debug print
+
         self.info_casque1 = CTkFrame(self, fg_color='transparent')
         self.info_casque1.pack(anchor='w', side='left', padx=8)
 
@@ -164,30 +182,44 @@ class Line(CTkFrame):
         self.button_refresh = ButtonLine(self.info_serveur, text="Info serveur", tooltip='synchronosation_serveur', icon_name='refresh', command=lambda: self.refresh_json(self.casque))
         self.button_refresh.pack(anchor='w', side='top', pady=2)
 
-        self.info_serveur2 = CTkFrame(self.info_serveur_case, fg_color='transparent')
-        self.title_code = CTkLabel(self.info_serveur2, textvariable=self.casque_code_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='ne')
+        self.title_code = CTkLabel(self.info_serveur, textvariable=self.casque_name_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='ne')
+        self.title_code.pack(anchor='ne', side='top', fill='both', padx=3)
+        self.title_code = CTkLabel(self.info_serveur, textvariable=self.casque_code_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='ne')
         self.title_code.pack(anchor='ne', side='top', fill='both', padx=3)
 
-        self.button_pull = ButtonLine(self.info_serveur2, tooltip='copier expéri. du casque dans la biblio', icon_name='pull', command=lambda: self.pull_solutions(self.casque))
+        # Ensure info_serveur2 is properly created and packed
+        self.info_serveur_droite = CTkFrame(self.info_serveur_case, fg_color='transparent')
+        self.info_serveur_droite.pack(anchor='w', side='right', padx=8)  # Add pack() here to ensure it's displayed
+
+        self.info_serveur2 = CTkFrame(self.info_serveur_droite, fg_color='transparent')
+        self.info_serveur2.pack(anchor='w', expand=True, side='bottom', padx=8)  # Add pack() here to ensure it's displayed
+
+        self.info_serveur3 = CTkFrame(self.info_serveur_droite, fg_color='transparent')
+        self.info_serveur3.pack(anchor='w', side='top', padx=8)  # Add pack() here to ensure it's displayed
+
+        self.title_code = CTkLabel(self.info_serveur2, text="Tokens : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title_code.pack(anchor='ne', side='right', fill='both', padx=12)
+        self.title_code = CTkLabel(self.info_serveur2, text="Entreprise : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title_code.pack(anchor='ne', side='left', fill='both', padx=12)
+
+        self.button_pull = ButtonLine(self.info_serveur3, tooltip='copier expéri. du casque dans la biblio', icon_name='pull', command=lambda: self.pull_solutions(self.casque))
         self.button_pull.pack(anchor='n', side='right')
-
-        self.title_exp_installed = CTkLabel(self.info_serveur2, textvariable=self.casque_exp_installed_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title_exp_installed = CTkLabel(self.info_serveur3, textvariable=self.casque_exp_installed_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title_exp_installed.pack(anchor='n', expand=True, side='right', fill='x', padx=4, pady=0)
-
-        self.button_push = ButtonLine(self.info_serveur2, tooltip='push experi. disponible', icon_name='right', command=lambda: self.push_solutions(self.casque))
+        self.button_push = ButtonLine(self.info_serveur3, tooltip='push experi. disponible', icon_name='right', command=lambda: self.push_solutions(self.casque))
         self.button_push.pack(anchor='n', side='right')
-
-        self.title_exp_available = CTkLabel(self.info_serveur2, textvariable=self.casque_exp_available_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
+        self.title_exp_available = CTkLabel(self.info_serveur3, textvariable=self.casque_exp_available_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title_exp_available.pack(anchor='n', expand=True, side='right', fill='x', padx=4, pady=0)
-
-        self.button_settings = ButtonLine(self.info_serveur2, tooltip='Setting expériences(s)', icon_name='visible')
+        self.button_settings = ButtonLine(self.info_serveur3, tooltip='Setting expériences(s)', icon_name='visible')
         self.button_settings.pack(anchor='n', side='right', padx=2)
+
 
     def refresh_line(self, casque: Casque):
         """
         Update the StringVars to reflect the latest information about the casque.
         """
         self.casque_id_var.set(f"ID : {casque.numero}")
+        self.casque_name_var.set(f"Name : {casque.name}")
         self.casque_model_var.set(f"{casque.modele}")
         self.casque_battery_var.set(f"Batt: {casque.battery_level}")
 

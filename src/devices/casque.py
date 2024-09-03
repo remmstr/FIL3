@@ -261,6 +261,7 @@ class Casque:
         """
         Rafraîchit le JSON sur le casque en réinitialisant les données et en redémarrant l'application si nécessaire.
         """
+        self.log.info(f"{self.name} {self.numero}: Synchronisation avec le serveur demandée ")
         self.reset_JSON()
         self.adbtools.wake_up_device(self.config.adb_exe_path, self.numero)
         
@@ -273,6 +274,7 @@ class Casque:
             self.adbtools.start_application(self.config.adb_exe_path, self.numero, self.config.package_name)
         else:
             self.log.info(f"{self.name} {self.numero}: L'application n'est pas installée sur le casque {self.numero}.")
+        
 
     #-----------------------------------------------------
     # PUSH ET PULL SOLUTION
