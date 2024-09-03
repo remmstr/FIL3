@@ -551,6 +551,7 @@ class Casque:
         Note:
             Cette méthode tente d'installer une APK jusqu'à trois fois en cas d'échec.
         """
+        self.log.info(f"{self.name} {self.numero}: Installation de l'APK {self.marque.version_apk} en cours ... ")
         if self.marque.version_apk != "" :
             max_attempts = 3
             attempt = 0

@@ -22,7 +22,8 @@ class LoggerSettings():
         self.set_level(log_level)
         self.set_format(
             fmt='[%(asctime)s] [%(threadName)s] \x1b[47m[%(levelname)s]\x1b[m \x1b[30m[%(name)s]\x1b[m %(message)s',
-            datefmt='%Y/%m/%d %H:%M:%S'
+            #datefmt='%Y/%m/%d %H:%M:%S'
+            datefmt='%H:%M:%S'
             )
         self.add_handler(StreamHandler()) # Set the handler for stderr
 

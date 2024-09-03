@@ -1,13 +1,18 @@
-from .casque import Casque
+
 import subprocess
+import threading
 import traceback
+import time
+
 from ppadb.client import Client as AdbClient
 from .adbtools import Adbtools
 from .config import Config
 from .singletonMeta import SingletonMeta
+from .casque import Casque
 
 # Built-in modules
 import logging
+
 
 class CasquesManager(metaclass=SingletonMeta):
 
@@ -23,6 +28,20 @@ class CasquesManager(metaclass=SingletonMeta):
         self.client = AdbClient(host="127.0.0.1", port=5037)
         self.refresh_casques()
         self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
+
+        
+
+    def refresh_thread(self):
+        """
+        Démarre un thread pour rafraîchir la liste des casques.
+        """
+        try:
+            self.casques.refresh_casques()
+            time.sleep(2.5)
+        except Exception as e:
+            if self.app.running:
+                self.app.handle_exception("Erreur lors de l'actualisation des casques", e)
+
 
     def get_liste_casque(self):
         """
@@ -40,6 +59,11 @@ class CasquesManager(metaclass=SingletonMeta):
         Args:
             apk_folder (str): Le chemin du dossier contenant les fichiers APK.
         """
+        for i, casque in enumerate(self.liste_casques, 1):
+            casque.marque.choixApp(apk_folder)
+        # L'apk folder devait etre rafrachit à l'aide de refresh casque qui prenait en argument 
+        # l'apk folder mais le rafrachissement ne marche pas de cette maniere donc je vais directement 
+        # dans chaque casque rafraichir et ça marche
         self.apk_folder = apk_folder
     
     def refresh_casques(self):

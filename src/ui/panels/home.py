@@ -17,6 +17,8 @@ from customtkinter import (
 # Built-in modules
 import logging
 import os
+import threading
+import time
 
 class Home(PanelTemplate):
     def __init__(self, parent, title) -> None:
@@ -27,6 +29,9 @@ class Home(PanelTemplate):
             fg_color=('#CCD7E0', '#313B47')
         )
         
+        # Set instance logger
+        self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
+
         # Label for APK version
         self.description_apk = CTkLabel(self.header.widgets_frame, text="Version de l'apk : ", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
         self.description_apk.pack(anchor='n', expand=True, side='left', fill='x', padx=3)
@@ -50,27 +55,33 @@ class Home(PanelTemplate):
         self.console = LogConsole(self.console_frame, 'Console') 
         self.console.pack(anchor='sw', expand=True, fill='both', padx=4, pady=8)
 
+        self.casques = CasquesManager()
+        refresh_thread = threading.Thread(target=self.threadind_refresh_casque_and_UI, daemon=True).start()
+
+
+    def threadind_refresh_casque_and_UI(self):
+
+        while(1):
+            self.casques.refresh_casques()
+            self.TableOfCasques.refresh_table()
+            time.sleep(2.5)
+
+
+
     def populate_folders(self):
-        """
-        Remplit le menu déroulant avec les dossiers dans le répertoire APK et sélectionne le premier par défaut.
-        """
-        apk_dir = "apk"  # Supposons que les dossiers APK sont dans un répertoire nommé "apk"
-        if not os.path.exists(apk_dir):
-            os.makedirs(apk_dir)  # Créer le répertoire si nécessaire
+        apk_dir = "APK"
 
         folders = [d for d in os.listdir(apk_dir) if os.path.isdir(os.path.join(apk_dir, d))]
         self.selectbox_apk.configure(values=folders)
 
         if folders:
-            self.selectbox_apk.set(folders[0])  # Définir le dossier par défaut
-            self.update_apk_folder(folders[0])  # Définir le dossier par défaut
+            default_folder = folders[0]
+            self.selectbox_apk.set(default_folder)
+            self.update_apk_folder(default_folder)
+            self.log.info(f"[DEBUG] Default folder set to: {default_folder}")  # Debugging line added
 
     def update_apk_folder(self, selected_folder):
-        """
-        Met à jour le dossier APK dans CasquesManager lorsque l'utilisateur sélectionne un dossier dans le menu déroulant.
+        self.log.info(f"[DEBUG] Updating APK folder to: {selected_folder}")  # Debugging line added
 
-        Args:
-            selected_folder: Le dossier sélectionné dans le menu déroulant.
-        """
         casques_manager = CasquesManager()
         casques_manager.set_apk_folder(selected_folder)
