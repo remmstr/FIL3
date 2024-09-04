@@ -68,7 +68,7 @@ scripts = ["src/__main__.py"]
 binaries = []
 datas = []
 hiddenimports = []
-program_name = "CTk Template"
+program_name = "FIL3"
 bundle_id = "com.yourCompany.ctk-template"
 version = "1.0.0"
 icon_path = None
@@ -90,8 +90,10 @@ binaries += search_file(bin_dir, relative_to=root_dir, recursive=True)
 
 datas += search_file(ressource_dir.joinpath("fonts"), relative_to=root_dir, pattern="*.ttf", set_same_root=True)
 datas += search_file(ressource_dir.joinpath("icons"), relative_to=root_dir, pattern="*.png", set_same_root=True)
+datas += search_file(ressource_dir.joinpath("images"), relative_to=root_dir, pattern="*.png", set_same_root=True)
 datas += search_file(ressource_dir, relative_to=root_dir, pattern="*.json", recursive=False, set_same_root=True)
 
+hiddenimports.append("devices")
 hiddenimports.append("core.config")
 hiddenimports.append("core.fileio")
 hiddenimports.append("core.resource")
@@ -158,4 +160,10 @@ app = BUNDLE(
     name=program_file,
     icon=icon_path,
     bundle_identifier=bundle_id
+    info_plist={
+        'NSHighResolutionCapable': 'True',
+        'LSUIElement': 'True'  # Prevents terminal from opening on macOS
+        'LSBackgroundOnly': 'True'  # Run in the background without creating any windows
+    },
 )
+

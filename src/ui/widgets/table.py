@@ -186,9 +186,9 @@ class Line(CTkFrame):
         self.info_serveur2 = CTkFrame(self.info_serveur_droite, fg_color='transparent')
         self.info_serveur2.pack(anchor='se', expand=True, side='bottom', padx=8)  # Add pack() here to ensure it's displayed
 
-        self.title_code = CTkLabel(self.info_serveur2, text="Tokens : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='se')
+        self.title_code = CTkLabel(self.info_serveur2, text="Tokens : -", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='se')
         self.title_code.pack(anchor='se', side='right', fill='both', padx=12)
-        self.title_code = CTkLabel(self.info_serveur2, text="Entreprise : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='se')
+        self.title_code = CTkLabel(self.info_serveur2, text="Entreprise : -", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='se')
         self.title_code.pack(anchor='se', side='right', fill='both', padx=12)
 
 

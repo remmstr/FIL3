@@ -15,6 +15,7 @@ from .biblioManager import BiblioManager
 
 # Built-in modules
 import logging
+import platform
 
 class Casque:
 
@@ -116,7 +117,12 @@ class Casque:
         if self.JSON_path != "Fichier JSON inexistant" and self.JSON_path != "NULL":
             try:
                 # Lire le contenu du fichier JSON encodé en base 64 sur le casque
-                encoded_output = subprocess.check_output(["adb", "-s", self.numero, "shell", "cat", self.JSON_path], stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode('utf-8')
+                
+                if platform.system() == "Windows":
+                    encoded_output = subprocess.check_output(["adb", "-s", self.numero, "shell", "cat", self.JSON_path], stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode('utf-8')
+                else:
+                    encoded_output = subprocess.check_output(["adb", "-s", self.numero, "shell", "cat", self.JSON_path], stderr=subprocess.DEVNULL).decode('utf-8')
+                
                 if encoded_output.strip() == "":
                     raise ValueError(f"{self.name} {self.numero}: Le fichier JSON est vide")
 
@@ -153,8 +159,12 @@ class Casque:
             bool: True si l'ancienne APK est installée, False sinon.
         """
         try:
-            result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "list", "packages", self.config.package_old_name_PPV1],
+            if platform.system() == "Windows":
+                result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "list", "packages", self.config.package_old_name_PPV1],
                                     check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
+            else :
+                result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "pm", "list", "packages", self.config.package_old_name_PPV1],
+                                    check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)               
             output = result.stdout.decode('utf-8')
             if self.config.package_old_name_PPV1 in output:
                 return True
@@ -172,7 +182,11 @@ class Casque:
         if self.JSON_path != "Fichier JSON inexistant":
             command = [self.config.adb_exe_path, "-s", self.numero, "shell", "stat", "-c%s", self.JSON_path]
             try:
-                output = subprocess.check_output(command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8").strip()
+                if platform.system() == "Windows":
+                    output = subprocess.check_output(command, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8").strip()
+                else:
+                    output = subprocess.check_output(command, stderr=subprocess.DEVNULL).decode("utf-8").strip()
+
                 return int(output)
             except subprocess.CalledProcessError as e:
                 self.log.info(f"{self.name} {self.numero}: Erreur lors de la récupération de la taille du fichier JSON : {e}")
@@ -187,8 +201,12 @@ class Casque:
         """
         with self.lock:
             try:
-                result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "dumpsys", "package", self.config.package_name],
+                if platform.system() == "Windows":
+                    result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "dumpsys", "package", self.config.package_name],
                                         check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
+                else :
+                    result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, "shell", "dumpsys", "package", self.config.package_name],
+                                        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 output = result.stdout.decode('utf-8')
 
                 version_match = re.search(r'versionName=(\S+)', output)
@@ -233,7 +251,11 @@ class Casque:
         """
         with self.lock:
             try:
-                output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", self.config.json_file_path], stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8")
+                if platform.system() == "Windows":
+                    output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", self.config.json_file_path], stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW).decode("utf-8")
+                else :
+                    output = subprocess.check_output(["adb", "-s", self.numero, "shell", "ls", self.config.json_file_path], stderr=subprocess.DEVNULL).decode("utf-8")
+
                 if self.config.json_file_path in output:
                     self.JSON_path = os.path.dirname(self.config.json_file_path)
                     return self.config.json_file_path
@@ -538,7 +560,10 @@ class Casque:
             direction (str): Direction du transfert, "push" pour transférer du PC vers le casque, "pull" pour l'inverse.
         """
         try:
-            result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, direction, source_dir, target_dir], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+            if platform.system() == "Windows":
+                result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, direction, source_dir, target_dir], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+            else:
+                result = subprocess.run([self.config.adb_exe_path, "-s", self.numero, direction, source_dir, target_dir], check=True, stderr=subprocess.DEVNULL)
         except subprocess.CalledProcessError as e:
             self.log.info(f"{self.name} {self.numero}: Erreur lors du téléversement du fichier {source_dir} pour {solution_name} : {e}")
 
@@ -561,7 +586,12 @@ class Casque:
             while attempt < max_attempts:
                 try:
                     self.adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
-                    subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+
+                    if platform.system() == "Windows":
+                        subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True, stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+                    else:
+                        subprocess.run([self.config.adb_exe_path, "-s", self.numero, "install", self.marque.APK_path], check=True, stderr=subprocess.DEVNULL)
+
                     self.log.info(f"{self.name} {self.numero}: Installation de l'APK {self.marque.version_apk} réussie.")
                     
                     self.adbtools.grant_permissions(self.config.adb_exe_path, self.numero, self.config.package_name)
@@ -591,7 +621,11 @@ class Casque:
         """
         if self.version_apk != 'X':
             try:
-                subprocess.run([self.config.adb_exe_path, "-s", self.numero, "uninstall", self.config.package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
+                if platform.system() == "Windows":
+                    subprocess.run([self.config.adb_exe_path, "-s", self.numero, "uninstall", self.config.package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
+                else:
+                    subprocess.run([self.config.adb_exe_path, "-s", self.numero, "uninstall", self.config.package_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
                 self.log.info(f"{self.name} {self.numero}: Désinstallation de l'APK réussie.")
             except subprocess.CalledProcessError as e:
                 if "Unknown package" in str(e):
@@ -634,11 +668,17 @@ class Casque:
             et le SSID du réseau connecté ou une indication d'erreur.
         """
         try:
-            wifi_status_output = subprocess.check_output(
+            if platform.system() == "Windows":
+                wifi_status_output = subprocess.check_output(
+                    [self.config.adb_exe_path, "-s", self.numero, "shell", "dumpsys", "wifi"],
+                    stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW
+                ).decode("utf-8")
+            else:
+                wifi_status_output = subprocess.check_output(
                 [self.config.adb_exe_path, "-s", self.numero, "shell", "dumpsys", "wifi"],
-                stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW
-            ).decode("utf-8")
-
+                stderr=subprocess.DEVNULL
+                ).decode("utf-8")
+                
             if "mWifiInfo" in wifi_status_output:
                 wifi_info = next((line for line in wifi_status_output.split('\n') if "mWifiInfo" in line), None)
                 if wifi_info and "SSID: " in wifi_info:
@@ -651,3 +691,34 @@ class Casque:
         except subprocess.CalledProcessError as e:
             self.log.info(f"{self.name} {self.numero}: Failed to check Wi-Fi status: {e}")
             return False, "Erreur"
+
+
+
+    def print_casque(self):
+            """
+            Prints a summary of the main attributes of the casque for UI display purposes.
+            """
+            print("\n================= Casque Attributes =================")
+            print(f"Device: {self.device}")
+            print(f"Serial Number (Numero): {self.numero}")
+            print(f"Brand (Marque): {self.marque}")
+            print(f"Model (Modele): {self.modele}")
+            print(f"Battery Level: {self.battery_level}%")
+            print(f"APK Version Installed: {self.version_apk}")
+            print(f"JSON Path: {self.JSON_path}")
+            print(f"JSON File Size: {self.JSON_size} bytes")
+            print(f"Number of Installed Solutions: {len(self.getListSolInstall())}")
+            print(f"Number of Available Solutions: {len(self.solutions_casque)}")
+            print(f"Download Progress: {self.download_progress}%")
+            print(f"Device Name: {self.name}")
+            print(f"Association Code: {self.code}")
+            print(f"Associated Enterprise: {self.entreprise_association}")
+            
+            # Check if WiFi is connected
+            is_connected, ssid = self.is_wifi_connected()
+            if is_connected:
+                print(f"Wi-Fi Status: Connected to {ssid}")
+            else:
+                print(f"Wi-Fi Status: Not Connected ({ssid})")
+
+            print("\n=============== End of Casque Attributes ===============\n")

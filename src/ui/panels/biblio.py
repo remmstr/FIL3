@@ -75,11 +75,9 @@ class Biblio(PanelTemplate):
         """
         Refresh the solutions in the library by updating the StringVar for each solution.
         """
-        print("Refreshing library...")  # Debug print
 
         # Get updated solutions list
         updated_solutions = self.biblioManager.liste_solutions
-        print(f"Updated solutions count: {len(updated_solutions)}")  # Debug print
 
         # Update each solution's StringVar
         for i, solution in enumerate(updated_solutions):
@@ -93,13 +91,10 @@ class Biblio(PanelTemplate):
                 self.solution_vars.append(solution_var)
                 CTkLabel(self.solutions_frame, textvariable=solution_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10)).pack(anchor='w', padx=10, pady=2)
 
-        print("Library refreshed.")  # Debug print
-
     def periodic_refresh(self):
         """
         Periodically refresh the library solutions using the Tkinter `after` method.
         """
-        print("Executing periodic refresh...")  # Debug print
         self.refresh_biblio()  # Refresh the solutions
-        print("Scheduling next refresh...")  # Debug print
+
         self.after(10000, self.periodic_refresh)  # Schedule the next refresh after 10 seconds (10000 milliseconds)

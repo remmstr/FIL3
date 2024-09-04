@@ -28,6 +28,7 @@ class CasquesManager(metaclass=SingletonMeta):
         self.client = AdbClient(host="127.0.0.1", port=5037)
         self.refresh_casques()
         self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
+        
 
         
 
@@ -93,18 +94,24 @@ class CasquesManager(metaclass=SingletonMeta):
                     nouveau_casque.refresh_casque(device, self.apk_folder)
                     new_casques.append(nouveau_casque)
             except RuntimeError as e:
-                # Gestion spécifique pour les erreurs de connexion ou d'autorisation
+                # Specific handling for connection or authorization errors
                 if "device unauthorized" in str(e) or "device offline" in str(e):
                     message = f"Erreur: le casque avec numéro de série {device.serial} est non autorisé ou hors ligne. Veuillez le rebrancher et vérifier les autorisations."
+                    print(message)
                     #self.ui.handle_exception(message, e)  # Utilisation de la méthode handle_exception
                 else:
                     message = f"Erreur lors de l'ajout du casque {device.serial}"
+                    print(message)
                     #self.ui.handle_exception(message, e)
             except Exception as e:
-                message = f"Erreur inconnue lors de l'ajout du casque {device.serial}"
+                message = f"Erreur inconnue lors de l'ajout du casque {device.serial}: {e}"
+                print(message)
                 #self.ui.handle_exception(message, e)
 
         self.liste_casques = new_casques
+
+        self.print_casques()
+
 
 
 
@@ -124,13 +131,14 @@ class CasquesManager(metaclass=SingletonMeta):
         except RuntimeError:
             return False
 
-    def print(self):
+    def print_casques(self):
         """
         Affiche les informations de tous les casques gérés.
         """
+        print(f"Affichage des casques : {self.liste_casques}")
         for i, casque in enumerate(self.liste_casques, 1):
-            self.log.info(f"\nCasque #{i}:")
-            casque.print()
+            print(f"\nCasque #{i}:")
+            casque.print_casque()
             print("-" * 20)
 
     def install_All_APK(self):
