@@ -16,6 +16,10 @@ class PopupWindow(CTkToplevel):
         self.title(win_title)
         self.geometry(f'{win_size[0]}x{win_size[1]}')
 
+        # Make sure the popup stays on top
+        self.attributes('-topmost', True)
+        self.deiconify()  # Bring the window to the front
+
     @property
     def center_coordinates(self):
         """

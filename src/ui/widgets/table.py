@@ -2,6 +2,7 @@ import tkinter as tk  # Import nécessaire pour les variables tkinter
 
 # Internal modules
 from core.resource import FontLibrary, IconLibrary, ImageLibrary
+from ui.widgets import PopupWindow
 from devices import CasquesManager
 from devices import Casque
 from threading import Thread
@@ -142,16 +143,12 @@ class Line(CTkFrame):
         self.info_casque1 = CTkFrame(self, fg_color='transparent')
         self.info_casque1.pack(anchor='w', side='left', padx=8)
 
-        # Labels using StringVar
         self.title_id = CTkLabel(self.info_casque1, textvariable=self.casque_id_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title_id.pack(anchor='w', expand=True, side='top', fill='x', padx=2)
-        
         self.title_model = CTkLabel(self.info_casque1, textvariable=self.casque_model_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title_model.pack(anchor='w', expand=True, side='top', fill='x', padx=2)
-
         self.title_battery = CTkLabel(self.info_casque1, textvariable=self.casque_battery_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title_battery.pack(anchor='w', side='left', padx=4)
-        
         self.title_wifi = CTkLabel(self.info_casque1, textvariable=self.casque_wifi_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title_wifi.pack(anchor='w', side='right', padx=4)
 
@@ -160,16 +157,12 @@ class Line(CTkFrame):
 
         self.button_install = ButtonLine(self.info_casque3, tooltip='install app', icon_name='upload', command=lambda: self.install_apk(self.casque))
         self.button_install.pack(anchor='e', side='left')
-
         self.button_uninstall = ButtonLine(self.info_casque3, tooltip='uninstall app', icon_name='close', command=lambda: self.uninstall_apk(self.casque))
         self.button_uninstall.pack(anchor='e', side='left')
-
         self.title_apk = CTkLabel(self.info_casque3, textvariable=self.casque_apk_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title_apk.pack(anchor='w', expand=True, side='left', fill='y', padx=8)
-
         self.button_close = ButtonLine(self.info_casque3, tooltip='close app', icon_name='close', command=lambda: self.close_apk(self.casque))
         self.button_close.pack(anchor='w', side='right')
-
         self.button_open = ButtonLine(self.info_casque3, tooltip='open', icon_name='visible', command=lambda: self.start_apk(self.casque))
         self.button_open.pack(anchor='w', side='right')
 
@@ -181,7 +174,6 @@ class Line(CTkFrame):
 
         self.button_refresh = ButtonLine(self.info_serveur, text="Info serveur", tooltip='synchronosation_serveur', icon_name='refresh', command=lambda: self.refresh_json(self.casque))
         self.button_refresh.pack(anchor='w', side='top', pady=2)
-
         self.title_code = CTkLabel(self.info_serveur, textvariable=self.casque_name_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='ne')
         self.title_code.pack(anchor='ne', side='top', fill='both', padx=3)
         self.title_code = CTkLabel(self.info_serveur, textvariable=self.casque_code_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='ne')
@@ -192,15 +184,17 @@ class Line(CTkFrame):
         self.info_serveur_droite.pack(anchor='w', side='right', padx=8)  # Add pack() here to ensure it's displayed
 
         self.info_serveur2 = CTkFrame(self.info_serveur_droite, fg_color='transparent')
-        self.info_serveur2.pack(anchor='w', expand=True, side='bottom', padx=8)  # Add pack() here to ensure it's displayed
+        self.info_serveur2.pack(anchor='se', expand=True, side='bottom', padx=8)  # Add pack() here to ensure it's displayed
+
+        self.title_code = CTkLabel(self.info_serveur2, text="Tokens : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='se')
+        self.title_code.pack(anchor='se', side='right', fill='both', padx=12)
+        self.title_code = CTkLabel(self.info_serveur2, text="Entreprise : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10), anchor='se')
+        self.title_code.pack(anchor='se', side='right', fill='both', padx=12)
+
+
 
         self.info_serveur3 = CTkFrame(self.info_serveur_droite, fg_color='transparent')
         self.info_serveur3.pack(anchor='w', side='top', padx=8)  # Add pack() here to ensure it's displayed
-
-        self.title_code = CTkLabel(self.info_serveur2, text="Tokens : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
-        self.title_code.pack(anchor='ne', side='right', fill='both', padx=12)
-        self.title_code = CTkLabel(self.info_serveur2, text="Entreprise : Reverto", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
-        self.title_code.pack(anchor='ne', side='left', fill='both', padx=12)
 
         self.button_pull = ButtonLine(self.info_serveur3, tooltip='copier expéri. du casque dans la biblio', icon_name='pull', command=lambda: self.pull_solutions(self.casque))
         self.button_pull.pack(anchor='n', side='right')
@@ -210,7 +204,7 @@ class Line(CTkFrame):
         self.button_push.pack(anchor='n', side='right')
         self.title_exp_available = CTkLabel(self.info_serveur3, textvariable=self.casque_exp_available_var, font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11), anchor='w')
         self.title_exp_available.pack(anchor='n', expand=True, side='right', fill='x', padx=4, pady=0)
-        self.button_settings = ButtonLine(self.info_serveur3, tooltip='Setting expériences(s)', icon_name='visible')
+        self.button_settings = ButtonLine(self.info_serveur3, tooltip='Setting expériences(s)', icon_name='visible', command=lambda: self.setting_experiences_popup(self.casque) )
         self.button_settings.pack(anchor='n', side='right', padx=2)
 
 
@@ -232,6 +226,72 @@ class Line(CTkFrame):
         self.casque_exp_installed_var.set(f"[ {len(casque.getListSolInstall())} ] expériences installées")
         self.casque_exp_available_var.set(f"[ {len(casque.solutions_casque)} ] expériences disponibles")
 
+    def setting_experiences_popup(self, casque):
+        """
+        Opens a popup window to display and manage the solutions associated with a specific casque.
+        
+        Args:
+            casque: The Casque object for which to open the solutions manager.
+        """
+            # Check if the popup already exists
+        if hasattr(self, 'popup_experiences') and self.popup_experiences.winfo_exists():
+            # If it exists, bring it to the front
+            self.popup_experiences.lift()
+            self.popup_experiences.focus_force()
+            return
+    
+        # Create Popup Window
+        self.popup_experiences = PopupWindow(win_title=f"Licence associée au casque {casque.name}", win_size=(600, 400))
+
+        # Frame for Installed Solutions on Casque
+        installed_frame = CTkFrame(self.popup_experiences)
+        installed_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+        # Label for Installed Solutions
+        CTkLabel(installed_frame, text="Expériences installées sur le casque:", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 18)).pack(anchor='w', padx=5, pady=5)
+
+        # Display Installed Solutions
+        for solution in casque.solutions_casque:
+            if solution.sol_install_on_casque:
+                CTkLabel(installed_frame, text=f"{solution.nom} ({solution.version})", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10)).pack(anchor='w', padx=10, pady=2)
+
+        # Frame for Installed Solutions on Casque
+        uninstalled_frame = CTkFrame(self.popup_experiences)
+        uninstalled_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+        # Label for Installed Solutions
+        CTkLabel(uninstalled_frame, text="Expériences pas installées sur le casque:", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 18)).pack(anchor='w', padx=5, pady=5)
+
+        # Frame for Solutions Available in Library
+        library_frame = CTkFrame(uninstalled_frame)
+        library_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+        # Label for Solutions in Library
+        CTkLabel(library_frame, text="Solutions disponibles dans la bibliothèque:", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11)).pack(anchor='w', padx=5, pady=5)
+
+        # Display Solutions Available in Library
+        for solution in casque.solutions_casque:
+            if not solution.sol_install_on_casque and casque.is_solution_in_library(solution):
+                CTkLabel(library_frame, text=f"{solution.nom} ({solution.version})", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10)).pack(anchor='w', padx=10, pady=2)
+
+        # Frame for Other Solutions
+        other_frame = CTkFrame(uninstalled_frame)
+        other_frame.pack(padx=10, pady=10, fill="both", expand=True)
+
+        # Label for Other Solutions
+        CTkLabel(other_frame, text="Autres solutions non disponibles:", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11)).pack(anchor='w', padx=5, pady=5)
+
+        # Display Other Solutions
+        for solution in casque.solutions_casque:
+            if not solution.sol_install_on_casque and not casque.is_solution_in_library(solution):
+                CTkLabel(other_frame, text=f"{solution.nom} ({solution.version})", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 10)).pack(anchor='w', padx=10, pady=2)
+
+        # Close Button
+        close_button = CTkButton(self.popup_experiences, text="Fermer", command=self.popup_experiences.close)
+        close_button.pack(pady=10,side='bottom')
+
+
+        
     def install_apk(self, casque):
         Thread(target=casque.install_APK).start()
 

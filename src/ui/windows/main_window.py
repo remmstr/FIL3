@@ -13,6 +13,7 @@ from core.config import WindowSettings
 from ui.widgets import Sidebar
 from ui.panels import LogConsole
 from ui.panels.home import Home
+from ui.panels.biblio import Biblio
 
 
 class MainWindow(CTk):
@@ -75,7 +76,7 @@ class MainWindow(CTk):
         self.layout_home = Home(self.main_frame, 'Gestion des casques') # Calling the widget to link it to the main_frame
         self.sidebar.add_tab(self.layout_home, tab_name='Gestion des casques', icon_name='home', default=True) # Using the add_tab function to load it into the sidebar, and voilà!
 
-        self.layout_biblio = LogConsole(self.main_frame, 'Gestion de la bibliothèque') 
+        self.layout_biblio = Biblio(self.main_frame, 'Expériences disponibles dans la bibliothèque') 
         self.sidebar.add_tab(self.layout_biblio, tab_name='Gestion de la bibliothèque', icon_name='biblio') 
 
         self.layout_setting = CTkFrame(self.main_frame, fg_color=('#CCD7E0', '#313B47'))
