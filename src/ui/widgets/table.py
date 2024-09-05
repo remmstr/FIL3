@@ -366,10 +366,10 @@ class TableOfCasques(CTkFrame):
 
             # Compare the current version with the selected version
             if current_version != selected_version:
-                print(f"{line.casque.name} {line.casque.numero}: Installation nécessaire {current_version} -> {selected_version}")
+                self.log.info(f"{line.casque.name} {line.casque.numero}: Installation nécessaire {current_version} -> {selected_version}")
                 line.install_apk(line.casque)
             else:
-                print(f"{line.casque.name} {line.casque.numero}: Aucune installation nécessaire. Version actuelle {current_version}")
+                self.log.info(f"{line.casque.name} {line.casque.numero}: Aucune installation nécessaire. Version actuelle {current_version}")
 
             # Start JSON check process in a separate thread
             thread = Thread(target=self.wait_for_json_and_push_solutions, args=(line,))
@@ -402,7 +402,7 @@ class TableOfCasques(CTkFrame):
 
             # Push solutions
             line.push_solutions(line.casque)
-            print(f"Solutions téléversées sur le casque {line.casque.numero}.")
+            self.log.info(f"{line.casque.name} {line.casque.numero} : Solutions téléversées sur le casque {line.casque.numero}.")
 
         except Exception as e:
             self.handle_exception("Erreur lors de l'attente du fichier JSON ou du téléversement des solutions", e)
