@@ -30,13 +30,13 @@ class LogConsole(PanelTemplate):
         self.log_handler.setFormatter(logging.Formatter('\x1b[36m[%(levelname)s]\x1b[0m \x1b[37m[%(name)s]\x1b[0m %(message)s'))
         self.log.root.addHandler(self.log_handler)
 
-        self.selectbox = CTkOptionMenu(self.header.widgets_frame, values=['Log1', 'Log2', 'Log3'], command=self.select_interpreter)
-        self.selectbox.pack(anchor='e', side='left', padx=4)
+        #self.selectbox = CTkOptionMenu(self.header.widgets_frame, values=['Log1', 'Log2', 'Log3'], command=self.select_interpreter)
+        #self.selectbox.pack(anchor='e', side='left', padx=4)
 
-        self.button_clear = ButtonHeader(self.header.widgets_frame, tooltip='Clear console', icon_name='eraser', command=self.console.clear)
-        self.button_clear.pack(anchor='e', side='left')
+        #self.button_clear = ButtonHeader(self.header.widgets_frame, tooltip='Clear console', icon_name='eraser', command=self.console.clear)
+        #self.button_clear.pack(anchor='e', side='left')
 
-        self.select_interpreter('Log1')
+        #self.select_interpreter('Log1')
 
-    def select_interpreter(self, choice):
-        self.log.info('Changing stream for {}'.format(choice))
+    #def select_interpreter(self, choice):
+        #self.log.info('Changing stream for {}'.format(choice))

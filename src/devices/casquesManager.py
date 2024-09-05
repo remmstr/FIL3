@@ -110,7 +110,6 @@ class CasquesManager(metaclass=SingletonMeta):
 
         self.liste_casques = new_casques
 
-        self.print_casques()
 
 
 

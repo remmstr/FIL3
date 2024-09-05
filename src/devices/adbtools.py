@@ -150,11 +150,16 @@ class Adbtools:
         """
         try:
             # Obtenir le nom complet de l'activité principale
-            activity_output = subprocess.check_output(
-                [adb_exe_path, "-s", numero, "shell", "cmd", "package", "resolve-activity", "--brief", package_name],
-                stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW if platform.system() == "Windows" else 0
-            ).decode("utf-8").strip()
-
+            if platform.system() == "Windows":
+                activity_output = subprocess.check_output(
+                    [adb_exe_path, "-s", numero, "shell", "cmd", "package", "resolve-activity", "--brief", package_name],
+                    stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW
+                ).decode("utf-8").strip()
+            else:
+                 activity_output = subprocess.check_output(
+                    [adb_exe_path, "-s", numero, "shell", "cmd", "package", "resolve-activity", "--brief", package_name],
+                    stderr=subprocess.DEVNULL
+                ).decode("utf-8").strip()
             # Extraire le nom de l'activité (dernière ligne normalement)
             activity_name = activity_output.split('\n')[-1].strip()
 

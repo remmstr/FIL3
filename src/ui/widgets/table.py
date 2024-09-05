@@ -7,6 +7,7 @@ from devices import CasquesManager
 from devices import Casque
 from threading import Thread
 
+
 # Requirements modules
 from tktooltip import ToolTip
 from customtkinter import (
@@ -18,87 +19,8 @@ from customtkinter import (
 
 # Built-in modules
 import logging
+import time
 
-
-class TableOfCasques(CTkFrame):
-    """
-    Module that creates the table of casques:
-    - A header at the top that can hold an image OR a text
-    - A menu with a vertical list of tabs
-    - A footer that is configurable
-    """
-
-    def __init__(self, parent, title: str | None = None, image_name: str | None = None):
-        """
-        Create a new Table widget
-        """
-        # Set instance logger
-        self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
-
-        # Initialize inherited class
-        super().__init__(parent)
-
-        # Initialize instance variables
-        self.lines = []  # List to keep track of Line objects
-        self.selected = None
-
-        # Set the frame for the tab list of casques
-        self.menu = CTkScrollableFrame(self)
-        self.menu.configure(fg_color='transparent', corner_radius=0)
-        self.menu._scrollbar.configure(width=32)  # Adjust scrollbar width
-        self.menu.pack(expand=True, side='top', fill='both')
-
-        self.casques = CasquesManager()
-        self.add_lines()
-
-    def refresh_table(self):
-        """
-        Refresh the table by updating existing lines or adding new ones if necessary.
-        """
-
-        # Obtenir la liste actuelle des casques
-        current_casques = self.casques.get_liste_casque()
-
-        # Rafraîchir les lignes existantes ou en ajouter de nouvelles
-        existing_casque_numbers = [line.casque.numero for line in self.lines]
-
-        # Rafraîchir les lignes existantes
-        for line in self.lines:
-            # Vérifier si le numéro du casque de la ligne existe toujours
-            matching_casque = next((casque for casque in current_casques if casque.numero == line.casque.numero), None)
-            if matching_casque:
-                #print(f"Refreshing line for casque: {line.casque.numero}")  # Debug print
-                line.refresh_line(matching_casque)  # Rafraîchir la ligne avec les nouvelles informations
-            else:
-                print(f"Casque {line.casque.numero} no longer exists, removing.")  # Debug print
-                line.destroy()  # Supprimer la ligne si le casque n'existe plus
-                self.lines.remove(line)
-
-        # Ajouter de nouvelles lignes pour les casques restants qui ne sont pas encore affichés
-        for casque in current_casques:
-            if casque.numero not in existing_casque_numbers:
-                print(f"Adding new line for casque: {casque.numero}")  # Debug print
-                self.add_line(casque)
-
-
-
-    def add_lines(self):
-        """
-        Add all lines to the table initially.
-        """
-        print("Adding initial lines...")  # Debug print
-        if self.casques:
-            for casque in self.casques.get_liste_casque():
-                self.add_line(casque)
-
-    def add_line(self, casque: Casque):
-        """
-        Add a new line to the table for each casque.
-        """
-        print(f"Creating line for casque: {casque.device}")  # Debug print
-        line = Line(self.menu, casque)
-        self.lines.append(line)
-        line.pack(anchor='ne', side='top', expand=True, fill='x', padx=1, pady=1)
 
 
 class Line(CTkFrame):
@@ -241,7 +163,7 @@ class Line(CTkFrame):
             return
     
         # Create Popup Window
-        self.popup_experiences = PopupWindow(win_title=f"Licence associée au casque {casque.name}", win_size=(600, 400))
+        self.popup_experiences = PopupWindow(win_title=f"Licences associées au casque {casque.name}", win_size=(600, 400))
 
         # Frame for Installed Solutions on Casque
         installed_frame = CTkFrame(self.popup_experiences)
@@ -267,7 +189,7 @@ class Line(CTkFrame):
         library_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
         # Label for Solutions in Library
-        CTkLabel(library_frame, text="Solutions disponibles dans la bibliothèque:", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11)).pack(anchor='w', padx=5, pady=5)
+        CTkLabel(library_frame, text="Solutions expériences dans la bibliothèque:", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11)).pack(anchor='w', padx=5, pady=5)
 
         # Display Solutions Available in Library
         for solution in casque.solutions_casque:
@@ -279,7 +201,7 @@ class Line(CTkFrame):
         other_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
         # Label for Other Solutions
-        CTkLabel(other_frame, text="Autres solutions non disponibles:", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11)).pack(anchor='w', padx=5, pady=5)
+        CTkLabel(other_frame, text="Autres expériences non disponibles:", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 11)).pack(anchor='w', padx=5, pady=5)
 
         # Display Other Solutions
         for solution in casque.solutions_casque:
@@ -355,3 +277,156 @@ class ButtonLine(CTkButton):
         # Set the tooltip if the parameter is used
         if tooltip is not None:
             ToolTip(self, msg=tooltip)
+
+
+class TableOfCasques(CTkFrame):
+    """
+    Module that creates the table of casques:
+    - A header at the top that can hold an image OR a text
+    - A menu with a vertical list of tabs
+    - A footer that is configurable
+    """
+
+    def __init__(self, parent, title: str | None = None, image_name: str | None = None):
+        """
+        Create a new Table widget
+        """
+        # Set instance logger
+        self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
+
+        # Initialize inherited class
+        super().__init__(parent)
+
+        # Initialize instance variables
+        self.lines = []  # List to keep track of Line objects
+        self.selected = None
+
+        # Set the frame for the tab list of casques
+        self.menu = CTkScrollableFrame(self)
+        self.menu.configure(fg_color='transparent', corner_radius=0)
+        self.menu._scrollbar.configure(width=32)  # Adjust scrollbar width
+        self.menu.pack(expand=True, side='top', fill='both')
+
+        self.casques = CasquesManager()
+        self.add_lines()
+
+    def refresh_table(self):
+        """
+        Refresh the table by updating existing lines or adding new ones if necessary.
+        """
+
+        # Obtenir la liste actuelle des casques
+        current_casques = self.casques.get_liste_casque()
+
+        # Rafraîchir les lignes existantes ou en ajouter de nouvelles
+        existing_casque_numbers = [line.casque.numero for line in self.lines]
+
+        # Rafraîchir les lignes existantes
+        for line in self.lines:
+            # Vérifier si le numéro du casque de la ligne existe toujours
+            matching_casque = next((casque for casque in current_casques if casque.numero == line.casque.numero), None)
+            if matching_casque:
+                #print(f"Refreshing line for casque: {line.casque.numero}")  # Debug print
+                line.refresh_line(matching_casque)  # Rafraîchir la ligne avec les nouvelles informations
+            else:
+                print(f"Casque {line.casque.numero} no longer exists, removing.")  # Debug print
+                line.destroy()  # Supprimer la ligne si le casque n'existe plus
+                self.lines.remove(line)
+
+        # Ajouter de nouvelles lignes pour les casques restants qui ne sont pas encore affichés
+        for casque in current_casques:
+            if casque.numero not in existing_casque_numbers:
+                print(f"Adding new line for casque: {casque.numero}")  # Debug print
+                self.add_line(casque)
+
+
+    def installer_apks_et_solutions(self):
+        """
+        Launches APK and solutions installation for each casque in a separate thread.
+        """
+        self.log.info(f"installation des apk ainsi que les expériences sur tous les casques")
+
+        try:
+            for line in self.lines:
+                Thread(target=self.installer_apks_et_solution, args=(line,)).start()
+        except Exception as e:
+            self.handle_exception("Erreur lors de l'installation des APKs et des solutions", e)
+
+    def installer_apks_et_solution(self, line : Line):
+        """
+        Installs the APK and solutions on a specific casque and starts the JSON file check process.
+
+        Args:
+            casque: The Casque object to install the APK and solutions on.
+        """
+        try:
+            # Get current APK version
+            current_version = line.casque.version_apk
+            selected_version = self.casques.apk_folder  # Assuming you have a selected version dropdown or input
+
+            # Compare the current version with the selected version
+            if current_version != selected_version:
+                print(f"{line.casque.name} {line.casque.numero}: Installation nécessaire {current_version} -> {selected_version}")
+                line.install_apk(line.casque)
+            else:
+                print(f"{line.casque.name} {line.casque.numero}: Aucune installation nécessaire. Version actuelle {current_version}")
+
+            # Start JSON check process in a separate thread
+            thread = Thread(target=self.wait_for_json_and_push_solutions, args=(line,))
+            thread.start()
+
+        except Exception as e:
+            self.handle_exception("Erreur lors de l'installation des APKs et des solutions", e)
+
+    def wait_for_json_and_push_solutions(self, line: Line):
+        """
+        Waits for the JSON file to be available on the casque and uploads the solutions once the file is found.
+
+        Args:
+            casque: The Casque object to wait for the JSON file and upload solutions.
+        """
+        try:
+            max_attempts = 3
+            attempt = 0
+            time.sleep(10)
+            while attempt < max_attempts:
+                time.sleep(15)  # Wait 15 seconds before checking again
+                line.refresh_json(line.casque)  # Refresh JSON
+                if line.casque.JSON_path != 'Fichier JSON inexistant':
+                    break
+                attempt += 1
+
+            # If the JSON file is still nonexistent after 3 attempts
+            if line.casque.JSON_path == 'Fichier JSON inexistant':
+                raise FileNotFoundError(f"{line.casque.name} {line.casque.numero}: Fichier JSON introuvable pour le casque {line.casque.numero} après {max_attempts} tentatives.")
+
+            # Push solutions
+            line.push_solutions(line.casque)
+            print(f"Solutions téléversées sur le casque {line.casque.numero}.")
+
+        except Exception as e:
+            self.handle_exception("Erreur lors de l'attente du fichier JSON ou du téléversement des solutions", e)
+
+    def handle_exception(self, message: str, exception: Exception):
+        """
+        Handles exceptions by logging and possibly displaying an error message to the user.
+        """
+        self.log.error(f"{message}: {exception}")
+
+    def add_lines(self):
+        """
+        Add all lines to the table initially.
+        """
+        print("Adding initial lines...")  # Debug print
+        if self.casques:
+            for casque in self.casques.get_liste_casque():
+                self.add_line(casque)
+
+    def add_line(self, casque: Casque):
+        """
+        Add a new line to the table for each casque.
+        """
+        print(f"Creating line for casque: {casque.device}")  # Debug print
+        line = Line(self.menu, casque)
+        self.lines.append(line)
+        line.pack(anchor='ne', side='top', expand=True, fill='x', padx=1, pady=1)

@@ -206,17 +206,17 @@ class ImageLibrary(ResourceHandler):
 
         # List all folders and files that is accessible at the path folder
         folders = [path for path in self.resource_path.glob('*') if path.is_dir()]
-        files = [path for path in self.resource_path.glob('*.ttf') if path.is_file()]
+        files = [path for path in self.resource_path.glob('*.png') if path.is_file()]
 
         # List all available image file in library_path
         for image_file in files:
             image = ImageHandler(image_file)
 
             # Registering to library of image
-            ImageLibrary.Contents['root'].update({image.stem: image})
+            ImageLibrary.Contents['root'].update({image_file.stem: image})
             count += 1
 
-            self.log.debug("Image named \x1b[1m{}\x1b[m was added to the library.".format(image.stem))
+            self.log.debug("Image named \x1b[1m{}\x1b[m was added to the library.".format(image_file.stem))
 
         # Search one level deeper into the folders that has been found
         for folder in folders:

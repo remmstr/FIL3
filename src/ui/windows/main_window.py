@@ -79,8 +79,6 @@ class MainWindow(CTk):
         self.layout_biblio = Biblio(self.main_frame, 'Expériences disponibles dans la bibliothèque') 
         self.sidebar.add_tab(self.layout_biblio, tab_name='Gestion de la bibliothèque', icon_name='biblio') 
 
-        self.layout_setting = CTkFrame(self.main_frame, fg_color=('#CCD7E0', '#313B47'))
-        self.sidebar.add_tab(self.layout_setting, tab_name='Settings', icon_name='settings')
 
     def quit(self):
         """

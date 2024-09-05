@@ -28,10 +28,10 @@ def main():
 
     # Set parameters of the window
     WindowSettings(
-        title='My python app',
+        title='FIL3 - Gestionnaire de casque VR',
         version=(1, 0, 0),
-        win_icon='release/{os}/appicon.{ext}'.format(os=platform.system().lower(), ext='icns' if sys.platform == 'darwin' else 'ico'),
-        taskbar_icon='release/linux/appicon.png',
+        win_icon='res/icons/appicon.{ext}'.format(os=platform.system().lower(), ext='icns' if sys.platform == 'darwin' else 'ico'),
+        taskbar_icon='res/icons/appicon.png',
         theme_file="res/theme.json"
     )
     

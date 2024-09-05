@@ -105,7 +105,7 @@ class ButtonHeader(CTkButton):
         if text is None:
             width = icon_size + 4
         else:
-            width = kwargs.pop('width') | 140
+            width = kwargs.pop('width', 140)
 
         # Initialize inherited class
         super().__init__(
