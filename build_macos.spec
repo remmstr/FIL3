@@ -59,8 +59,9 @@ def search_file(dir_path: str | Path, relative_to: str | None = None, pattern: s
 
 # Directory list
 root_dir = Path(os.getcwd()).resolve()
-release_dir = root_dir.joinpath("release", platform.system().lower())
-bin_dir = release_dir.joinpath("bin")
+a = root_dir.joinpath("res", platform.system().lower())
+icons_dir = a.joinpath("icons", platform.system().lower())
+bin_dir = icons_dir.joinpath("bin")
 ressource_dir = root_dir.joinpath("res")
 
 # Program infos
@@ -77,13 +78,13 @@ program_file = None
 # Set the icon path and full program name for the specified OS
 match platform.system().lower():
     case 'darwin':
-        icon_path = str(release_dir.joinpath("appicon.icns"))
+        icon_path = str(icons_dir.joinpath("appicon.icns"))
         program_file = "{}.app".format(program_name)
     case 'linux':
-        icon_path = str(release_dir.joinpath("appicon.png"))
+        icon_path = str(icons_dir.joinpath("appicon.png"))
         program_file = "{}".format(program_name)
     case 'windows':
-        icon_path = str(release_dir.joinpath("appicon.ico"))
+        icon_path = str(icons_dir.joinpath("appicon.ico"))
         program_file = "{}.exe".format(program_name)
 
 binaries += search_file(bin_dir, relative_to=root_dir, recursive=True)
@@ -159,11 +160,12 @@ app = BUNDLE(
     coll,
     name=program_file,
     icon=icon_path,
-    bundle_identifier=bundle_id
+    bundle_identifier=bundle_id,
     info_plist={
-        'NSHighResolutionCapable': 'True',
-        'LSUIElement': 'True'  # Prevents terminal from opening on macOS
+        'NSHighResolutionCapable': 'True',  # Add a comma here
+        'LSUIElement': 'True',  # Prevents terminal from opening on macOS
         'LSBackgroundOnly': 'True'  # Run in the background without creating any windows
     },
 )
+
 

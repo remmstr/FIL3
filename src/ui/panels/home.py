@@ -32,16 +32,16 @@ class Home(PanelTemplate):
         # Set instance logger
         self.log = logging.getLogger('.'.join([__name__, type(self).__name__]))
 
-        # Label for APK version
-        self.description_apk = CTkLabel(self.header.widgets_frame, text="Version de l'apk : ", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
-        self.description_apk.pack(anchor='n', expand=True, side='right', fill='x', padx=3)
+        
 
         # Dropdown for APK selection
         self.selectbox_apk = CTkOptionMenu(self.header.widgets_frame, values=[], command=self.update_apk_folder)
         self.selectbox_apk.pack(anchor='e', side='right', padx=4)
         self.populate_folders()  # Remplir les dossiers APK
 
-        
+        # Label for APK version
+        self.description_apk = CTkLabel(self.header.widgets_frame, text="Version de l'apk : ", font=FontLibrary.get_font_tkinter('Inter 18pt', 'Bold', 12), anchor='w')
+        self.description_apk.pack(anchor='n', expand=True, side='right', fill='x', padx=3)
 
 
         self.main_frame = CTkFrame(self, fg_color=('#E7EBEF', '#293138'), corner_radius=4)
@@ -51,8 +51,8 @@ class Home(PanelTemplate):
         self.TableOfCasques = TableOfCasques(self.main_frame)
         self.TableOfCasques.pack(expand=True, side='top', fill='both', padx=4, pady=8)
 
-        self.button_install = ButtonHeader(self.header.widgets_frame, text='Installation ss', tooltip='Installer tous les casques', icon_name='upload', command= self.TableOfCasques.installer_apks_et_solutions)
-        self.button_install.pack(anchor='e', side='right', padx=20)
+        self.button_install = ButtonHeader(self.header.widgets_frame, text='Installation de tous les casques', tooltip='Installer tous les casques', icon_name='upload', command= self.TableOfCasques.installer_apks_et_solutions)
+        self.button_install.pack(anchor='e', side='right', padx=25)
 
         # Create a separate frame for the console at the bottom
         self.console_frame = CTkFrame(self.main_frame, fg_color=('#E7EBEF', '#293138'), corner_radius=4)
